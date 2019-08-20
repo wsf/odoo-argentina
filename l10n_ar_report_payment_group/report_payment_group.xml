@@ -46,7 +46,7 @@
 					  Fecha: <span t-field="o.payment_date"/><br/>
 			  </span>
 			  <span t-if="o.state == 'confirmed' or o.state == 'posted' or o.state == 'draft'">
-						<span t-field="o.display_name"/>
+						<!--<span t-field="o.display_name"/>-->
 			  </span>
 			</div>
 			<!--END DATOS FACTURA-->
