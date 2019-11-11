@@ -45,11 +45,11 @@ class AfipwsConnection(models.Model):
     )
     afip_login_url = fields.Char(
         'AFIP Login URL',
-        compute='get_urls',
+        compute='_compute_afip_urls',
     )
     afip_ws_url = fields.Char(
         'AFIP WS URL',
-        compute='get_urls',
+        compute='_compute_afip_urls',
     )
     type = fields.Selection(
         [('production', 'Production'), ('homologation', 'Homologation')],
@@ -66,9 +66,8 @@ class AfipwsConnection(models.Model):
         required=True,
     )
 
-    @api.multi
     @api.depends('type', 'afip_ws')
-    def get_urls(self):
+    def _compute_afip_urls(self):
         for rec in self:
             rec.afip_login_url = rec.get_afip_login_url(rec.type)
 
@@ -115,7 +114,6 @@ class AfipwsConnection(models.Model):
                     "personaServiceA5?wsdl")
         return afip_ws_url
 
-    @api.multi
     def check_afip_ws(self, afip_ws):
         # TODO tal vez cambiar nombre cuando veamos si devuelve otra cosa
         self.ensure_one()
@@ -125,7 +123,6 @@ class AfipwsConnection(models.Model):
                 ' %s connection') % (
                 afip_ws, self.afip_ws))
 
-    @api.multi
     def connect(self):
         """
         Method to be called
@@ -156,7 +153,7 @@ class AfipwsConnection(models.Model):
 
         # connect to the webservice and call to the test method
         ws.Conectar("", wsdl or "", "")
-        cuit = self.company_id.cuit_required()
+        cuit = self.company_id.vat
         ws.Cuit = cuit
         ws.Token = self.token
         ws.Sign = self.sign

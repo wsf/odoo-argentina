@@ -8,6 +8,7 @@ import base64
 
 class L10nArAfipwsUploadCertificate(models.TransientModel):
     _name = 'afipws.upload_certificate.wizard'
+    _description = 'afipws.upload_certificate.wizard'
 
     @api.model
     def get_certificate(self):
@@ -26,7 +27,6 @@ class L10nArAfipwsUploadCertificate(models.TransientModel):
         required=True
     )
 
-    @api.multi
     def action_confirm(self):
         """
         """

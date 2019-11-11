@@ -16,7 +16,6 @@ class AfipWsCurrencyRateWizard(models.TransientModel):
         required=True,
     )
 
-    @api.multi
     def confirm(self):
         self.ensure_one()
         journal_id = self._context.get('active_id', False)

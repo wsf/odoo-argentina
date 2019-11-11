@@ -15,6 +15,7 @@ _logger = logging.getLogger(__name__)
 
 class AfipwsCertificate(models.Model):
     _name = "afipws.certificate"
+    _description = "afipws.certificate"
     _rec_name = "alias_id"
 
     alias_id = fields.Many2one(
@@ -55,41 +56,38 @@ class AfipwsCertificate(models.Model):
     )
     request_file = fields.Binary(
         'Download Signed Certificate Request',
-        compute='get_request_file',
-        readonly=True
+        compute='_compute_request_file',
+        readonly=True,
+        store=True
     )
     request_filename = fields.Char(
         'Filename',
         readonly=True,
-        compute='get_request_file',
+        compute='_compute_request_file',
+        store=True
     )
 
-    @api.multi
     @api.depends('csr')
-    def get_request_file(self):
+    def _compute_request_file(self):
         for rec in self.filtered('csr'):
             rec.request_filename = 'request.csr'
             rec.request_file = base64.encodestring(self.csr.encode('utf-8'))
 
-    @api.multi
     def action_to_draft(self):
         if self.alias_id.state != 'confirmed':
             raise UserError(_('Certificate Alias must be confirmed first!'))
         self.write({'state': 'draft'})
         return True
 
-    @api.multi
     def action_cancel(self):
         self.write({'state': 'cancel'})
         return True
 
-    @api.multi
     def action_confirm(self):
         self.verify_crt()
         self.write({'state': 'confirmed'})
         return True
 
-    @api.multi
     def verify_crt(self):
         """
         Verify if certificate is well formed
@@ -112,7 +110,6 @@ class AfipwsCertificate(models.Model):
                 raise UserError(msg)
         return True
 
-    @api.multi
     def get_certificate(self):
         """
         Return Certificate object.

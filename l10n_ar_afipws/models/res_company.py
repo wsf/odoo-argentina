@@ -60,7 +60,6 @@ class ResCompany(models.Model):
             'Running arg electronic invoice on %s mode' % environment_type)
         return environment_type
 
-    @api.multi
     def get_key_and_certificate(self, environment_type):
         """
         Funcion que busca para el environment_type definido,
@@ -76,8 +75,15 @@ class ResCompany(models.Model):
         certificate = self.env['afipws.certificate'].search([
             ('alias_id.company_id', '=', self.id),
             ('alias_id.type', '=', environment_type),
-            ('state', '=', 'confirmed'),
-        ], limit=1)
+            ('state', '=', 'confirmed')])
+        # to avoid confusion on the user, if more than one certificate found,
+        # we ask to keep the one he whants to use
+        if len(certificate) > 1:
+            raise UserError(_(
+                'Tiene más de un certificado de "%s" confirmado. Por favor '
+                'deje un solo certificado de "%s" confirmado.') % (
+                    environment_type, environment_type
+                ))
         if certificate:
             pkey = certificate.alias_id.key
             cert = certificate.crt
@@ -112,7 +118,6 @@ class ResCompany(models.Model):
             raise UserError(msg)
         return (pkey, cert)
 
-    @api.multi
     def get_connection(self, afip_ws):
         self.ensure_one()
         _logger.info('Getting connection for company %s and ws %s' % (
@@ -131,7 +136,6 @@ class ResCompany(models.Model):
             connection = self._create_connection(afip_ws, environment_type)
         return connection
 
-    @api.multi
     def _create_connection(self, afip_ws, environment_type):
         """
         This function should be called from get_connection. Not to be used
@@ -210,7 +214,7 @@ class ResCompany(models.Model):
             expirationTime = wsaa.ObtenerTagXml("expirationTime")
             generationTime = wsaa.ObtenerTagXml("generationTime")
             uniqueId = wsaa.ObtenerTagXml("uniqueId")
-        except:
+        except Exception:
             token = sign = None
             if wsaa.Excepcion:
                 # get the exception already parsed by the helper

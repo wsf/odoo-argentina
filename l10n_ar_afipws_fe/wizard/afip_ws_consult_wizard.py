@@ -15,7 +15,6 @@ class AfipWsConsultWizard(models.TransientModel):
         required=True,
     )
 
-    @api.multi
     def confirm(self):
         self.ensure_one()
         journal_document_type_id = self._context.get('active_id', False)

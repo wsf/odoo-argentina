@@ -3,7 +3,7 @@
     <record id="view_account_journal_form" model="ir.ui.view">
         <field name="name">account.journal.form</field>
         <field name="model">account.journal</field>
-        <field name="inherit_id" ref="l10n_ar_account.view_account_journal_form"/>
+        <field name="inherit_id" ref="l10n_ar.view_account_journal_form"/>
         <field name="arch" type="xml">
             <sheet position="before">
                 <header>
@@ -16,11 +16,10 @@
                     <button name="get_pyafipws_currencies" string="Get Currencies" help="Get valid currencies classes for this webservice" type="object" attrs="{'invisible':[('afip_ws', '=', False)]}"/>
                     <button name="check_document_local_remote_number" string="Check Remote/Local Numbers" help="Check documents local next number against remote Numbers" type="object" attrs="{'invisible':[('afip_ws', '=', False)]}"/>
                     <button name="sync_document_local_remote_number" string="Sync Remote/Local Numbers" help="Sync documents local next number against remote Numbers" type="object" confirm="Warning! this operation can not be undone, all sequences will be syncronized with remote numbers" attrs="{'invisible':[('afip_ws', '=', False)]}"/>
-                    <button name="%(action_afip_ws_currency_rate_wizard)d" string="Get Currency Rate" type="action" attrs="{'invisible':[('afip_ws', '=', False)]}"/>
                 </header>
             </sheet>
-            <field name="point_of_sale_type" position="after">
-                <field name="afip_ws" attrs="{'invisible':[('point_of_sale_type', '!=', 'electronic')], 'required':[('point_of_sale_type', '=', 'electronic')]}"/>
+            <field name="l10n_ar_afip_pos_system" position="after">
+                <field name="afip_ws" attrs="{'invisible':[('l10n_ar_afip_pos_system', '!=', 'RLI_RLM')], 'required':[('l10n_ar_afip_pos_system', '=', 'RLI_RLM')]}"/>
             </field>
         </field>
     </record>

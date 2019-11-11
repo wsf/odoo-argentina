@@ -5,13 +5,13 @@
 from odoo import models, api, fields, _
 import logging
 from odoo.exceptions import UserError
-from odoo.addons.l10n_ar_account.models import account_journal
+#from odoo.addons.l10n_ar.models import account_journal
 
 _logger = logging.getLogger(__name__)
 
-old_selection = account_journal.AccountJournal._point_of_sale_types_selection
-new_selection = old_selection.append(('electronic', 'Electronic'))
-account_journal.AccountJournal._point_of_sale_types_selection = new_selection
+#old_selection = account_journal.AccountJournal._point_of_sale_types_selection
+#new_selection = old_selection.append(('electronic', 'Electronic'))
+#account_journal.AccountJournal._point_of_sale_types_selection = new_selection
 
 
 class AccountJournal(models.Model):
@@ -35,7 +35,6 @@ class AccountJournal(models.Model):
         'AFIP WS',
     )
 
-    @api.multi
     def get_name_and_code_suffix(self):
         name = super(AccountJournal, self).get_name_and_code_suffix()
         if self.afip_ws == 'wsfex':
@@ -45,10 +44,10 @@ class AccountJournal(models.Model):
     @api.model
     def create(self, vals):
         journal = super(AccountJournal, self).create(vals)
-        if journal.point_of_sale_type == 'electronic' and journal.afip_ws:
+        if journal.l10n_ar_afip_pos_system == 'RLI_RLM' and journal.afip_ws:
             try:
                 journal.sync_document_local_remote_number()
-            except:
+            except Exception:
                 _logger.info(
                     'Could not sincronize local and remote numbers')
         return journal
@@ -59,15 +58,13 @@ class AccountJournal(models.Model):
     #     types.append(['electronic', _('Electronic')])
     #     return types
 
-    @api.multi
     @api.constrains('point_of_sale_type', 'afip_ws')
     def check_afip_ws_and_type(self):
         for rec in self:
-            if rec.point_of_sale_type != 'electronic' and rec.afip_ws:
+            if rec.l10n_ar_afip_pos_system != 'RLI_RLM' and rec.afip_ws:
                 raise UserError(_(
                     'You can only use an AFIP WS if type is "Electronic"'))
 
-    @api.multi
     def get_journal_letter(self, counterpart_partner=False):
         """Function to be inherited by afip ws fe"""
         letters = super(AccountJournal, self).get_journal_letter(
@@ -84,7 +81,6 @@ class AccountJournal(models.Model):
                 lambda r: r.name == 'E')
         return letters
 
-    @api.multi
     def sync_document_local_remote_number(self):
         if self.type != 'sale':
             return True
@@ -94,7 +90,6 @@ class AccountJournal(models.Model):
                 )['result']) + 1
             journal_document_type.sequence_id.number_next_actual = next_by_ws
 
-    @api.multi
     def check_document_local_remote_number(self):
         msg = ''
         if self.type != 'sale':
@@ -116,7 +111,6 @@ class AccountJournal(models.Model):
         else:
             raise UserError(_('All documents are synchronized'))
 
-    @api.multi
     def test_pyafipws_dummy(self):
         """
         AFIP Description: Método Dummy para verificación de funcionamiento de
@@ -136,7 +130,6 @@ class AccountJournal(models.Model):
                 ws.AuthServerStatus))
         raise UserError(title + msg)
 
-    @api.multi
     def test_pyafipws_point_of_sales(self):
         self.ensure_one()
         afip_ws = self.afip_ws
@@ -156,7 +149,6 @@ class AccountJournal(models.Model):
         title = _('Enabled Point Of Sales on AFIP\n')
         raise UserError(title + msg)
 
-    @api.multi
     def get_pyafipws_cuit_document_classes(self):
         self.ensure_one()
         afip_ws = self.afip_ws
@@ -178,7 +170,6 @@ class AccountJournal(models.Model):
             '\n '.join(ret), ".\n".join([ws.Excepcion, ws.ErrMsg, ws.Obs])))
         raise UserError(msg)
 
-    @api.multi
     def get_pyafipws_zonas(self):
         self.ensure_one()
         afip_ws = self.afip_ws
@@ -196,7 +187,6 @@ class AccountJournal(models.Model):
             '\n '.join(ret), ".\n".join([ws.Excepcion, ws.ErrMsg, ws.Obs])))
         raise UserError(msg)
 
-    @api.multi
     def get_pyafipws_NCM(self):
         self.ensure_one()
         afip_ws = self.afip_ws
@@ -214,13 +204,11 @@ class AccountJournal(models.Model):
             '\n '.join(ret), ".\n".join([ws.Excepcion, ws.ErrMsg, ws.Obs])))
         raise UserError(msg)
 
-    @api.multi
     def get_pyafipws_currencies(self):
         self.ensure_one()
         return self.env['res.currency'].get_pyafipws_currencies(
             afip_ws=self.afip_ws, company=self.company_id)
 
-    @api.multi
     def action_get_connection(self):
         self.ensure_one()
         afip_ws = self.afip_ws
@@ -228,7 +216,6 @@ class AccountJournal(models.Model):
             raise UserError(_('No AFIP WS selected'))
         self.company_id.get_connection(afip_ws).connect()
 
-    @api.multi
     def get_pyafipws_currency_rate(self, currency):
         raise UserError(currency.get_pyafipws_currency_rate(
             afip_ws=self.afip_ws,

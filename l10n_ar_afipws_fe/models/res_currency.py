@@ -2,7 +2,7 @@
 # For copyright and license notices, see __manifest__.py file in module root
 # directory
 ##############################################################################
-from odoo import models, api, _
+from odoo import models, fields, api, _
 from odoo.exceptions import UserError
 import logging
 
@@ -12,7 +12,8 @@ _logger = logging.getLogger(__name__)
 class ResCurrency(models.Model):
     _inherit = "res.currency"
 
-    @api.multi
+    afip_code = fields.Char('AFIP Code')
+
     def action_get_pyafipws_currencies(self):
         return self.get_pyafipws_currencies()
 
@@ -42,11 +43,9 @@ class ResCurrency(models.Model):
             '\n '.join(ret), ".\n".join([ws.Excepcion, ws.ErrMsg, ws.Obs])))
         raise UserError(msg)
 
-    @api.multi
     def action_get_pyafipws_currency_rate(self):
         raise UserError(self.get_pyafipws_currency_rate()[1])
 
-    @api.multi
     def get_pyafipws_currency_rate(self, afip_ws='wsfe', company=False):
         self.ensure_one()
         # if not company, we use any that has valid certificates

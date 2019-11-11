@@ -1,6 +1,6 @@
 {
     "name": "Factura Electrónica Argentina",
-    'version': '12.0.1.2.1',
+    'version': '12.0.1.3.0',
     'category': 'Localization/Argentina',
     'sequence': 14,
     'author': 'ADHOC SA, Moldeo Interactive,Odoo Community Association (OCA)',
@@ -8,8 +8,11 @@
     'summary': '',
     'depends': [
         'l10n_ar_afipws',
-        'l10n_ar_account',
-        'account_cancel',
+        'uom',
+        'l10n_latam_invoice_document',
+        'l10n_ar',
+        'account_move_tax'
+        #'l10n_ar_account',
         # TODO improove this, we add this dependency because of demo data only
         # becuase demo data needs de chart account installed, we should
         # take this data tu l10n_ar_chart and set electronic if available
@@ -21,15 +24,16 @@
     'external_dependencies': {
     },
     'data': [
-        'wizard/afip_ws_consult_wizard_view.xml',
-        'wizard/afip_ws_currency_rate_wizard_view.xml',
-        'wizard/res_config_settings_view.xml',
-        'views/invoice_view.xml',
-        'views/account_journal_document_type_view.xml',
+        #'wizard/afip_ws_consult_wizard_view.xml',
+        #'wizard/afip_ws_currency_rate_wizard_view.xml',
+        #'wizard/res_config_settings_view.xml',
+        'views/move_view.xml',
+        #'views/l10n_latam_document_type_view.xml',
         'views/account_journal_view.xml',
         'views/product_uom_view.xml',
         'views/res_currency_view.xml',
-        'views/menuitem.xml',
+        #'views/report_invoice.xml',
+        #'views/menuitem.xml',
     ],
     'demo': [
         # 'demo/account_journal_expo_demo.yml',

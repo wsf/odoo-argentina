@@ -78,7 +78,7 @@ class AfipwsCertificateAlias(models.Model):
     )
     cuit = fields.Char(
         'CUIT',
-        compute='get_cuit',
+        compute='_compute_cuit',
         required=True,
     )
     company_cuit = fields.Char(
@@ -112,7 +112,7 @@ class AfipwsCertificateAlias(models.Model):
         ('draft', 'Draft'),
         ('confirmed', 'Confirmed'),
         ('cancel', 'Cancelled'),
-    ], 'State', index=True, readonly=True, default='draft',
+    ], 'Status', index=True, readonly=True, default='draft',
         help="* The 'Draft' state is used when a user is creating a new pair "
         "key. Warning: everybody can see the key."
         "\n* The 'Confirmed' state is used when the key is completed with "
@@ -136,79 +136,73 @@ class AfipwsCertificateAlias(models.Model):
                 self.type, self.company_id.name)
             self.common_name = common_name[:50]
 
-    @api.multi
     @api.depends('company_cuit', 'service_provider_cuit', 'service_type')
-    def get_cuit(self):
+    def _compute_cuit(self):
         for rec in self:
             if rec.service_type == 'outsourced':
-                rec.cuit=rec.service_provider_cuit
+                rec.cuit = rec.service_provider_cuit
             else:
-                rec.cuit=rec.company_cuit
+                rec.cuit = rec.company_cuit
 
     @api.onchange('company_id')
     def change_company_id(self):
         if self.company_id:
-            self.country_id=self.company_id.country_id.id
-            self.state_id=self.company_id.state_id.id
-            self.city=self.company_id.city
-            self.company_cuit=self.company_id.cuit
+            self.country_id = self.company_id.country_id.id
+            self.state_id = self.company_id.state_id.id
+            self.city = self.company_id.city
+            self.company_cuit = self.company_id.vat
 
-    @api.multi
     def action_confirm(self):
         if not self.key:
             self.generate_key()
         self.write({'state': 'confirmed'})
         return True
 
-    @api.multi
     def generate_key(self, key_length=2048):
         """
         """
         # TODO reemplazar todo esto por las funciones nativas de pyafipws
         for rec in self:
-            k=crypto.PKey()
+            k = crypto.PKey()
             k.generate_key(crypto.TYPE_RSA, key_length)
-            rec.key=crypto.dump_privatekey(crypto.FILETYPE_PEM, k)
+            rec.key = crypto.dump_privatekey(crypto.FILETYPE_PEM, k)
 
-    @api.multi
     def action_to_draft(self):
         self.write({'state': 'draft'})
         return True
 
-    @api.multi
     def action_cancel(self):
         self.write({'state': 'cancel'})
         self.certificate_ids.write({'state': 'cancel'})
         return True
 
-    @api.multi
     def action_create_certificate_request(self):
         """
         TODO agregar descripcion y ver si usamos pyafipsw para generar esto
         """
         for record in self:
-            req=crypto.X509Req()
-            req.get_subject().C=self.country_id.code.encode(
+            req = crypto.X509Req()
+            req.get_subject().C = self.country_id.code.encode(
                 'ascii', 'ignore')
             if self.state_id:
-                req.get_subject().ST=self.state_id.name.encode(
+                req.get_subject().ST = self.state_id.name.encode(
                     'ascii', 'ignore')
-            req.get_subject().L=self.city.encode(
+            req.get_subject().L = self.city.encode(
                 'ascii', 'ignore')
-            req.get_subject().O=self.company_id.name.encode(
+            req.get_subject().O = self.company_id.name.encode(
                 'ascii', 'ignore')
-            req.get_subject().OU=self.department.encode(
+            req.get_subject().OU = self.department.encode(
                 'ascii', 'ignore')
-            req.get_subject().CN=self.common_name.encode(
+            req.get_subject().CN = self.common_name.encode(
                 'ascii', 'ignore')
-            req.get_subject().serialNumber='CUIT %s' % self.cuit.encode(
+            req.get_subject().serialNumber = 'CUIT %s' % self.cuit.encode(
                 'ascii', 'ignore')
-            k=crypto.load_privatekey(crypto.FILETYPE_PEM, self.key)
-            self.key=crypto.dump_privatekey(crypto.FILETYPE_PEM, k)
+            k = crypto.load_privatekey(crypto.FILETYPE_PEM, self.key)
+            self.key = crypto.dump_privatekey(crypto.FILETYPE_PEM, k)
             req.set_pubkey(k)
             req.sign(k, 'sha256')
-            csr=crypto.dump_certificate_request(crypto.FILETYPE_PEM, req)
-            vals={
+            csr = crypto.dump_certificate_request(crypto.FILETYPE_PEM, req)
+            vals = {
                 'csr': csr,
                 'alias_id': record.id,
             }
@@ -217,7 +211,6 @@ class AfipwsCertificateAlias(models.Model):
 
     @api.constrains('common_name')
     def check_common_name_len(self):
-        for rec in self.filtered(lambda x: x.common_name and len(
-                x.common_name) > 50):
+        if self.filtered(lambda x: x.common_name and len(x.common_name) > 50):
             raise ValidationError(
                 _('The Common Name must be lower than 50 characters long'))
