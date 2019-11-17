@@ -25,6 +25,11 @@ class AccountMove(models.Model):
     afip_auth_verify_type = fields.Selection(
         related='company_id.afip_auth_verify_type',
     )
+    document_number = fields.Char(
+        copy=False,
+        string='Document Number',
+        readonly=True
+    )
     afip_batch_number = fields.Integer(
         copy=False,
         string='Batch Number',
@@ -78,18 +83,18 @@ class AccountMove(models.Model):
     afip_barcode = fields.Char(
         compute='_compute_barcode',
         string='AFIP Barcode',
-        store=True
+        #store=True
     )
     # backport of v13 for qweb report
     l10n_ar_afip_barcode = fields.Char(
         compute='_compute_barcode',
         string='AFIP Barcode',
-        store=True
+        #store=True
     )
     afip_barcode_img = fields.Binary(
         compute='_compute_barcode',
         string='AFIP Barcode Image',
-        store=True
+        #store=True
     )
     afip_message = fields.Text(
         string='AFIP Message',
@@ -141,7 +146,7 @@ class AccountMove(models.Model):
                         validation_type = False
                 rec.validation_type = validation_type
 
-    @api.depends('afip_auth_code')
+    #@api.depends('afip_auth_code')
     def _compute_barcode(self):
         for rec in self:
             barcode = False
@@ -208,14 +213,14 @@ class AccountMove(models.Model):
         # wizard. A mapping of which documents can be reported as related
         # documents would be a better solution
         if self.l10n_latam_document_type_id.internal_type in ['debit_note', 'credit_note'] \
-                and self.origin:
+                and self.invoice_origin:
             return self.search([
                 ('commercial_partner_id', '=', self.commercial_partner_id.id),
                 ('company_id', '=', self.company_id.id),
-                ('document_number', '=', self.origin),
+                ('document_number', '=', self.invoice_origin),
                 ('id', '!=', self.id),
-                ('document_type_id.document_letter_id', '=', self.document_type_id.document_letter_id.id),
-                ('document_type_id', '!=', self.document_type_id.id),
+                ('l10n_latam_document_type_id.l10n_ar_letter', '=', self.l10n_latam_document_type_id.l10n_ar_letter),
+                ('l10n_latam_document_type_id', '!=', self.l10n_latam_document_type_id.id),
                 ('state', 'not in', ['draft', 'cancel'])],
                 limit=1)
         else:
@@ -513,7 +518,7 @@ print "Observaciones:", wscdc.Obs
             # imp_subtotal = str("%.2f" % inv.amount_untaxed)
             imp_trib = str("%.2f" % inv.other_taxes_amount)
             imp_op_ex = str("%.2f" % inv.vat_exempt_base_amount)
-            moneda_id = inv.currency_id.afip_code
+            moneda_id = inv.currency_id.l10n_ar_afip_code
             moneda_ctz = inv.currency_id.rate
 
             CbteAsoc = inv.get_related_invoices_data()
@@ -675,17 +680,17 @@ print "Observaciones:", wscdc.Obs
                 # fex no acepta fecha
                 if afip_ws == 'wsfex':
                     ws.AgregarCmpAsoc(
-                        CbteAsoc.document_type_id.code,
-                        CbteAsoc.point_of_sale_number,
-                        CbteAsoc.invoice_number,
-                        self.company_id.cuit,
+                        CbteAsoc.l10n_latam_document_type_id.document_type_id.code,
+                        CbteAsoc.journal_id.l10n_ar_afip_pos_number,
+                        CbteAsoc.document_number[5:],
+                        self.company_id.vat,
                     )
                 else:
                     ws.AgregarCmpAsoc(
-                        CbteAsoc.document_type_id.code,
-                        CbteAsoc.point_of_sale_number,
-                        CbteAsoc.invoice_number,
-                        self.company_id.cuit,
+                        CbteAsoc.l10n_latam_document_type_id.code,
+                        CbteAsoc.journal_id.l10n_ar_afip_pos_number,
+                        CbteAsoc.document_number[5:],
+                        self.company_id.vat,
                         afip_ws != 'wsmtxca' and self.date.strftime('%Y%m%d') or self.date.strftime('%Y-%m-%d'),
                     )
 
@@ -791,6 +796,7 @@ print "Observaciones:", wscdc.Obs
             if afip_ws == 'wsbfe':
                 vto = datetime.strftime(
                     datetime.strptime(vto, '%d/%m/%Y'), '%Y%m%d')
+            vto = vto[:4]+'-'+vto[4:6]+'-'+vto[6:8]
             inv.write({
                 'afip_auth_mode': 'CAE',
                 'afip_auth_code': ws.CAE,
@@ -799,6 +805,7 @@ print "Observaciones:", wscdc.Obs
                 'afip_message': msg,
                 'afip_xml_request': ws.XmlRequest,
                 'afip_xml_response': ws.XmlResponse,
+                'document_number': str(pos_number).zfill(4) + '-' + str(cbte_nro).zfill(8)
             })
             # si obtuvimos el cae hacemos el commit porque estoya no se puede
             # volver atras
