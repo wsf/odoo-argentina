@@ -12,10 +12,10 @@
 <record id="account.menu_action_account_payments_payable" model="ir.ui.menu">
     <field eval="[(6, 0, [ref('account_see_payment_menu')])]" name="groups_id"/>
 </record -->
-<delete model="ir.ui.menu" id="account.menu_action_account_payments_receivable" />
+<!-- delete model="ir.ui.menu" id="account.menu_action_account_payments_receivable" />
 <delete model="ir.ui.menu" id="account.menu_action_account_payments_payable" />
 <delete model="ir.ui.menu" id="account.menu_action_move_out_receipt_type" />
-<delete model="ir.ui.menu" id="account.menu_action_move_in_invoice_type" />
+<delete model="ir.ui.menu" id="account.menu_action_move_in_invoice_type" / -->
 
 <!-- we dont want to use supplier tree view because is the same as default tree view -->
 <record id="account.view_account_supplier_payment_tree" model="ir.ui.view">
