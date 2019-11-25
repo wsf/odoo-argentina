@@ -160,6 +160,10 @@ class ResCompany(models.Model):
             'type': environment_type,
         })
         _logger.info("Successful Connection to AFIP.")
+        generationtime = auth_data['generationtime'].replace('T',' ')
+        auth_data['generationtime'] = generationtime[:19]
+        expirationtime = auth_data['expirationtime'].replace('T',' ')
+        auth_data['expirationtime'] = expirationtime[:19]
         return self.connection_ids.create(auth_data)
 
     @api.model
