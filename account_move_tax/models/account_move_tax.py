@@ -30,7 +30,7 @@ class AccountMove(models.Model):
                                 vat_taxable_amount += move_tax.base_amount
                                 vat_amount += move_tax.tax_amount
                             else:
-                                other_taxes_amount += move.tax.tax_amount
+                                other_taxes_amount += move_tax.tax_amount
                         rec.vat_taxable_amount = vat_taxable_amount
                         rec.vat_amount = vat_amount
                         rec.other_taxes_amount = other_taxes_amount
@@ -42,6 +42,12 @@ class AccountMove(models.Model):
                         rec.other_taxes_amount = 0
                         rec.vat_exempt_base_amount = 0
                         rec.vat_untaxed_base_amount = 0
+                else:
+                   rec.vat_taxable_amount = 0
+                   rec.vat_amount = 0
+                   rec.other_taxes_amount = 0
+                   rec.vat_exempt_base_amount = 0
+                   rec.vat_untaxed_base_amount = 0
 
         def compute_taxes(self):
             if self.state == 'draft':
