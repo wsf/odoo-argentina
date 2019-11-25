@@ -1,23 +1,13 @@
 # -*- coding: utf-8 -*-
 
-from openerp import models, fields, api, _
-from openerp.osv import osv
-from openerp.exceptions import except_orm, ValidationError
-#from StringIO import StringIO
-#import urllib2, httplib, urlparse, gzip, requests, json
-import openerp.addons.decimal_precision as dp
+from odoo import models, fields, api, _
 import logging
 import datetime
-from openerp.fields import Date as newdate
 from datetime import datetime, timedelta, date
-from dateutil import relativedelta
-#Get the logger
-_logger = logging.getLogger(__name__)
 
-class AccountInvoiceLine(models.Model):
-	_inherit = 'account.invoice.line'
+class AccountMoveLine(models.Model):
+	_inherit = 'account.move.line'
 
-	@api.multi
 	def _compute_price_subtotal_vat(self):
 		for line in self:
 			line.price_subtotal_vat = line.price_subtotal * ( 1 + line.vat_tax_id.amount / 100 )
@@ -25,10 +15,9 @@ class AccountInvoiceLine(models.Model):
 	price_subtotal_vat = fields.Float('price_subtotal_vat',compute=_compute_price_subtotal_vat)
 
 
-class account_invoice(models.Model):
-	_inherit = 'account.invoice'
+class AccountMove(models.Model):
+	_inherit = 'account.move'
 
-	@api.multi
 	def _compute_cae_barcode(self):
                 #company.partner_id.document_number,
                 #o.journal_id.journal_class_id.afip_code,
