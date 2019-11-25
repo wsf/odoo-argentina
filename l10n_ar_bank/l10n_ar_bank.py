@@ -14,14 +14,12 @@ class ResPartnerBank(models.Model):
         help=u"Código Bancario Único Argentino"
     )
 
-    @api.multi
     @api.constrains('cbu')
     def check_cbu(self):
         for rec in self:
             if rec.cbu and not rec.is_valid_cbu():
                 raise UserError(_('El CBU "%s" no es válido') % rec.cbu)
 
-    @api.multi
     def is_valid_cbu(self):
         self.ensure_one()
 
