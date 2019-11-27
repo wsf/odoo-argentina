@@ -24,17 +24,20 @@ class AccountMove(models.Model):
                     if rec.type in ['out_invoice','out_refund']:
                         vat_taxable_amount = 0
                         other_taxes_amount = 0
+                        vat_exempt_base_amount = 0
                         vat_amount = 0
                         for move_tax in self.move_tax_ids:
-                            if move_tax.tax_id.tax_group_id.tax_type == 'vat':
+                            if move_tax.tax_id.tax_group_id.tax_type == 'vat' and move_tax.tax_id.tax_group_id.l10n_ar_vat_afip_code != '2':
                                 vat_taxable_amount += move_tax.base_amount
                                 vat_amount += move_tax.tax_amount
+                            elif move_tax.tax_id.tax_group_id.l10n_ar_vat_afip_code == '2':
+                                vat_exempt_base_amount += move_tax.base_amount
                             else:
                                 other_taxes_amount += move_tax.tax_amount
                         rec.vat_taxable_amount = vat_taxable_amount
                         rec.vat_amount = vat_amount
                         rec.other_taxes_amount = other_taxes_amount
-                        rec.vat_exempt_base_amount = 0
+                        rec.vat_exempt_base_amount = vat_exempt_base_amount
                         rec.vat_untaxed_base_amount = 0
                     else:
                         rec.vat_taxable_amount = 0

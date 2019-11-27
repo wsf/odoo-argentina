@@ -499,7 +499,7 @@ print "Observaciones:", wscdc.Obs
             else:
                 fecha_serv_desde = fecha_serv_hasta = None
 
-            # # invoice amount totals:
+            # invoice amount totals:
             imp_total = str("%.2f" % inv.amount_total)
             # ImpTotConc es el iva no gravado
             imp_tot_conc = str("%.2f" % inv.vat_untaxed_base_amount)
@@ -512,7 +512,7 @@ print "Observaciones:", wscdc.Obs
                 imp_neto = str("%.2f" % inv.amount_untaxed)
             else:
                 #imp_neto = str("%.2f" % inv.vat_taxable_amount)
-                imp_neto = str("%.2f" % inv.amount_untaxed)
+                imp_neto = str("%.2f" % inv.vat_taxable_amount)
             imp_iva = str("%.2f" % (inv.amount_total - inv.amount_untaxed))
             # se usaba para wsca..
             # imp_subtotal = str("%.2f" % inv.amount_untaxed)
@@ -652,7 +652,7 @@ print "Observaciones:", wscdc.Obs
             if afip_ws not in ['wsfex', 'wsbfe']:
                 #for vat in inv.move_tax_ids:vat_taxable_ids:
                 for vat in inv.move_tax_ids:
-                    if vat.tax_id.tax_group_id.tax_type == 'vat':
+                    if vat.tax_id.tax_group_id.tax_type == 'vat' and vat.tax_id.tax_group_id.l10n_ar_vat_afip_code != '2':
                             _logger.info('Adding VAT %s' % vat.tax_id.tax_group_id.name)
                             ws.AgregarIva(
                                 vat.tax_id.tax_group_id.l10n_ar_vat_afip_code,
