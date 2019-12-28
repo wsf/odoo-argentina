@@ -357,7 +357,7 @@ print "Observaciones:", wscdc.Obs
                 raise UserError(_(
                     'Point of sale and document number and document type '
                     'are required!'))
-            cbte_fch = inv.date_invoice
+            cbte_fch = inv.invoice_date
             if not cbte_fch:
                 raise UserError(_('Invoice Date is required!'))
             cbte_fch = cbte_fch.strftime('%Y%m%d')
@@ -420,7 +420,7 @@ print "Observaciones:", wscdc.Obs
                 inv.write({
                     'afip_auth_mode': 'CAE',
                     'afip_auth_code': '68448767638166',
-                    'afip_auth_code_due': inv.date_invoice,
+                    'afip_auth_code_due': inv.invoice_date,
                     'afip_result': '',
                     'afip_message': msg,
                 })
@@ -483,7 +483,7 @@ print "Observaciones:", wscdc.Obs
             mipyme_fce = int(doc_afip_code) in [201, 206, 211]
             # due date only for concept "services" and mipyme_fce
             if int(concepto) != 1 and int(doc_afip_code) not in [202, 203, 207, 208, 212, 213] or mipyme_fce:
-                fecha_venc_pago = inv.date_due or inv.date_invoice
+                fecha_venc_pago = inv.invoice_date_due or inv.invoice_date
                 if afip_ws != 'wsmtxca':
                     fecha_venc_pago = fecha_venc_pago.strftime('%Y%m%d')
             else:
