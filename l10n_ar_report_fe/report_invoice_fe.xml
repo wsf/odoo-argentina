@@ -38,13 +38,13 @@
                 </div><!--END DOCUMENT LETTER-->
                 <!--TIPO,NRO Y FECHA FACTURA-->
                 <div class="col-5 text-left" name="company_address" style="padding-left: 80px !important;">
-                  <h3>
+                  <h4>
                         FACTURA
-                  </h3>
-                  <span t-if="o.state == 'open' or o.state == 'paid' or o.state == 'draft'">
-                          Fecha: <span t-field="o.date_invoice"/><br/>
+                  </h4>
+                  <span t-if="o.state == 'posted' or o.state == 'draft'">
+                          Fecha: <span t-field="o.invoice_date"/><br/>
                   </span>
-                  <span t-if="o.state == 'open' or o.state == 'paid' or o.state == 'draft'">
+                  <span t-if="o.state == 'posted' or o.state == 'draft'">
                             <span t-field="o.display_name"/>
                   </span>
                   <p style="font-size: 8px;">
@@ -55,23 +55,23 @@
                 <!--END DATOS FACTURA-->
             </div>
             <div class="row" style="border: 1px solid black; border-radius: 10px; margin-top: 10px !important; margin-bottom: 0px !important;">
-                <div  class="col-8" t-if="o.type == 'out_invoice' and (o.state == 'open' or o.state == 'paid') and o.afip_service_start and o.afip_service_end">
+                <div  class="col-8" t-if="o.type == 'out_invoice' and (o.state == 'posted') and o.l10n_ar_afip_service_start and o.l10n_ar_afip_service_end">
                     <strong>Período facturado desde:</strong>
-                    <span t-if="o.afip_service_start">
-                      <span t-field="o.afip_service_start"  t-options="{'format': 'dd/MM/yyyy'}"/>
+                    <span t-if="o.l10n_ar_afip_service_start">
+                      <span t-field="o.l10n_ar_afip_service_start"  t-options="{'format': 'dd/MM/yyyy'}"/>
                     </span>
                     <strong> hasta:</strong>
-                    <span t-if="o.afip_service_end">
-                      <span t-field="o.afip_service_end"  t-options="{'format': 'dd/MM/yyyy'}"/>
+                    <span t-if="o.l10n_ar_afip_service_end">
+                      <span t-field="o.l10n_ar_afip_service_end"  t-options="{'format': 'dd/MM/yyyy'}"/>
                     </span>
                   </div>
-                  <div class="col-4" t-if="o.type == 'out_invoice' and (o.state == 'open' or o.state == 'paid')">
+                  <div class="col-4" t-if="o.type == 'out_invoice' and (o.state == 'posted' or o.state == 'paid')">
                     <strong>Fecha Vto:</strong>
-                    <span t-if="o.date_due">
-                      <span t-field="o.date_due"/>
+                    <span t-if="o.invoice_date_due">
+                      <span t-field="o.invoice_date_due"/>
                     </span>
-                    <span t-if="not o.date_due">
-                      <span t-field="o.date_invoice"/>
+                    <span t-if="not o.invoice_date_due">
+                      <span t-field="o.invoice_date"/>
                     </span>
                   </div>
               </div>
@@ -154,18 +154,18 @@
                       <td><span t-field="l.product_id.name"/></td>
                       <td class="hidden"><span t-field="l.move_id.invoice_origin"/></td>
                       <td class="text-right">
-        <span t-esc="'{0:,.2f}'.format(l.quantity)"/>
+			  <span t-esc="'{0:,.2f}'.format(l.quantity)"/>
                           <span t-field="l.uom_id" groups="product.group_uom"/>
                       </td>
-    <div t-if="o.l10n_latam_document_type_id.l10n_ar_letter != 'B'">
+		   <div t-if="o.l10n_latam_document_type_id.l10n_ar_letter != 'B'">
                         <td class="text-right">
                             <span t-esc="'{0:,.2f}'.format(l.price_unit)"/>
                         </td>
     </div>
     <div t-if="o.l10n_latam_document_type_id.l10n_ar_letter == 'B'">
                         <td class="text-right">
-                            <!-- span t-esc="'{0:,.2f}'.format(l.price_subtotal_vat / l.quantity)"/ -->
-                            <span t-esc="'{0:,.2f}'.format(l.price_subtotal / l.quantity)"/>
+                            <span t-esc="'{0:,.2f}'.format(l.price_subtotal_vat / l.quantity)"/>
+                            <!-- span t-esc="'{0:,.2f}'.format(l.price_subtotal / l.quantity)"/ -->
                         </td>
     </div>
                       <td t-if="display_discount" class="text-right">
@@ -178,8 +178,8 @@
                           <span t-field="l.price_subtotal" t-options="{&quot;widget&quot;: &quot;monetary&quot;, &quot;display_currency&quot;: o.currency_id}"/>
                       </td>
                       <td class="text-right" t-if="o.l10n_latam_document_type_id.l10n_ar_letter == 'B'">
-                          <!-- span t-field="l.price_subtotal_vat" t-options="{&quot;widget&quot;: &quot;monetary&quot;, &quot;display_currency&quot;: o.currency_id}"/ -->
-                          <span t-field="l.price_subtotal" t-options="{&quot;widget&quot;: &quot;monetary&quot;, &quot;display_currency&quot;: o.currency_id}"/>
+                          <span t-field="l.price_subtotal_vat" t-options="{&quot;widget&quot;: &quot;monetary&quot;, &quot;display_currency&quot;: o.currency_id}"/>
+                          <!-- span t-field="l.price_subtotal" t-options="{&quot;widget&quot;: &quot;monetary&quot;, &quot;display_currency&quot;: o.currency_id}"/ -->
                       </td>
                   </tr>
                 </tbody>
@@ -187,7 +187,7 @@
 
               <!--SUBTOTAL E IMPUESTOS INTEGRADOS-->
               <div class="row mt32 mb32">
-                  <div class="col-7"/>
+                  <div class="col-8"/>
                   <div class="col-4">
                       <table class="table table-condensed">
                           <tr class="border-black" t-if="o.l10n_latam_document_type_id.l10n_ar_letter != 'B'">
@@ -279,11 +279,11 @@
           </div><!--END PAGE-->
           <!-- CAE -->
             <div class="footer" style="border: 1px solid black;">
-              <div class="row" style="border: 1px solid black; border-radius: 10px; margin-bottom: 0px !important;">
+              <div class="row" style="margin-bottom: 0px !important;">
                 <div class="col-4" t-if="o.afip_cae">
                   <p/>
-                    <p><strong>CAE: </strong><span t-field="o.afip_cae"/></p>
-                    <p><strong>Fecha Vencimiento CAE: </strong><span t-field="o.afip_cae_due"/></p>
+                    <p><strong> CAE: </strong><span t-field="o.afip_cae"/></p>
+                    <p><strong> Fecha Vencimiento CAE: </strong><span t-field="o.afip_cae_due"/></p>
                 </div>
 
                 <div class="col-2" t-if="o.afip_barcode">

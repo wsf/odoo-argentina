@@ -10,11 +10,15 @@ class AccountMoveLine(models.Model):
 
 	def _compute_price_subtotal_vat(self):
 		for line in self:
-			line.price_subtotal_vat = line.price_subtotal * ( 1 + line.vat_tax_id.amount / 100 )
+                    if line.tax_ids:
+                        for tax_id in line.tax_ids:
+                            if tax_id.tax_group_id.tax_type == 'vat':
+                                line.price_subtotal_vat = line.price_subtotal * ( 1 + tax_id.amount / 100 )
 
 	price_subtotal_vat = fields.Float('price_subtotal_vat',compute=_compute_price_subtotal_vat)
 
 
+"""
 class AccountMove(models.Model):
 	_inherit = 'account.move'
 
@@ -29,3 +33,4 @@ class AccountMove(models.Model):
 				str(inv.journal_id.point_of_sale_number) + str(inv.afip_auth_code or 0) + str(inv.afip_auth_code_due or 0).replace('-','')
 
 	cae_barcode = fields.Char('CAE Barcode',compute=_compute_cae_barcode)
+"""
