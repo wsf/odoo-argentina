@@ -9,19 +9,15 @@
     'summary': '',
     "depends": [
         # TODO we should try to get this report with another tool, not aeroo
-        #"report_aeroo",
 	"base",
-        "l10n_ar_account",
-        #"report_custom_filename",
-        #"date_range",
-        # "account_fiscal_year",
+        "l10n_ar",
+        "report_xlsx"
     ],
     'external_dependencies': {
     },
     "data": [
         'account_vat_report_view.xml',
-        #'report/account_vat_ledger_report.xml',
-        'security/security.xml',
+        'account_report.xml',
         'security/ir.model.access.csv',
     ],
     'demo': [
