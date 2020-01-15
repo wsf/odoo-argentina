@@ -491,8 +491,8 @@ print "Observaciones:", wscdc.Obs
 
             # fecha de servicio solo si no es 1
             if int(concepto) != 1:
-                fecha_serv_desde = inv.afip_service_start
-                fecha_serv_hasta = inv.afip_service_end
+                fecha_serv_desde = inv.l10n_ar_afip_service_start
+                fecha_serv_hasta = inv.l10n_ar_afip_service_end
                 if afip_ws != 'wsmtxca':
                     fecha_serv_desde = fecha_serv_desde.strftime('%Y%m%d')
                     fecha_serv_hasta = fecha_serv_hasta.strftime('%Y%m%d')
