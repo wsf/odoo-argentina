@@ -24,10 +24,6 @@ class account_vat_ledger(models.Model):
         default=lambda self: self.env[
             'res.company']._company_default_get('account.vat.ledger')
     )
-    # fiscalyear_id = fields.Many2one(
-    #     'account.fiscalyear', 'Fiscal Year', required=True,
-    #     readonly=True, states={'draft': [('readonly', False)]},
-    #     help='Keep empty for all open fiscal year')
     type = fields.Selection(
         [('sale', 'Sale'), ('purchase', 'Purchase')],
         "Type",
@@ -45,20 +41,14 @@ class account_vat_ledger(models.Model):
         readonly=True,
         states={'draft': [('readonly', False)]},
     )
-    date_range_id = fields.Many2one(
-        'date.range',
-        'Date range',
-        readonly=True,
-        states={'draft': [('readonly', False)]},
-    )
 
-    @api.onchange('date_range_id')
-    def onchange_date_range_id(self):
-        if self.date_range_id:
-            self.date_from = self.date_range_id.date_start
-            self.date_to = self.date_range_id.date_end
-        else:
-            self.date_from = self.date_to = None
+    #@api.onchange('date_range_id')
+    #def onchange_date_range_id(self):
+    #    if self.date_range_id:
+    #        self.date_from = self.date_range_id.date_start
+    #        self.date_to = self.date_range_id.date_end
+    #    else:
+    #        self.date_from = self.date_to = None
     # period_id = fields.Many2one(
     #     'account.period', 'Period', required=True,
     #     readonly=True, states={'draft': [('readonly', False)]},)
@@ -70,17 +60,17 @@ class account_vat_ledger(models.Model):
         readonly=True,
         states={'draft': [('readonly', False)]},
     )
-    first_page = fields.Integer(
-        "First Page",
-        required=True,
-        readonly=True,
-        states={'draft': [('readonly', False)]},
-    )
-    last_page = fields.Integer(
-        "Last Page",
-        readonly=True,
-        states={'draft': [('readonly', False)]},
-    )
+    #first_page = fields.Integer(
+    #    "First Page",
+    #    required=True,
+    #    readonly=True,
+    #    states={'draft': [('readonly', False)]},
+    #)
+    #last_page = fields.Integer(
+    #    "Last Page",
+    #    readonly=True,
+    #    states={'draft': [('readonly', False)]},
+    #)
     presented_ledger = fields.Binary(
         "Presented Ledger",
         readonly=True,
@@ -99,32 +89,32 @@ class account_vat_ledger(models.Model):
     )
 # Computed fields
     name = fields.Char(
-        'Titile',
+        'Title',
         compute='_get_name'
     )
     reference = fields.Char(
         'Reference',
     )
     invoice_ids = fields.Many2many(
-        'account.invoice',
+        'account.move',
         string="Invoices",
         compute="_get_data"
     )
-    document_type_ids = fields.Many2many(
-        'account.document.type',
-        string="Document Classes",
-        compute="_get_data"
-    )
-    vat_tax_ids = fields.Many2many(
-        'account.tax',
-        string="VAT Taxes",
-        compute="_get_data"
-    )
-    other_tax_ids = fields.Many2many(
-        'account.tax',
-        string="Other Taxes",
-        compute="_get_data"
-    )
+    #document_type_ids = fields.Many2many(
+    #    'account.document.type',
+    #    string="Document Classes",
+    #    compute="_get_data"
+    #)
+    #vat_tax_ids = fields.Many2many(
+    #    'account.tax',
+    #    string="VAT Taxes",
+    #    compute="_get_data"
+    #)
+    #other_tax_ids = fields.Many2many(
+    #    'account.tax',
+    #    string="Other Taxes",
+    #    compute="_get_data"
+    #)
     # vat_tax_code_ids = fields.Many2many(
     #     'account.tax.code',
     #     string="VAT Tax Codes",
@@ -135,85 +125,82 @@ class account_vat_ledger(models.Model):
     #     string="Other Tax Codes",
     #     compute="_get_data"
     # )
-    afip_responsability_type_ids = fields.Many2many(
-        'afip.responsability.type',
-        string="AFIP Responsabilities",
-        compute="_get_data"
-    )
+    #afip_responsability_type_ids = fields.Many2many(
+    #    'l10nafip.responsability.type',
+    #    string="AFIP Responsabilities",
+    #    compute="_get_data"
+    #)
 
-    @api.one
     # Sacamos el depends por un error con el cache en esqume multi cia al
     # cambiar periodo de una cia hija con usuario distinto a admin
     # @api.depends('journal_ids', 'period_id')
     def _get_data(self):
-        self.afip_responsability_type_ids = self.env[
-            'afip.responsability.type'].search([])
+        #self.afip_responsability_type_ids = self.env[
+        #    'l10n_ar.afip.responsibility.type'].search([])
 
-        invoices_domain = [
-            # cancel invoices with internal number are invoices
-            ('state', '!=', 'draft'),
-            ('number', '!=', False),
-            # ('internal_number', '!=', False),
-            ('journal_id', 'in', self.journal_ids.ids),
-            ('date', '>=', self.date_from),
-            ('date', '<=', self.date_to),
-        ]
+        if self.type == 'sale':
+            invoices_domain = [
+                # cancel invoices with internal number are invoices
+                ('state', '!=', 'draft'),
+                ('document_number', '!=', False),
+                # ('internal_number', '!=', False),
+                ('journal_id', 'in', self.journal_ids.ids),
+                ('date', '>=', self.date_from),
+                ('date', '<=', self.date_to),
+            ]
+            invoices = self.env['account.move'].search(
+                # TODO, tal vez directamente podemos invertir el orden, como?
+                invoices_domain,
+                order='invoice_date asc, document_number asc, id asc')
+        else:
+            invoices_domain = [
+                # cancel invoices with internal number are invoices
+                ('state', '!=', 'draft'),
+                ('name', '!=', False),
+                # ('internal_number', '!=', False),
+                ('journal_id', 'in', self.journal_ids.ids),
+                ('date', '>=', self.date_from),
+                ('date', '<=', self.date_to),
+            ]
+            invoices = self.env['account.move'].search(
+                # TODO, tal vez directamente podemos invertir el orden, como?
+                invoices_domain,
+                order='invoice_date asc, name asc, id asc')
 
-        # Get invoices
-        invoices = self.env['account.invoice'].search(
-            # TODO, tal vez directamente podemos invertir el orden, como?
-            invoices_domain,
-            order='date_invoice asc, document_number asc, number asc, id asc')
-        self.document_type_ids = invoices.mapped('document_type_id')
+
+        #self.document_type_ids = invoices.mapped('l10n_latam_document_type_id')
         self.invoice_ids = invoices
 
-        self.vat_tax_ids = invoices.mapped(
-            'vat_tax_ids.tax_id')
-        self.other_tax_ids = invoices.mapped(
-            'not_vat_tax_ids.tax_id')
+        #self.vat_tax_ids = invoices.mapped(
+        #    'vat_tax_ids.tax_id')
+        #self.other_tax_ids = invoices.mapped(
+        #    'not_vat_tax_ids.tax_id')
         # self.vat_tax_code_ids = invoices.mapped(
         #     'vat_tax_ids.tax_code_id')
         # self.other_tax_code_ids = invoices.mapped(
         #     'not_vat_tax_ids.tax_code_id')
 
-    @api.one
-    @api.depends(
-        'type',
-        # 'period_id',
-        'reference',
-    )
     def _get_name(self):
-        if self.type == 'sale':
-            ledger_type = _('Sales')
-        elif self.type == 'purchase':
-            ledger_type = _('Purchases')
+        for rec in self:
+            if rec.type == 'sale':
+                ledger_type = _('Ventas')
+            elif rec.type == 'purchase':
+                ledger_type = _('Compras')
 
-        lang = self.env['res.lang']
-        #date_format = lang.browse(lang._lang_get(
-        #    self._context.get('lang', 'en_US'))).date_format
+            lang = self.env['res.lang']
+            #date_format = lang.browse(lang._lang_get(
+            #    self._context.get('lang', 'en_US'))).date_format
 
-        name = _("%s VAT Ledger %s - %s") % (
-            ledger_type,
-            self.date_from and fields.Date.from_string(
-                self.date_from).strftime("%b %d %Y") or '',
-            self.date_to and fields.Date.from_string(
-                self.date_to).strftime("%b %d %Y") or '',
-        )
-        if self.reference:
-            name = "%s - %s" % (name, self.reference)
-        self.name = name
-
-    @api.one
-    @api.constrains('presented_ledger', 'last_page', 'state')
-    def _check_state(self):
-        if self.state == 'presented':
-            if not self.presented_ledger:
-                raise Warning(_(
-                    'To set "Presented" you must upload the '
-                    '"Presented Ledger" first'))
-            elif not self.last_page:
-                raise Warning(_(
-                    'To set "Presented" you must set the "Last Page" first'))
+            name = _("%s Libro de IVA %s - %s") % (
+                ledger_type,
+                rec.date_from and fields.Date.from_string(
+                    rec.date_from).strftime("%d-%m-%Y") or '',
+                rec.date_to and fields.Date.from_string(
+                    rec.date_to).strftime("%d-%m-%Y") or '',
+            )
+            if rec.reference:
+                name = "%s - %s" % (name, rec.reference)
+            rec.name = name
 
     @api.onchange('company_id')
     def change_company(self):
@@ -228,45 +215,59 @@ class account_vat_ledger(models.Model):
         elif self.type == 'purchase':
             domain = [('type', '=', 'purchase')]
         domain += [
-            ('use_documents', '=', True),
+            ('l10n_latam_use_documents', '=', True),
             ('company_id', '=', self.company_id.id),
         ]
         journals = self.env['account.journal'].search(domain)
         self.journal_ids = journals
 
-    # @api.onchange('fiscalyear_id')
-    # def change_fiscalyear(self):
-    #     vat_ledgers = self.search(
-    #         [('company_id', '=', self.company_id.id),
-    #          ('fiscalyear_id', '=', self.fiscalyear_id.id),
-    #          ('type', '=', self.type)],
-    #         order='period_id desc', limit=1)
-    #     if vat_ledgers:
-    #         next_period = self.env['account.period'].search(
-    #             [('company_id', '=', self.company_id.id),
-    #              ('fiscalyear_id', '=', self.fiscalyear_id.id),
-    #              ('date_start', '>', vat_ledgers.period_id.date_start),
-    #              ], limit=1)
-    #     else:
-    #         next_period = self.env['account.period'].search(
-    #             [('company_id', '=', self.company_id.id),
-    #              ('fiscalyear_id', '=', self.fiscalyear_id.id)], limit=1)
-    #     self.period_id = next_period
-    #     self.first_page = self.last_page
-
-    @api.multi
     def action_present(self):
         self.state = 'presented'
 
-    @api.multi
     def action_cancel(self):
         self.state = 'cancel'
 
-    @api.multi
     def action_to_draft(self):
         self.state = 'draft'
 
-    @api.multi
-    def action_print(self):
-        self.ensure_one()
-        return self.env['report'].get_action(self, 'report_account_vat_ledger')
+class AccountVatLedgerXlsx(models.AbstractModel):
+    _name = 'report.l10n_ar_account_vat_ledger.account_vat_ledger_xlsx'
+    #_name = 'account_vat_ledger_xlsx'
+    _inherit = 'report.report_xlsx.abstract'
+
+    def generate_xlsx_report(self, workbook, data, vat_ledger):
+        if vat_ledger.invoice_ids:
+            report_name = 'IVA Ventas'
+            sheet = workbook.add_worksheet(report_name[:31])
+            money_format = workbook.add_format({'num_format': '$#,##0'})
+            bold = workbook.add_format({'bold': True})
+            sheet.write(1, 0, vat_ledger.display_name, bold)
+            titles = ['Fecha','Cliente','CUIT','Tipo Comprobante','Responsabilidad AFIP','Nro Comprobante','Monto gravado','IVA 21','IVA 10.5','Total gravado']
+            for i,title in enumerate(titles):
+                sheet.write(3, i, title, bold)
+            row = 4
+            index = 0
+            sheet.set_column('A:F', 30)
+            for i,obj in enumerate(vat_ledger.invoice_ids):
+                # One sheet by partner
+                #if obj.qty_available < 1:
+                #    continue
+                sheet.write(row + index, 0, obj.invoice_date.strftime("%Y-%m-%d"))
+                sheet.write(row + index, 1, obj.partner_id.display_name)
+                sheet.write(row + index, 2, obj.partner_id.vat)
+                sheet.write(row + index, 3, obj.l10n_latam_document_type_id.display_name)
+                sheet.write(row + index, 4, obj.partner_id.l10n_ar_afip_responsibility_type_id.name)
+                sheet.write(row + index, 5, obj.display_name)
+                sheet.write(row + index, 6, obj.amount_untaxed,money_format)
+                for tax_line in obj.move_tax_ids:
+                    if tax_line.tax_id.amount == 21:
+                        sheet.write(row + index, 7, tax_line.tax_amount,money_format)
+                    if tax_line.tax_id.amount == 10.5:
+                        sheet.write(row + index, 8, tax_line.tax_amount,money_format)
+                sheet.write(row + index, 9, obj.amount_total,money_format)
+                #sheet.write(row + index, 8, obj.vat_exempt_base_amount)
+                #sheet.write(row + index, 9, obj.vat_amount)
+                #sheet.write(row + index, 10, obj.amount_tax - obj.vat_amount)
+                #sheet.write(row + index, 11, obj.currency_id.name)
+                index += 1
+
