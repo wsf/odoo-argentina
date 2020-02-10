@@ -26,7 +26,7 @@ class AccountPaymentGroup(models.Model):
     _inherit = 'mail.thread'
 
     document_number = fields.Char(
-        string='Document Number',
+        string='Nro Documento',
         copy=False,
         readonly=True,
         states={'draft': [('readonly', False)]},
@@ -42,7 +42,7 @@ class AccountPaymentGroup(models.Model):
  #   )
     receiptbook_id = fields.Many2one(
         'account.payment.receiptbook',
-        'ReceiptBook',
+        'Talonario de Recibos',
         readonly=True,
         track_visibility='always',
         states={'draft': [('readonly', False)]},
@@ -55,11 +55,11 @@ class AccountPaymentGroup(models.Model):
     next_number = fields.Integer(
         related='receiptbook_id.sequence_id.number_next_actual',
         #compute='_compute_next_number',
-        string='Next Number',
+        string='Prox Numero',
     )
     name = fields.Char(
         compute='_compute_name',
-        string='Document Reference',
+        string='Referencia',
         store=True,
         index=True,
     )
@@ -74,7 +74,7 @@ class AccountPaymentGroup(models.Model):
         states={'draft': [('readonly', False)]},
     )
     payment_methods = fields.Char(
-        string='Payment Methods',
+        string='Metodos de Pago',
         compute='_compute_payment_methods',
         search='_search_payment_methods',
     )
@@ -85,7 +85,7 @@ class AccountPaymentGroup(models.Model):
     )
     partner_id = fields.Many2one(
         'res.partner',
-        string='Partner',
+        string='Cliente/Proveedor',
         required=True,
         readonly=True,
         states={'draft': [('readonly', False)]},
@@ -98,7 +98,7 @@ class AccountPaymentGroup(models.Model):
     )
     currency_id = fields.Many2one(
         'res.currency',
-        string='Currency',
+        string='Moneda',
         required=True,
         default=lambda self: self.env.user.company_id.currency_id,
         readonly=True,
@@ -106,7 +106,7 @@ class AccountPaymentGroup(models.Model):
         track_visibility='always',
     )
     payment_date = fields.Date(
-        string='Payment Date',
+        string='Fecha de Pago',
         default=fields.Date.context_today,
         required=True,
         copy=False,
@@ -120,7 +120,7 @@ class AccountPaymentGroup(models.Model):
         states={'draft': [('readonly', False)]},
     )
     notes = fields.Text(
-        string='Notes'
+        string='Notas'
     )
     matched_amount = fields.Monetary(
         #compute='_compute_matched_amounts',
@@ -135,18 +135,19 @@ class AccountPaymentGroup(models.Model):
         currency_field='currency_id',
     )
     selected_finacial_debt = fields.Monetary(
-        string='Selected Financial Debt',
+        string='Deuda Seleccionada',
         compute='_compute_selected_debt',
     )
     selected_debt = fields.Monetary(
         # string='To Pay lines Amount',
-        string='Selected Debt',
+        string='Deuda Seleccionada',
         compute='_compute_selected_debt',
     )
     # this field is to be used by others
     selected_debt_untaxed = fields.Monetary(
         # string='To Pay lines Amount',
-        string='Selected Debt Untaxed',
+        string='Deuda Seleccionada sin Impuestos',
+        #string='Selected Debt Untaxed',
         compute='_compute_selected_debt',
     )
     unreconciled_amount = fields.Monetary(
@@ -158,7 +159,7 @@ class AccountPaymentGroup(models.Model):
     to_pay_amount = fields.Monetary(
         compute='_compute_to_pay_amount',
         #inverse='_inverse_to_pay_amount',
-        string='To Pay Amount',
+        string='Monto a Pagar',
         # string='Total To Pay Amount',
         readonly=True,
         states={'draft': [('readonly', False)]},
@@ -170,12 +171,12 @@ class AccountPaymentGroup(models.Model):
         track_visibility='always',
     )
     state = fields.Selection([
-        ('draft', 'Draft'),
-        ('confirmed', 'Confirmed'),
-        ('posted', 'Posted'),
+        ('draft', 'Borrador'),
+        ('confirmed', 'Confirmado'),
+        ('posted', 'Publicado'),
         # ('sent', 'Sent'),
         # ('reconciled', 'Reconciled')
-        ('cancel', 'Cancelled'),
+        ('cancel', 'Cancelada'),
     ],
         readonly=True,
         default='draft',
@@ -217,7 +218,7 @@ class AccountPaymentGroup(models.Model):
         'account_move_line_payment_group_to_pay_rel',
         'payment_group_id',
         'to_pay_line_id',
-        string="To Pay Lines",
+        string="Lineas a Pagar",
         help='This lines are the ones the user has selected to be paid.',
         copy=False,
         domain=move_lines_domain,
@@ -249,14 +250,14 @@ class AccountPaymentGroup(models.Model):
         # TODO rename field or remove string
         # string='Remaining Residual',
         readonly=True,
-        string="Payments Difference",
+        string="Diferencia en los Pagos",
         help="Difference between selected debt (or to pay amount) and "
         "payments amount"
     )
     payment_ids = fields.One2many(
         'account.payment',
         'payment_group_id',
-        string='Payment Lines',
+        string='Lineas de Pago',
         ondelete='cascade',
         copy=False,
         readonly=True,

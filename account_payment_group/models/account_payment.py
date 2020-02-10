@@ -13,7 +13,7 @@ class AccountPayment(models.Model):
 
     payment_group_id = fields.Many2one(
         'account.payment.group',
-        'Payment Group',
+        'Recibo',
         ondelete='cascade',
         readonly=True,
     )
@@ -32,16 +32,16 @@ class AccountPayment(models.Model):
         string='Payment Type (without transfer)'
     )
     signed_amount = fields.Monetary(
-        string='Amount',
+        string='Monto',
         compute='_compute_signed_amount',
     )
     signed_amount_company_currency = fields.Monetary(
-        string='Payment Amount on Company Currency',
+        string='Monto del Pago en la Moneda de la Empresa',
         compute='_compute_signed_amount',
         currency_field='company_currency_id',
     )
     amount_company_currency = fields.Monetary(
-        string='Amount on Company Currency',
+        string='Monto en la Moneda de la Empresa',
         compute='_compute_amount_company_currency',
         inverse='_inverse_amount_company_currency',
         currency_field='company_currency_id',
@@ -50,12 +50,12 @@ class AccountPayment(models.Model):
         compute='_compute_other_currency',
     )
     force_amount_company_currency = fields.Monetary(
-        string='Forced Amount on Company Currency',
+        string='Monto Forzado en la Moneda de la Empresa',
         currency_field='company_currency_id',
         copy=False,
     )
     exchange_rate = fields.Float(
-        string='Exchange Rate',
+        string='Tipo de Cambio',
         #compute='_compute_exchange_rate',
         # readonly=False,
         # inverse='_inverse_exchange_rate',

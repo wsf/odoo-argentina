@@ -51,7 +51,7 @@
             <field name="currency_id" invisible="1"/>
             <field name="company_currency_id" invisible="1"/>
             <field name="partner_type" invisible="1"/>
-            <button icon="fa-pencil" type="object" states="draft" name="show_details" string="Details"/>
+            <button icon="fa-pencil" type="object" states="draft" name="show_details" string="Detalles"/>
         </tree>
     </field>
 </record>

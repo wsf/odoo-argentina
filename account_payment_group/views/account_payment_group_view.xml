@@ -14,7 +14,7 @@
             <!-- <field name="name"/> -->
             <field name="partner_id"/>
             <field name="payment_methods"/>
-            <field name="payments_amount" sum="Total"/>
+            <field name="payments_amount" sum="Total" string="Monto"/>
             <field name="state"/>
             <field name="company_id" groups="base.group_multi_company"/>
             <field name="currency_id" invisible="1"/>
@@ -82,17 +82,17 @@
             <field name="pop_up" invisible="1"/>
             <field name="has_outstanding" invisible="1"/>
             <header>
-                <button name="action_payment_sent" type="object" string="Send by Email" attrs="{'invisible':['|', ('sent','=',True), ('state', '!=', 'posted')]}" class="oe_highlight" groups="base.group_user"/>
+                <button name="action_payment_sent" type="object" string="Enviar por Email" attrs="{'invisible':['|', ('sent','=',True), ('state', '!=', 'posted')]}" class="oe_highlight" groups="base.group_user"/>
                 <field name="sent" invisible="1"/>
-                <button name="action_payment_sent" type="object" string="Send by Email" attrs="{'invisible':['|', ('sent','=',False), ('state', '!=', 'posted')]}" groups="base.group_user"/>
-                <button name="payment_print" string="Print" type="object" attrs="{'invisible':['|', ('sent','=',True), ('state', '!=', 'posted')]}" class="oe_highlight" groups="base.group_user"/>
-                <button name="payment_print" string="Print" type="object" attrs="{'invisible':['|', ('sent','=',False), ('state', '!=', 'posted')]}" groups="base.group_user"/>
-                <button name="post" class="oe_highlight" string="Validate" type="object" attrs="{'invisible': ['|', '&amp;', ('payment_subtype', '=', 'simple'), ('state', '!=', 'draft'), '&amp;', ('payment_subtype', '=', 'double_validation'), ('state', '!=', 'confirmed')]}"/>
-                <button name="action_draft" states="cancel" string="Set to Draft" type="object"/>
+                <button name="action_payment_sent" type="object" string="Enviar por Email" attrs="{'invisible':['|', ('sent','=',False), ('state', '!=', 'posted')]}" groups="base.group_user"/>
+                <button name="payment_print" string="Imprimir" type="object" attrs="{'invisible':['|', ('sent','=',True), ('state', '!=', 'posted')]}" class="oe_highlight" groups="base.group_user"/>
+                <button name="payment_print" string="Imprimir" type="object" attrs="{'invisible':['|', ('sent','=',False), ('state', '!=', 'posted')]}" groups="base.group_user"/>
+                <button name="post" class="oe_highlight" string="Validar" type="object" attrs="{'invisible': ['|', '&amp;', ('payment_subtype', '=', 'simple'), ('state', '!=', 'draft'), '&amp;', ('payment_subtype', '=', 'double_validation'), ('state', '!=', 'confirmed')]}"/>
+                <button name="action_draft" states="cancel" string="Volver a borrdor" type="object"/>
                 <!-- <button name="post" class="oe_highlight" states="draft" string="Validate" type="object"/> -->
-                <button name="confirm" class="oe_highlight" string="Confirm" type="object" attrs="{'invisible': ['|', ('payment_subtype', '!=', 'double_validation'), ('state', '!=', 'draft')]}" groups="account_payment_group.account_confirm_payment"/>
+                <button name="confirm" class="oe_highlight" string="Confirmar" type="object" attrs="{'invisible': ['|', ('payment_subtype', '!=', 'double_validation'), ('state', '!=', 'draft')]}" groups="account_payment_group.account_confirm_payment"/>
                 <!-- odoo, en los payments, lo muestra solo si ya validado, nosotros queremos que en borrador, confirmado o cuando sea, se pueda cancelar -->
-                <button name="cancel" attrs="{'invisible': [('state', '=', 'cancel')]}" string="Cancel" type="object"/>
+                <button name="cancel" attrs="{'invisible': [('state', '=', 'cancel')]}" string="Cancelar" type="object"/>
                 <!-- <button name="cancel" states="posted,sent,reconciled" string="Cancel" type="object"/> -->
                 <field name="state" widget="statusbar" statusbar_visible="posted"/>
             </header>
@@ -166,11 +166,11 @@
                     </group>
                 </group>
                 <notebook>
-                    <page string="To Pay Lines" attrs="{'invisible': ['|', '|', ('pop_up', '=', True), ('payment_subtype', '!=', 'double_validation'), ('state', 'not in', ['draft', 'confirmed'])]}">
-                        <button name="add_all" string="Add All / Refresh" states="draft" type="object"/>
-                        <button name="remove_all" string="Remove All" states="draft" type="object"/>
-                        <button name="%(action_account_payment_group_invoice_wizard)d" string="+ Debit Note" states="draft" type="action"/>
-                        <button name="%(action_account_payment_group_invoice_wizard)d" string="+ Credit Note" states="draft" context="{'refund': True}" type="action"/>
+                    <page string="Lineas a pagar" attrs="{'invisible': ['|', '|', ('pop_up', '=', True), ('payment_subtype', '!=', 'double_validation'), ('state', 'not in', ['draft', 'confirmed'])]}">
+                        <button name="add_all" string="Agregar Todos / Refrescar" states="draft" type="object"/>
+                        <button name="remove_all" string="Remover Todos" states="draft" type="object"/>
+                        <button name="%(action_account_payment_group_invoice_wizard)d" string="+ Debit Note" states="draft" type="action" invisible="1"/>
+                        <button name="%(action_account_payment_group_invoice_wizard)d" string="+ Credit Note" states="draft" context="{'refund': True}" type="action" invisible="1"/>
                         <field name="to_pay_move_line_ids" context="{'tree_view_ref': 'account_payment_group.view_move_line_tree'}" domain="[('partner_id.commercial_partner_id', '=', commercial_partner_id),('account_id.internal_type', '=', account_internal_type),('account_id.reconcile', '=', True),('reconciled', '=', False),('full_reconcile_id', '=', False),('company_id', '=', company_id)]"/>
                     </page>
                     <!-- no las pudimos hacer invisibles porque nos da error al venir de una factura y querer hacer las to pay lines tmb invisibles. lo bueno de hacerlas invisibles era que al confirmar se pasaba a las payment lines automaticamente -->
@@ -181,14 +181,14 @@
                         <!-- <field name="payment_ids" context="{'default_payment_type': partner_type == 'supplier' and 'outbound' or 'inbound', 'default_payment_date': payment_date, 'default_partner_id': partner_id, 'default_partner_type': partner_type, 'payment_group': True, 'default_amount': payment_difference, 'tree_view_ref': 'account_payment_group.view_account_payment_tree'}" attrs="{'readonly': ['|', ('state', 'not in', ['draft', 'confirmed']), ('payment_subtype', '=', 'double_validation'), ('state', '=', 'draft')]}"/> -->
                         <!-- <field name="payment_ids" context="{'default_payment_type': payment_type, 'default_payment_date': payment_date, 'default_partner_id': partner_id, 'default_partner_type': partner_type, 'payment_group': True, 'default_amount': payment_difference, 'tree_view_ref': 'account_payment_group.view_account_payment_tree'}"/> -->
                     </page>
-                    <page string="Debts" attrs="{'invisible': ['|', '|', ('pop_up', '=', True), ('payment_subtype', '!=', 'simple'), ('state', '!=', 'draft')]}">
+                    <page string="Deudas" attrs="{'invisible': ['|', '|', ('pop_up', '=', True), ('payment_subtype', '!=', 'simple'), ('state', '!=', 'draft')]}">
                         <p>
                             Payment will be automatically matched with the oldest lines of this list (by maturity date). You can remove any line you dont want to be matched.
                         </p>
-                        <button name="add_all" string="Add All / Refresh" states="draft" type="object"/>
-                        <button name="remove_all" string="Remove All" states="draft" type="object"/>
-                        <button name="%(action_account_payment_group_invoice_wizard)d" string="+ Debit Note" states="draft" type="action" context="{'internal_type': 'debit_note'}"/>
-                        <button name="%(action_account_payment_group_invoice_wizard)d" string="+ Credit Note" states="draft" context="{'refund': True}" type="action"/>
+                        <button name="add_all" string="Agregar Todos / Refrescar" states="draft" type="object"/>
+                        <button name="remove_all" string="Remover Todos" states="draft" type="object"/>
+                        <button name="%(action_account_payment_group_invoice_wizard)d" string="+ Debit Note" states="draft" type="action" context="{'internal_type': 'debit_note'}" invisible="1"/>
+                        <button name="%(action_account_payment_group_invoice_wizard)d" string="+ Credit Note" states="draft" context="{'refund': True}" type="action" invisible="1"/>
                         <field name="debt_move_line_ids" context="{'tree_view_ref': 'account_payment_group.view_move_line_tree'}" domain="[('partner_id.commercial_partner_id', '=', commercial_partner_id),('account_id.internal_type', '=', account_internal_type),('account_id.reconcile', '=', True),('reconciled', '=', False), ('full_reconcile_id', '=', False),('company_id', '=', company_id)]"/>
                     </page>
                     <page string="Paid" states="posted">
