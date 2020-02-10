@@ -1,20 +1,12 @@
-[![Runbot Status](http://runbot.adhoc.com.ar/runbot/badge/flat/6/12.0.svg)](http://runbot.adhoc.com.ar/runbot/repo/github-com-ingadhoc-odoo-argentina-6)
-[![Build Status](https://travis-ci.org/ingadhoc/odoo-argentina.svg?branch=12.0)](https://travis-ci.org/ingadhoc/odoo-argentina)
-[![Coverage Status](https://coveralls.io/repos/ingadhoc/odoo-argentina/badge.png?branch=12.0)](https://coveralls.io/r/ingadhoc/odoo-argentina?branch=12.0)
-[![Code Climate](https://codeclimate.com/github/ingadhoc/odoo-argentina/badges/gpa.svg)](https://codeclimate.com/github/ingadhoc/odoo-argentina)
+Migración de localización argentina para Odoo Community versión 13. Tambien funcionaría con la versión Enterprise de Odoo.
+No funciona con versiones anteriores. 
+Comprende las siguientes funcionalidades:
+- factura electrónica
+- cheques
+- recibos para pagos con múltiples medios de pago
 
-# ADHOC odoo-argentina
+En este momento se está trabajando en otras funcionalidades, como por ejemplo soporte de retenciones/percepciones en ventas y compras.
+Si tienen algun problema con la localización primero deben crear un issue. Despues si quieren me envian un mail a gustavo.orrillo@moldeointeractive.com.ar. Les recuerso que el mail no es para darles soporte, sino para ponerme al tanto de los posibles problemas que pueda tener la localización.
+Por último, si quieren un video con la explicación de como configurar la factura electrónica... lo tienen en el webinar que ofrecimos semanas atras:
 
-ADHOC Odoo odoo-argentina Modules
-
-[//]: # (addons)
-[//]: # (end addons)
-
-Translation Status
-------------------
-[![Transifex Status](https://www.transifex.com/projects/p/ingadhoc-odoo-argentina-12-0/chart/image_png)](https://www.transifex.com/projects/p/ingadhoc-odoo-argentina-12-0)
-
-----
-
-<img alt="ADHOC" src="http://fotos.subefotos.com/83fed853c1e15a8023b86b2b22d6145bo.png" />
-**Adhoc SA** - www.adhoc.com.ar
+https://www.moldeointeractive.com.ar/blog/moldeo-interactive-1/post/webinar-de-localizacion-argentina-en-odoo-13-community-747
