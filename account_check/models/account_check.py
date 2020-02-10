@@ -30,7 +30,7 @@ class AccountCheckOperation(models.Model):
     )
     check_id = fields.Many2one(
         'account.check',
-        'Check',
+        'Cheque',
         required=True,
         ondelete='cascade',
         auto_join=True,
@@ -38,27 +38,27 @@ class AccountCheckOperation(models.Model):
     )
     operation = fields.Selection([
         # from payments
-        ('holding', 'Receive'),
-        ('deposited', 'Deposit'),
-        ('selled', 'Sell'),
-        ('delivered', 'Deliver'),
+        ('holding', 'Recibir'),
+        ('deposited', 'Depositar'),
+        ('selled', 'Vender'),
+        ('delivered', 'Entregar'),
         # usado para hacer transferencias internas, es lo mismo que delivered
         # (endosado) pero no queremos confundir con terminos, a la larga lo
         # volvemos a poner en holding
-        ('transfered', 'Transfer'),
-        ('handed', 'Hand'),
-        ('withdrawed', 'Withdrawal'),
+        ('transfered', 'Transferir'),
+        ('handed', 'En mano'),
+        ('withdrawed', 'Retiro'),
         # from checks
-        ('reclaimed', 'Claim'),
-        ('rejected', 'Rejection'),
-        ('debited', 'Debit'),
-        ('returned', 'Return'),
+        ('reclaimed', 'Reclamar'),
+        ('rejected', 'Rechazar'),
+        ('debited', 'Debitar'),
+        ('returned', 'Retornar'),
         # al final no vamos a implemnetar esto ya que habria que hacer muchas
         # cosas hasta actualizar el asiento, mejor se vuelve atras y se
         # vuelve a generar deuda y listo, igualmente lo dejamos por si se
         # quiere usar de manera manual
-        ('changed', 'Change'),
-        ('cancel', 'Cancel'),
+        ('changed', 'Cambiar'),
+        ('cancel', 'Cancelar'),
     ],
         required=True,
         index=True,
@@ -67,11 +67,11 @@ class AccountCheckOperation(models.Model):
         compute='_compute_origin_name'
     )
     origin = fields.Reference(
-        string='Origin Document',
+        string='Origen',
         selection='_reference_models')
     partner_id = fields.Many2one(
         'res.partner',
-        string='Partner',
+        string='Cliente/Proveedor',
     )
     notes = fields.Text(
     )
@@ -150,7 +150,7 @@ class AccountCheck(models.Model):
     )
     checkbook_id = fields.Many2one(
         'account.checkbook',
-        'Checkbook',
+        'Recibos',
         readonly=True,
         states={'draft': [('readonly', False)]},
         auto_join=True,
@@ -160,7 +160,7 @@ class AccountCheck(models.Model):
         related='checkbook_id.issue_check_subtype',
     )
     type = fields.Selection(
-        [('issue_check', 'Issue Check'), ('third_check', 'Third Check')],
+        [('issue_check', 'Cheque Emitido'), ('third_check', 'Cheque de Terceros')],
         readonly=True,
         index=True,
     )
@@ -178,20 +178,20 @@ class AccountCheck(models.Model):
         #store=True,
     )
     state = fields.Selection([
-        ('draft', 'Draft'),
-        ('holding', 'Holding'),
-        ('deposited', 'Deposited'),
-        ('selled', 'Selled'),
-        ('delivered', 'Delivered'),
-        ('transfered', 'Transfered'),
-        ('reclaimed', 'Reclaimed'),
-        ('withdrawed', 'Withdrawed'),
+        ('draft', 'Borrador'),
+        ('holding', 'En Mano'),
+        ('deposited', 'Depositado'),
+        ('selled', 'Vendido'),
+        ('delivered', 'Entregado'),
+        ('transfered', 'Transferido'),
+        ('reclaimed', 'Reclamado'),
+        ('withdrawed', 'Retirado'),
         ('handed', 'Handed'),
-        ('rejected', 'Rejected'),
-        ('debited', 'Debited'),
-        ('returned', 'Returned'),
-        ('changed', 'Changed'),
-        ('cancel', 'Cancel'),
+        ('rejected', 'Rechazado'),
+        ('debited', 'Debitado'),
+        ('returned', 'Retornado'),
+        ('changed', 'Cambiado'),
+        ('cancel', 'Cancelado'),
     ],
         required=True,
         default='draft',
@@ -201,24 +201,24 @@ class AccountCheck(models.Model):
         index=True,
     )
     issue_date = fields.Date(
-        'Issue Date',
+        'Fecha Emision',
         required=True,
         readonly=True,
         states={'draft': [('readonly', False)]},
         default=fields.Date.context_today,
     )
     owner_vat = fields.Char(
-        'Owner Vat',
+        'CUIT del Emisor',
         readonly=True,
         states={'draft': [('readonly', False)]}
     )
     owner_name = fields.Char(
-        'Owner Name',
+        'Emisor',
         readonly=True,
         states={'draft': [('readonly', False)]}
     )
     bank_id = fields.Many2one(
-        'res.bank', 'Bank',
+        'res.bank', 'Banco',
         readonly=True,
         states={'draft': [('readonly', False)]}
     )
@@ -246,7 +246,7 @@ class AccountCheck(models.Model):
     )
     journal_id = fields.Many2one(
         'account.journal',
-        string='Journal',
+        string='Diario',
         required=True,
         domain=[('type', 'in', ['cash', 'bank'])],
         readonly=True,
@@ -259,7 +259,7 @@ class AccountCheck(models.Model):
     )
     company_currency_id = fields.Many2one(
         related='company_id.currency_id',
-        string='Company currency',
+        string='Moneda de la empresa',
     )
 
 

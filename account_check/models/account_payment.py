@@ -28,7 +28,7 @@ class AccountPayment(models.Model):
         'account.check',
         compute='_compute_check',
         store=True,
-        string='Check',
+        string='Cheque',
     )
     check_deposit_type = fields.Selection(
         [('consolidated', 'Consolidated'),
@@ -52,33 +52,33 @@ class AccountPayment(models.Model):
 # check fields, just to make it easy to load checks without need to create
 # them by a m2o record
     check_name = fields.Char(
-        'Check Name',
+        'Nombre',
         readonly=True,
         copy=False,
         states={'draft': [('readonly', False)]},
     )
     check_number = fields.Integer(
-        'Check Number',
+        'Numero',
         readonly=True,
         states={'draft': [('readonly', False)]},
         copy=False,
     )
     check_issue_date = fields.Date(
-        'Check Issue Date',
+        'Fecha Emision',
         readonly=True,
         copy=False,
         states={'draft': [('readonly', False)]},
         default=fields.Date.context_today,
     )
     check_payment_date = fields.Date(
-        'Check Payment Date',
+        'Fecha Pago',
         readonly=True,
         help="Only if this check is post dated",
         states={'draft': [('readonly', False)]},
     )
     checkbook_id = fields.Many2one(
         'account.checkbook',
-        'Checkbook',
+        'Chequera',
         readonly=True,
         states={'draft': [('readonly', False)]},
         auto_join=True,
@@ -88,20 +88,20 @@ class AccountPayment(models.Model):
     )
     check_bank_id = fields.Many2one(
         'res.bank',
-        'Check Bank',
+        'Banco',
         readonly=True,
         copy=False,
         states={'draft': [('readonly', False)]},
         auto_join=True,
     )
     check_owner_vat = fields.Char(
-        'Check Owner Vat',
+        'CUIT del Emisor',
         readonly=True,
         copy=False,
         states={'draft': [('readonly', False)]}
     )
     check_owner_name = fields.Char(
-        'Check Owner Name',
+        'Nombre Emisor',
         readonly=True,
         copy=False,
         states={'draft': [('readonly', False)]}
