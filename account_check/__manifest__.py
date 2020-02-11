@@ -33,6 +33,7 @@
         # TODO we should move field amount_company_currency to
         # account_payment_fix so that we dont need to depend on
         # account_payment_group
+        'base',
         'account_payment_group',
     ],
     'data': [
@@ -41,6 +42,7 @@
         'wizard/account_check_action_wizard_view.xml',
         'wizard/print_pre_numbered_checks_view.xml',
         'wizard/res_config_settings_view.xml',
+        'views/res_company_view.xml',
         'views/account_payment_view.xml',
         'views/account_check_view.xml',
         'views/account_journal_dashboard_view.xml',
