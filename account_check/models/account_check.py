@@ -555,6 +555,11 @@ class AccountCheck(models.Model):
             self.write({'state': 'deposited'})
 
 
+    def deliver(self):
+        self.ensure_one()
+        if self.state in ['holding']:
+            self.write({'state': 'delivered'})
+
 
     def bank_debit(self):
         self.ensure_one()

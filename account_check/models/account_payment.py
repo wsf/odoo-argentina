@@ -478,8 +478,12 @@ class AccountPayment(models.Model):
             # rechazos y demas, deferred solamente sin fecha pero con cuenta
             # puente
             # if self.check_subtype == 'deferred':
-            vals['account_id'] = self.company_id._get_check_account(
-                'deferred').id
+
+            #raise ValidationError('estamos aca %s'%(self.company_id.deferred_check_account_id.code))
+            if not self.company_id.deferred_check_account_id:
+                raise ValidationError('No hay cuenta de cheques diferidos definida')
+            vals = {}
+            vals['account_id'] = self.company_id.deferred_check_account_id.id
             operation = 'handed'
             check = self.create_check(
                 'issue_check', operation, self.check_bank_id)
@@ -535,7 +539,8 @@ class AccountPayment(models.Model):
 
         res = super(AccountPayment, self).post()
         for rec in self:
-            if rec.payment_method_id.code in ['received_third_check','delivered_third_check']:
+            #raise ValidationError('estamos aca %s'%(rec.payment_method_id.code))
+            if rec.payment_method_id.code in ['received_third_check','delivered_third_check','issue_check']:
                 rec.do_checks_operations()
         return res
 
