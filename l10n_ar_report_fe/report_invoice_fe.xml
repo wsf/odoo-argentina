@@ -39,7 +39,7 @@
                 <!--TIPO,NRO Y FECHA FACTURA-->
                 <div class="col-5 text-left" name="company_address" style="padding-left: 80px !important;">
                   <h4>
-                        FACTURA
+			  <span t-field="o.l10n_latam_document_type_id.name"></span>
                   </h4>
                   <span t-if="o.state == 'posted' or o.state == 'draft'">
                           Fecha: <span t-field="o.invoice_date"/><br/>
@@ -113,9 +113,13 @@
                   <strong>Moneda: </strong>
                   <p t-field="o.currency_id.name"/>
                 </div>
+                <div class="col-2" t-if="o.currency_id.id != o.company_id.currency_id.id">
+                  <strong>Cotiz: </strong>
+                  <p t-field="o.l10n_ar_currency_rate"/>
+                </div>
                 <div class="col-2" t-if="o.invoice_origin">
                   <strong>Origen: </strong>
-                  <p t-field="o.origin"/>
+                  <p t-field="o.invoice_origin"/>
                 </div>
                 <div class="col-2" t-if="o.partner_id.ref">
                   <strong>Cod. Cliente:</strong>

@@ -4,7 +4,7 @@
 ##############################################################################
 from .pyi25 import PyI25
 from odoo import fields, models, api, _
-from odoo.exceptions import UserError
+from odoo.exceptions import UserError,ValidationError
 import base64
 from io import BytesIO
 import logging
@@ -519,19 +519,23 @@ print "Observaciones:", wscdc.Obs
             imp_trib = str("%.2f" % inv.other_taxes_amount)
             imp_op_ex = str("%.2f" % inv.vat_exempt_base_amount)
             moneda_id = inv.currency_id.l10n_ar_afip_code
-            moneda_ctz = inv.currency_id.rate
+            moneda_ctz = round(1/inv.currency_id.rate,2)
+            if not moneda_id:
+                raise ValidationError('No esta definido el codigo AFIP en la moneda')
+
 
             CbteAsoc = inv.get_related_invoices_data()
 
             # create the invoice internally in the helper
             if afip_ws == 'wsfe':
+                inv.l10n_ar_currency_rate = moneda_ctz
                 ws.CrearFactura(
                     concepto, tipo_doc, nro_doc, doc_afip_code, pos_number,
                     cbt_desde, cbt_hasta, imp_total, imp_tot_conc, imp_neto,
                     imp_iva,
                     imp_trib, imp_op_ex, fecha_cbte, fecha_venc_pago,
                     fecha_serv_desde, fecha_serv_hasta,
-                    moneda_id, moneda_ctz
+                    moneda_id, round(moneda_ctz,2)
                 )
             # elif afip_ws == 'wsmtxca':
             #     obs_generales = inv.comment
@@ -631,7 +635,7 @@ print "Observaciones:", wscdc.Obs
                     tipo_doc, nro_doc, zona, doc_afip_code, pos_number,
                     cbte_nro, fecha_cbte, imp_total, imp_neto, imp_iva,
                     imp_tot_conc, impto_liq_rni, imp_op_ex, imp_perc, imp_iibb,
-                    imp_perc_mun, imp_internos, moneda_id, moneda_ctz,
+                    imp_perc_mun, imp_internos, moneda_id, round(moneda_ctz,2),
                     fecha_venc_pago
                 )
 
