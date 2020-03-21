@@ -76,9 +76,60 @@ class ResPartner(models.Model):
 
         perception_ids = fields.One2many('res.partner.perception', 'partner_id', 'Percepciones Definidas')
 
-"""
-class AccountInvoice(models.Model):
+class AccountMove(models.Model):
         _inherit = "account.move"
+        
+        
+        @api.depends(
+                'line_ids.debit',
+                'line_ids.credit',
+                'line_ids.currency_id',
+                'line_ids.amount_currency',
+                'line_ids.amount_residual',
+                'line_ids.amount_residual_currency',
+                'move_tax_ids',
+                'line_ids.payment_id.state')
+        def _compute_amount(self):
+            res = super(AccountMove, self)._compute_amount()
+            for move in self:
+                if move.is_invoice(include_receipts=True):
+                    if move.move_tax_ids:
+                        amount_total = move.amount_untaxed
+                        for move_tax in move.move_tax_ids:
+                            amount_total = amount_total + move_tax.tax_amount
+                        move.amount_total = amount_total
+            return res
+
+
+        def compute_taxes(self):
+            if self.state == 'draft':
+                if self.type in ['out_invoice','out_refund']:
+                    for move_tax in self.move_tax_ids:
+                        move_tax.unlink()
+                    for invoice_line in self.invoice_line_ids:
+                        if invoice_line.tax_ids:
+                            for tax in invoice_line.tax_ids.ids:
+                                account_tax = self.env['account.tax'].browse(tax)
+                                move_tax_id = self.env['account.move.tax'].search([('move_id','=',self.id),('tax_id','=',tax)])
+                                if not move_tax_id:
+                                    vals = {
+                                            'move_id': self.id,
+                                            'tax_id': tax
+                                            }
+                                    move_tax_id = self.env['account.move.tax'].create(vals)
+                                move_tax_id.base_amount = move_tax_id.base_amount + invoice_line.price_subtotal
+                                move_tax_id.tax_amount = move_tax_id.tax_amount + invoice_line.price_subtotal * (account_tax.amount / 100)
+                if self.partner_id.perception_ids:
+                    for perception in self.partner_id.perception_ids:
+                            if perception.percent > 0:
+                                vals = {
+                                        'tax_id': perception.tax_id.id,
+                                        'base_amount': self.amount_untaxed_signed,
+                                        'tax_amount': self.amount_untaxed_signed * (perception.percent / 100),
+                                        'move_id': self.id}
+                                move_tax_id = self.env['account.move.tax'].create(vals)
+
+"""
 
         @api.multi
         def compute_taxes(self):

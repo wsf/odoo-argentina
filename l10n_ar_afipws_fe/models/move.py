@@ -513,10 +513,10 @@ print "Observaciones:", wscdc.Obs
             else:
                 #imp_neto = str("%.2f" % inv.vat_taxable_amount)
                 imp_neto = str("%.2f" % inv.vat_taxable_amount)
-            imp_iva = str("%.2f" % (inv.amount_total - inv.amount_untaxed))
+            imp_trib = str("%.2f" % inv.other_taxes_amount)
+            imp_iva = str("%.2f" % (inv.amount_total - (inv.amount_untaxed + inv.other_taxes_amount)))
             # se usaba para wsca..
             # imp_subtotal = str("%.2f" % inv.amount_untaxed)
-            imp_trib = str("%.2f" % inv.other_taxes_amount)
             imp_op_ex = str("%.2f" % inv.vat_exempt_base_amount)
             moneda_id = inv.currency_id.l10n_ar_afip_code
             moneda_ctz = round(1/inv.currency_id.rate,2)
@@ -537,6 +537,16 @@ print "Observaciones:", wscdc.Obs
                     fecha_serv_desde, fecha_serv_hasta,
                     moneda_id, round(moneda_ctz,2)
                 )
+                if inv.other_taxes_amount > 0:
+                    for move_tax in inv.move_tax_ids:
+                        if move_tax.tax_id.tax_group_id.tax_type != 'vat':
+                            tributo_id = 99
+                            base_imp = move_tax.base_amount
+                            desc = move_tax.tax_id.name
+                            importe = move_tax.tax_amount
+                            alic = None
+                            ws.AgregarTributo(tributo_id, desc, base_imp, alic, importe)
+
             # elif afip_ws == 'wsmtxca':
             #     obs_generales = inv.comment
             #     ws.CrearFactura(
