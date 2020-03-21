@@ -8,6 +8,7 @@
     'depends': ['base','account','l10n_ar','account_move_tax'],
     "data": [
 	"account_view.xml",
+        "security/ir.model.access.csv"
     ],
     'license': 'AGPL-3',
     'installable': True,

@@ -35,10 +35,6 @@
         	                    </field>
                 	        </group>
 	                    </group>
-				<group>
-					<field name="iibb_percent" />
-					<field name="iibb_ret_percent" />
-				</group>
         	        </page>
                	</notebook>
             </field>

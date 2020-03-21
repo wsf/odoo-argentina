@@ -43,14 +43,13 @@ class ResPartner(models.Model):
         _name = "res.partner"
         _inherit = "res.partner"
 
-        @api.multi
         def update_percepciones(self):
         	for partner in self:
-        		if partner.main_id_number:
+        		if partner.vat:
         			if partner.perception_ids:
         				for perception in partner.perception_ids:
         					perception.unlink()
-        			padron_ids = self.env['account.padron'].search([('cuit','=',partner.main_id_number)],order='id desc',limit=2)
+        			padron_ids = self.env['account.padron'].search([('cuit','=',partner.vat)],order='id desc',limit=2)
         			for padron in padron_ids[:2]:
         				tax_id = self.env['account.tax'].search([('prefijo_padron','=',padron.tax)])
         				if not tax_id:
@@ -58,37 +57,15 @@ class ResPartner(models.Model):
         				vals = {'partner_id': partner.id,'percent': padron.percent,'tax_id': tax_id.id}
         				perception_id = self.env['res.partner.perception'].create(vals)
 
-
-
-
-        @api.multi
-        def _compute_iibb_percent(self):
-        	for rec in self:
-        		if rec.perception_ids:
-        			for perception in rec.perception_ids:
-        				if perception.tax_id.prefijo_padron == 'RGSPer':
-        					rec.iibb_percent = perception.percent
-
-
-        @api.multi
-        def _compute_iibb_ret_percent(self):
-        	for rec in self:
-        		if rec.perception_ids:
-        			for perception in rec.perception_ids:
-        				if perception.tax_id.prefijo_padron == 'RGSRet':
-        					rec.iibb_ret_percent = perception.percent
-
-        @api.model
-        def update_additional_taxes(self):
         	partners = self.env['res.partner'].search([])
         	for partner in partners:
-        		if partner.main_id_number:
+        		if partner.vat:
         			if partner.perception_ids:
         				for perception in partner.perception_ids:
         					perception.unlink()
-        			padron_ids = self.env['account.padron'].search([('cuit','=',partner.main_id_number)])
+        			padron_ids = self.env['account.padron'].search([('cuit','=',partner.vat)])
         			for padron in padron_ids:
-        				if str(datetime.datetime.today())[:7] != padron.date_from[:7]:
+        				if str(datetime.datetime.today())[:7] != str(padron.date_from)[:7]:
         					continue
         				tax_id = self.env['account.tax'].search([('prefijo_padron','=',padron.tax)])
         				if not tax_id:
@@ -98,15 +75,13 @@ class ResPartner(models.Model):
 
 
         perception_ids = fields.One2many('res.partner.perception', 'partner_id', 'Percepciones Definidas')
-        iibb_percent = fields.Float('% IIBB',compute=_compute_iibb_percent)
-        iibb_ret_percent = fields.Float('% IIBB',compute=_compute_iibb_ret_percent)
+
 """
 class AccountInvoice(models.Model):
         _inherit = "account.move"
 
         @api.multi
         def compute_taxes(self):
-	        """Function used in other module to compute the taxes on a fresh invoice created (onchanges did not applied)"""
         	account_invoice_tax = self.env['account.invoice.tax']
 	        ctx = dict(self._context)
 	        for invoice in self:
