@@ -540,7 +540,7 @@ print "Observaciones:", wscdc.Obs
                 if inv.other_taxes_amount > 0:
                     for move_tax in inv.move_tax_ids:
                         if move_tax.tax_id.tax_group_id.tax_type != 'vat':
-                            tributo_id = 99
+                            tributo_id = move_tax.tax_id.tax_group_id.l10n_ar_tribute_afip_code
                             base_imp = move_tax.base_amount
                             desc = move_tax.tax_id.name
                             importe = move_tax.tax_amount
