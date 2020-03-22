@@ -18,8 +18,6 @@
 #
 ##############################################################################
 {
-    'author': 'ADHOC SA,Moldeo Interactive',
-    'website': 'www.adhoc.com.ar',
     'license': 'AGPL-3',
     'category': 'Accounting & Finance',
     'data': [
@@ -30,10 +28,10 @@
     'depends': [
         'account',
         # for payment method description and company_id field on form view
-        'account_payment_fix',
+        'l10n_ar',
     ],
     'installable': True,
-    'name': 'Withholdings on Payments',
+    'name': 'Retenciones en pagos',
     'test': [],
     'version': '13.0.1.0.0',
 }
