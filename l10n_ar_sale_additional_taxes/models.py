@@ -95,9 +95,17 @@ class AccountMove(models.Model):
                 if move.is_invoice(include_receipts=True):
                     if move.move_tax_ids:
                         amount_total = move.amount_untaxed
+                        amount_residual = move.amount_untaxed
+                        if amount_residual_signed < 0:
+                            sign = -1
+                        else:
+                            sign = 1
                         for move_tax in move.move_tax_ids:
                             amount_total = amount_total + move_tax.tax_amount
+                            amount_residual = amount_residual + move_tax.tax_amount
                         move.amount_total = amount_total
+                        move.amount_residual = amount_residual
+                        move.amount_residual_signed = amount_residual * sign
             return res
 
 
