@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 ##############################################################################
 #
 #    Copyright (C) 2015  ADHOC SA  (http://www.adhoc.com.ar)
@@ -19,34 +18,23 @@
 #
 ##############################################################################
 {
-    'author': 'ADHOC SA,Odoo Community Association (OCA)',
+    'author': 'ADHOC SA',
     'license': 'AGPL-3',
     'category': 'Accounting & Finance',
     'data': [
-        'security/ir.model.access.csv',
-        'security/security.xml',
-        'reports/certificado_de_retencion_report.xml',
+        'views/account_tax_view.xml',
         'views/account_payment_group_view.xml',
-        'views/res_company_view.xml',
-        'views/afip_tabla_ganancias_escala_view.xml',
-        'views/afip_tabla_ganancias_alicuotasymontos_view.xml',
         'views/account_payment_view.xml',
-        'views/res_partner_view.xml',
-        'data/tabla_ganancias_data.xml',
+        'security/ir.model.access.csv',
     ],
     'demo': [
-        'demo/ir_parameter.xml',
-        # 'demo/demo.xml',
     ],
     'depends': [
-        'account_withholding_automatic',
-        'l10n_ar',
+        'account_payment_group',
+        'account_withholding',
     ],
-    'external_dependencies': {
-        'python': ['pyafipws'],
-    },
     'installable': True,
-    'name': 'Argentina - Retenciones automtaicas en pagos',
+    'name': 'Retenciones automaticas en pagos',
     'test': [],
-    'version': '12.0.1.8.0',
+    'version': '13.0.1.1.0',
 }
