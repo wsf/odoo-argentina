@@ -96,7 +96,7 @@ class AccountMove(models.Model):
                     if move.move_tax_ids:
                         amount_total = move.amount_untaxed
                         amount_residual = move.amount_untaxed
-                        if amount_residual_signed < 0:
+                        if move.amount_residual_signed < 0:
                             sign = -1
                         else:
                             sign = 1
