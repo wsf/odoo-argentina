@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from odoo import models, fields, api
-from odoo.exceptions import UserError
+from odoo.exceptions import UserError,ValidationError
 from dateutil.relativedelta import relativedelta
 import datetime
 
@@ -71,6 +71,7 @@ class AccountTax(models.Model):
         vals = super(AccountTax, self).get_withholding_vals(
             payment_group, force_withholding_amount_type)
         base_amount = vals['withholdable_base_amount']
+        # raise ValidationError('vals %s'%(vals))
 
         if self.withholding_type == 'partner_tax':
             amount = base_amount * (alicuota)
@@ -95,6 +96,7 @@ class AccountTax(models.Model):
             # TODO validar excencion actualizada
             elif imp_ganancias_padron == 'AC':
                 # alicuota inscripto
+                #raise ValidationError('%s'%(base_amount))
                 non_taxable_amount = (
                     regimen.montos_no_sujetos_a_retencion)
                 vals['withholding_non_taxable_amount'] = non_taxable_amount
