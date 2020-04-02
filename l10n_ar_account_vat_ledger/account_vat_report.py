@@ -100,36 +100,6 @@ class account_vat_ledger(models.Model):
         string="Invoices",
         compute="_get_data"
     )
-    #document_type_ids = fields.Many2many(
-    #    'account.document.type',
-    #    string="Document Classes",
-    #    compute="_get_data"
-    #)
-    #vat_tax_ids = fields.Many2many(
-    #    'account.tax',
-    #    string="VAT Taxes",
-    #    compute="_get_data"
-    #)
-    #other_tax_ids = fields.Many2many(
-    #    'account.tax',
-    #    string="Other Taxes",
-    #    compute="_get_data"
-    #)
-    # vat_tax_code_ids = fields.Many2many(
-    #     'account.tax.code',
-    #     string="VAT Tax Codes",
-    #     compute="_get_data"
-    # )
-    # other_tax_code_ids = fields.Many2many(
-    #     'account.tax.code',
-    #     string="Other Tax Codes",
-    #     compute="_get_data"
-    # )
-    #afip_responsability_type_ids = fields.Many2many(
-    #    'l10nafip.responsability.type',
-    #    string="AFIP Responsabilities",
-    #    compute="_get_data"
-    #)
 
     # Sacamos el depends por un error con el cache en esqume multi cia al
     # cambiar periodo de una cia hija con usuario distinto a admin
