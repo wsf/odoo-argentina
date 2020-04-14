@@ -1,12 +1,17 @@
-Migración de localización argentina para Odoo Community versión 13. Tambien funcionaría con la versión Enterprise de Odoo.
-No funciona con versiones anteriores. 
+# Odoo Argentina
+Migración de la Localización Argentina para Odoo Community versión 13. También funcionaría con la versión Enterprise de Odoo.
+No funciona con versiones anteriores.
+
 Comprende las siguientes funcionalidades:
-- factura electrónica
-- cheques
-- recibos para pagos con múltiples medios de pago
+- Factura Electrónica
+- Cheques
+- Recibos para pagos con múltiples medios de pago
+- Percepciones
+- Retenciones
+- Tipo de Cambio Automático
 
-En este momento se está trabajando en otras funcionalidades, como por ejemplo soporte de retenciones/percepciones en ventas y compras.
-Si tienen algun problema con la localización primero deben crear un issue. Despues si quieren me envian un mail a gustavo.orrillo@moldeointeractive.com.ar. Les recuerso que el mail no es para darles soporte, sino para ponerme al tanto de los posibles problemas que pueda tener la localización.
-Por último, si quieren un video con la explicación de como configurar la factura electrónica... lo tienen en el webinar que ofrecimos semanas atras:
+Si tienen algún problema con la localización, por favor crear un Issue en este repositorio. Posteriormente, pueden contactar al desarrollador mediante mail a gustavo.orrillo@moldeointeractive.com.ar.
+Recordamos que el mail no es para soporte, sino para ponernos al tanto de los posibles problemas que pueda tener la localización.
 
-https://www.moldeointeractive.com.ar/blog/moldeo-interactive-1/post/webinar-de-localizacion-argentina-en-odoo-13-community-747
+## Instructivo: Configuración de Localización Argentina
+[![Localización Argentina Webinar](https://img.youtube.com/vi/BhaBwOMgkIM/maxresdefault.jpg)](https://www.youtube.com/watch?v=BhaBwOMgkIM)
