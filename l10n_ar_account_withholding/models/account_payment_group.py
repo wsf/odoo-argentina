@@ -39,6 +39,7 @@ class AccountPaymentGroup(models.Model):
         'afip.tabla_ganancias.alicuotasymontos',
         compute='_company_regimenes_ganancias',
     )
+    temp_payment_ids = fields.Char('temp_payment_ids')
 
     #@api.depends('company_id.regimenes_ganancias_ids')
     def _company_regimenes_ganancias(self):
@@ -89,3 +90,20 @@ class AccountPaymentGroup(models.Model):
     #             not payment_group.regimen_ganancias_id):
     #         payment_group.retencion_ganancias = 'no_aplica'
     #     return payment_group
+    def post(self):
+        res = super(AccountPaymentGroup, self).post()
+        for rec in self:
+            if rec.temp_payment_ids:
+                payment_ids = rec.temp_payment_ids.split(',')
+                for payment_id in payment_ids:
+                    payment = self.env['account.payment'].browse(int(payment_id))
+                    payment.write({'used_withholding': True})
+            withholding = None
+            for payment in rec.payment_ids:
+                if payment.tax_withholding_id:
+                    withholding = True
+            if withholding == True:
+                for payment in rec.payment_ids:
+                    payment.write({'used_withholding': True})
+
+        return res

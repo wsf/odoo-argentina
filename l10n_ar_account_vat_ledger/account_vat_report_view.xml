@@ -72,14 +72,14 @@
 		</record>
 
 	<record id="action_account_purchase_vat_ledger" model="ir.actions.act_window">
-		<field name="name">Purchases VAT Ledger</field>
+		<field name="name">IVA Compras</field>
 		<field name="res_model">account.vat.ledger</field>
        		<field name="context">{'default_type':'purchase'}</field>
             	<field name="domain">[('type','=','purchase')]</field>
         </record>
 
         <record id="action_account_sale_vat_ledger" model="ir.actions.act_window">
-            <field name="name">Sales VAT Ledger</field>
+            <field name="name">IVA Ventas</field>
             <field name="res_model">account.vat.ledger</field>
             <field name="context">{'default_type':'sale'}</field>
             <field name="domain">[('type','=','sale')]</field>

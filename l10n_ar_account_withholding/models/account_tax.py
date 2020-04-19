@@ -96,10 +96,24 @@ class AccountTax(models.Model):
             # TODO validar excencion actualizada
             elif imp_ganancias_padron == 'AC':
                 # alicuota inscripto
-                #raise ValidationError('%s'%(base_amount))
                 non_taxable_amount = (
                     regimen.montos_no_sujetos_a_retencion)
                 vals['withholding_non_taxable_amount'] = non_taxable_amount
+                prev_payments = []
+                if self.withholding_accumulated_payments:
+                    payment_date = str(payment_group.payment_date)[:8]
+                    payment_date = payment_date + '00'
+                    payments = self.env['account.payment'].search([('payment_type','=','outbound'),('state','=','posted'),\
+                                        ('partner_id','=',payment_group.partner_id.id),('used_withholding','=',False)])
+                    previous_amount = 0
+                    # import pdb;pdb.set_trace()
+                    for payment in payments:
+                        if payment_group.payment_date.month == payment.payment_date.month:
+                            previous_amount += payment.amount
+                            prev_payments.append(str(payment.id))
+                    #raise ValidationError('estamos aca %s %s'%(base_amount,previous_amount))
+                    base_amount += previous_amount
+                    payment_group.write({'temp_payment_ids': ','.join(prev_payments)})
                 if base_amount < non_taxable_amount:
                     base_amount = 0.0
                 else:

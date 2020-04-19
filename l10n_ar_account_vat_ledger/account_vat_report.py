@@ -112,7 +112,7 @@ class account_vat_ledger(models.Model):
             invoices_domain = [
                 # cancel invoices with internal number are invoices
                 ('state', '!=', 'draft'),
-                ('document_number', '!=', False),
+                #('document_number', '!=', False),
                 # ('internal_number', '!=', False),
                 ('journal_id', 'in', self.journal_ids.ids),
                 ('date', '>=', self.date_from),
@@ -192,6 +192,7 @@ class account_vat_ledger(models.Model):
         self.journal_ids = journals
 
     def action_present(self):
+        #import pdb;pdb.set_trace()
         self.state = 'presented'
 
     def action_cancel(self):
