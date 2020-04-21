@@ -124,6 +124,7 @@ class AccountMove(models.Model):
         compute='_compute_validation_type',
         store=True
     )
+    currency_rate = fields.Float('Tipo de cambio utilizado',readonly=1)
     afip_fce_es_anulacion = fields.Boolean(
         string='FCE: Es anulacion?',
         help='Solo utilizado en comprobantes MiPyMEs (FCE) del tipo débito o crédito. Debe informar:\n'
@@ -813,14 +814,16 @@ print "Observaciones:", wscdc.Obs
                 vto = datetime.strftime(
                     datetime.strptime(vto, '%d/%m/%Y'), '%Y%m%d')
             vto = vto[:4]+'-'+vto[4:6]+'-'+vto[6:8]
+            if moneda_id == 'PES':
+                moneda_ctz = 1
             inv.write({
                 'afip_auth_mode': 'CAE',
                 'afip_auth_code': ws.CAE,
                 'afip_auth_code_due': vto,
                 'afip_result': ws.Resultado,
                 'afip_message': msg,
-                'afip_xml_request': ws.XmlRequest,
                 'afip_xml_response': ws.XmlResponse,
+                'currency_rate': moneda_ctz,
                 'document_number': str(pos_number).zfill(4) + '-' + str(cbte_nro).zfill(8)
             })
             # si obtuvimos el cae hacemos el commit porque estoya no se puede
