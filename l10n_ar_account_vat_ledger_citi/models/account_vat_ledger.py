@@ -15,12 +15,12 @@ class AccountVatLedger(models.Model):
     _inherit = "account.vat.ledger"
 
     citi_skip_invoice_tests = fields.Boolean(
-        string='Skip invoice tests?',
+        string='Saltear tests a facturas?',
         help='If you skip invoice tests probably you will have errors when '
         'loading the files in citi.'
     )
     citi_skip_lines = fields.Char(
-        string="List of lines to skip con citi files",
+        string="Lista de lineas a saltear con los archivos del citi",
         help="Enter a list of lines, for eg '1, 2, 3'. If you skip some lines "
         "you would need to enter them manually"
     )
@@ -207,8 +207,8 @@ class AccountVatLedger(models.Model):
 
     def get_citi_invoices(self, return_skiped=False):
         self.ensure_one()
-        invoices = self.env['account.invoice'].search([
-            ('document_type_id.export_to_citi', '=', True),
+        invoices = self.env['account.move'].search([
+            ('l10n_latam_document_type_id.export_to_citi', '=', True),
             ('id', 'in', self.invoice_ids.ids)], order='date_invoice asc')
         if self.citi_skip_lines:
             skip_lines = literal_eval(self.citi_skip_lines)

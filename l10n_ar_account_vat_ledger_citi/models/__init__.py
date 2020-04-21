@@ -3,4 +3,4 @@
 # directory
 ##############################################################################
 from . import account_vat_ledger
-#from . import account_document_type
+from . import account_document_type

@@ -7,8 +7,8 @@ import logging
 _logger = logging.getLogger(__name__)
 
 
-class AccountDocumentType(models.Model):
-    _inherit = "account.document.type"
+class L10nLatamDocumentType(models.Model):
+    _inherit = "l10n_latam.document.type"
 
     export_to_citi = fields.Boolean(
         help='Set True if this document type and can be imported on citi'

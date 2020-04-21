@@ -7,13 +7,13 @@
     'license': 'AGPL-3',
     'summary': '',
     "depends": [
-        "l10n_ar_account_vat_ledger",
+        "l10n_ar","l10n_ar_account_vat_ledger",
     ],
     'external_dependencies': {
     },
     "data": [
         'views/account_vat_report_view.xml',
-        #'views/account_document_type_view.xml',
+        'views/account_document_type_view.xml',
         #'data/account.document.type.csv',
     ],
     'demo': [
