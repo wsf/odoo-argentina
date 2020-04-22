@@ -248,7 +248,7 @@ class AccountVatLedger(models.Model):
             cant_alicuotas = len(alicuotas.get(inv))
 
             currency_rate = inv.currency_rate
-            currency_code = inv.currency_id.afip_code
+            currency_code = inv.currency_id.l10n_ar_afip_code
             doc_number = int(inv.name.split('-')[2])
 
             row = [
