@@ -571,9 +571,12 @@ class AccountVatLedger(models.Model):
             # si no tiene impuesto liquidado (is_zero), entonces se inventa
             # una linea
             vat_taxes = inv.move_tax_ids.filtered(
-                lambda r: r.tax_id.tax_group_id.tax_type == 'vat' and r.tax_id.tax_group_id.l10n_ar_vat_afip_code == 3 or (
+                #lambda r: r.tax_id.tax_group_id.tax_type == 'vat' and r.tax_id.tax_group_id.l10n_ar_vat_afip_code == 3 or (
+                #    r.tax_id.tax_group_id.l10n_ar_vat_afip_code in [
+                #        4, 5, 6, 8, 9] and not is_zero(r.tax_amount)))
+                lambda r: r.tax_id.tax_group_id.tax_type == 'vat' and r.tax_id.tax_group_id.l10n_ar_vat_afip_code == '3' or (
                     r.tax_id.tax_group_id.l10n_ar_vat_afip_code in [
-                        4, 5, 6, 8, 9] and not is_zero(r.tax_amount)))
+                        '4','5', '6', '8', '9'] and not is_zero(r.tax_amount)))
 
             if not vat_taxes and inv.move_tax_ids.filtered(
                     lambda r: r.tax_id.tax_group_id.tax_type == 'vat' and r.tax_id.tax_group_id.l10n_ar_vat_afip_code):
