@@ -94,15 +94,16 @@ class AccountJournal(models.Model):
         msg = ''
         if self.type != 'sale':
             return True
-        for journal_document_type in self.journal_document_type_ids:
-            next_by_ws = int(
-                journal_document_type.get_pyafipws_last_invoice(
-                )['result']) + 1
-            next_by_seq = journal_document_type.sequence_id.number_next_actual
+        #for journal_document_type in self.journal_document_type_ids:
+        for sequence in self.l10n_ar_sequence_ids:
+            journal_document_type = sequence.l10n_latam_document_type_id
+            result = journal_document_type.get_pyafipws_last_invoice(None,journal_document_type,self,sequence)
+            next_by_ws = int(result['result']) + 1
+            next_by_seq = sequence.number_next_actual
             if next_by_ws != next_by_seq:
                 msg += _(
                     '* Document Type %s, Local %i, Remote %i\n' % (
-                        journal_document_type.document_type_id.name,
+                        journal_document_type.name,
                         next_by_seq,
                         next_by_ws))
         if msg:

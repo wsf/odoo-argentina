@@ -78,16 +78,26 @@ class L10nLatamDocumentType(models.Model):
         self.ensure_one()
         raise UserError(self.get_pyafipws_last_invoice()['msg'])
 
-    def get_pyafipws_last_invoice(self,invoice=None):
-        if not invoice:
+    def get_pyafipws_last_invoice(self,invoice=None,invoice_doc_type=None,journal_id=None,sequence=None):
+        if not invoice_doc_type:
             return('Problema de implementacion. No hay parametro definido')
         self.ensure_one()
-        document_type = invoice.l10n_latam_document_type_id.code
-        company = invoice.journal_id.company_id
-        if invoice.journal_id.l10n_ar_afip_pos_system != 'FEERCEL':
-            afip_ws = invoice.journal_id.afip_ws
+        if not invoice:
+            document_type = invoice_doc_type.code
+            company = journal_id.company_id
+            if journal_id.l10n_ar_afip_pos_system != 'FEERCEL':
+                afip_ws = journal_id.afip_ws
+            else:
+                afip_ws = 'wsfex'
+            pos_number = journal_id.l10n_ar_afip_pos_number
         else:
-            afip_ws = 'wsfex'
+            document_type = invoice.l10n_latam_document_type_id.code
+            company = invoice.journal_id.company_id
+            pos_number = invoice.journal_id.l10n_ar_afip_pos_number
+            if invoice.journal_id.l10n_ar_afip_pos_system != 'FEERCEL':
+                afip_ws = invoice.journal_id.afip_ws
+            else:
+                afip_ws = 'wsfex'
 
         if not afip_ws:
             return (_('No AFIP WS selected on point of sale %s') % (
@@ -98,10 +108,10 @@ class L10nLatamDocumentType(models.Model):
         try:
             if afip_ws in ("wsfe", "wsmtxca"):
                 last = ws.CompUltimoAutorizado(
-                    document_type, invoice.journal_id.l10n_ar_afip_pos_number)
+                    document_type, pos_number)
             elif afip_ws in ["wsfex", 'wsbfe']:
                 last = ws.GetLastCMP(
-                    document_type, invoice.journal_id.l10n_ar_afip_pos_number)
+                    document_type, pos_number)
             else:
                 return(_('AFIP WS %s not implemented') % afip_ws)
         except ValueError as error:
@@ -118,7 +128,10 @@ class L10nLatamDocumentType(models.Model):
         msg = " - ".join([ws.Excepcion, ws.ErrMsg, ws.Obs])
 
         next_ws = int(last or 0) + 1
-        sequence = self.env['ir.sequence'].search([('l10n_latam_journal_id','=',invoice.journal_id.id),('l10n_latam_document_type_id','=',invoice.l10n_latam_document_type_id.id)])
+        if invoice:
+            sequence = self.env['ir.sequence'].search([('l10n_latam_journal_id','=',invoice.journal_id.id),('l10n_latam_document_type_id','=',invoice.l10n_latam_document_type_id.id)])
+        else:
+            sequence = sequence
         if not sequence or len(sequence) > 1:
             raise UserError('Problema de configuracion de secuencias')
         next_local = sequence.number_next_actual
