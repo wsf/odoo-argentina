@@ -86,6 +86,7 @@ class AccountJournalDocumentType(models.Model):
         document_type = self.document_type_id.code
         company = self.journal_id.company_id
         afip_ws = self.journal_id.afip_ws
+        import pdb;pdb.set_trace()
 
         if not afip_ws:
             return (_('No AFIP WS selected on point of sale %s') % (

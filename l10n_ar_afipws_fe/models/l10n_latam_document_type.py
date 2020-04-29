@@ -79,7 +79,7 @@ class L10nLatamDocumentType(models.Model):
         raise UserError(self.get_pyafipws_last_invoice()['msg'])
 
     def get_pyafipws_last_invoice(self,invoice=None,invoice_doc_type=None,journal_id=None,sequence=None):
-        if not invoice_doc_type:
+        if not invoice_doc_type and not invoice:
             return('Problema de implementacion. No hay parametro definido')
         self.ensure_one()
         if not invoice:
