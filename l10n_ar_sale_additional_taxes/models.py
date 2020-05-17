@@ -15,12 +15,6 @@ class AccountCheck(models.Model):
         payment_date = fields.Date(readonly=True,states={'draft': [('readonly', False)],'holding': [('readonly', False)]},index=True,)
 
 
-class AccountTax(models.Model):
-	_inherit = 'account.tax'
-
-	prefijo_padron = fields.Char('Prefijo padron')
-
-
 class AccountPadron(models.Model):
 	_name = 'account.padron'
 	_description = 'account.padron'
@@ -76,10 +70,48 @@ class ResPartner(models.Model):
 
         perception_ids = fields.One2many('res.partner.perception', 'partner_id', 'Percepciones Definidas')
 
+
 class AccountMove(models.Model):
         _inherit = "account.move"
         
-        
+
+        def compute_taxes(self):
+            self.ensure_one()
+            if self.state == 'draft':
+                if self.type in ['out_invoice','out_refund']:
+                    for move_tax in self.move_tax_ids:
+                        move_tax.unlink()
+                    if self.partner_id.perception_ids:
+                        for perception in self.partner_id.perception_ids:
+                            for invoice_line in self.invoice_line_ids:
+                                if perception.tax_id.id not in invoice_line.tax_ids.ids:
+                                    invoice_line.tax_ids = [(4,perception.tax_id.id)] 
+                    for invoice_line in self.invoice_line_ids:
+                        if invoice_line.tax_ids:
+                            for tax in invoice_line.tax_ids.ids:
+                                account_tax = self.env['account.tax'].browse(tax)
+                                move_tax_id = self.env['account.move.tax'].search([('move_id','=',self.id),('tax_id','=',tax)])
+                                if not move_tax_id:
+                                    vals = {
+                                            'move_id': self.id,
+                                            'tax_id': tax
+                                            }
+                                    move_tax_id = self.env['account.move.tax'].create(vals)
+                                move_tax_id.base_amount = move_tax_id.base_amount + invoice_line.price_subtotal
+                                tax_id = self.env['account.tax'].browse(tax)
+                                if not tax_id.is_padron:
+                                    move_tax_id.tax_amount = move_tax_id.tax_amount + invoice_line.price_subtotal * (account_tax.amount / 100)
+                                else:
+                                    amount = 0
+                                    for perception in self.partner_id.perception_ids:
+                                        if perception.tax_id.id == tax_id.id:
+                                            amount = perception.percent
+                                    move_tax_id.tax_amount = move_tax_id.tax_amount + invoice_line.price_subtotal * (amount / 100)
+
+
+
+
+"""
         @api.depends(
                 'line_ids.debit',
                 'line_ids.credit',
@@ -137,7 +169,6 @@ class AccountMove(models.Model):
                                         'move_id': self.id}
                                 move_tax_id = self.env['account.move.tax'].create(vals)
 
-"""
 
         @api.multi
         def compute_taxes(self):

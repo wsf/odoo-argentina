@@ -5,11 +5,11 @@
         <record id="additional_tax_tax_form" model="ir.ui.view">
             <field name="name">additional.tax.account.tax.form.inherit</field>
             <field name="model">account.tax</field>
-            <field name="type">form</field>
             <field name="inherit_id" ref="account.view_tax_form"/>
             <field name="arch" type="xml">
 		<field name="company_id" position="after">
-			<field name="prefijo_padron" />
+			<field name="padron_prefix" />
+			<field name="is_padron" />
 		</field>
             </field>
         </record>
