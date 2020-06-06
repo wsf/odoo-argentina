@@ -17,7 +17,7 @@ class account_vat_ledger(models.Model):
 
     company_id = fields.Many2one(
         'res.company',
-        string='Company',
+        string='Empresa',
         required=True,
         readonly=True,
         states={'draft': [('readonly', False)]},
@@ -30,13 +30,13 @@ class account_vat_ledger(models.Model):
         required=True
     )
     date_from = fields.Date(
-        string='Start Date',
+        string='Fecha Desde',
         required=True,
         readonly=True,
         states={'draft': [('readonly', False)]},
     )
     date_to = fields.Date(
-        string='End Date',
+        string='Fecha Hasta',
         required=True,
         readonly=True,
         states={'draft': [('readonly', False)]},
@@ -55,7 +55,7 @@ class account_vat_ledger(models.Model):
     journal_ids = fields.Many2many(
         'account.journal', 'account_vat_ledger_journal_rel',
         'vat_ledger_id', 'journal_id',
-        string='Journals',
+        string='Diarios',
         required=True,
         readonly=True,
         states={'draft': [('readonly', False)]},
@@ -85,21 +85,51 @@ class account_vat_ledger(models.Model):
         default='draft'
     )
     note = fields.Html(
-        "Notes"
+        "Notas"
     )
 # Computed fields
     name = fields.Char(
-        'Title',
+        'Nombre',
         compute='_get_name'
     )
     reference = fields.Char(
-        'Reference',
+        'Referencia',
     )
     invoice_ids = fields.Many2many(
         'account.move',
-        string="Invoices",
+        string="Facturas",
         compute="_get_data"
     )
+    #document_type_ids = fields.Many2many(
+    #    'account.document.type',
+    #    string="Document Classes",
+    #    compute="_get_data"
+    #)
+    #vat_tax_ids = fields.Many2many(
+    #    'account.tax',
+    #    string="VAT Taxes",
+    #    compute="_get_data"
+    #)
+    #other_tax_ids = fields.Many2many(
+    #    'account.tax',
+    #    string="Other Taxes",
+    #    compute="_get_data"
+    #)
+    # vat_tax_code_ids = fields.Many2many(
+    #     'account.tax.code',
+    #     string="VAT Tax Codes",
+    #     compute="_get_data"
+    # )
+    # other_tax_code_ids = fields.Many2many(
+    #     'account.tax.code',
+    #     string="Other Tax Codes",
+    #     compute="_get_data"
+    # )
+    #afip_responsability_type_ids = fields.Many2many(
+    #    'l10nafip.responsability.type',
+    #    string="AFIP Responsabilities",
+    #    compute="_get_data"
+    #)
 
     # Sacamos el depends por un error con el cache en esqume multi cia al
     # cambiar periodo de una cia hija con usuario distinto a admin
@@ -112,7 +142,7 @@ class account_vat_ledger(models.Model):
             invoices_domain = [
                 # cancel invoices with internal number are invoices
                 ('state', '!=', 'draft'),
-                #('document_number', '!=', False),
+                ('document_number', '!=', False),
                 # ('internal_number', '!=', False),
                 ('journal_id', 'in', self.journal_ids.ids),
                 ('date', '>=', self.date_from),
@@ -192,7 +222,6 @@ class account_vat_ledger(models.Model):
         self.journal_ids = journals
 
     def action_present(self):
-        #import pdb;pdb.set_trace()
         self.state = 'presented'
 
     def action_cancel(self):
@@ -213,7 +242,7 @@ class AccountVatLedgerXlsx(models.AbstractModel):
             money_format = workbook.add_format({'num_format': '$#,##0'})
             bold = workbook.add_format({'bold': True})
             sheet.write(1, 0, vat_ledger.display_name, bold)
-            titles = ['Fecha','Cliente','CUIT','Tipo Comprobante','Responsabilidad AFIP','Nro Comprobante','Monto gravado','IVA 21','IVA 10.5','Total gravado']
+            titles = ['Fecha','Cliente','CUIT','Tipo Comprobante','Responsabilidad AFIP','Nro Comprobante','Neto gravado','Neto Exento','IVA 21','IVA 10.5','Otros Impuestos','Total gravado']
             for i,title in enumerate(titles):
                 sheet.write(3, i, title, bold)
             row = 4
@@ -229,14 +258,28 @@ class AccountVatLedgerXlsx(models.AbstractModel):
                 sheet.write(row + index, 3, obj.l10n_latam_document_type_id.display_name)
                 sheet.write(row + index, 4, obj.partner_id.l10n_ar_afip_responsibility_type_id.name)
                 sheet.write(row + index, 5, obj.display_name)
-                sheet.write(row + index, 6, obj.amount_untaxed,money_format)
+                vat_taxable_amount = 0
+                vat_exempt_base_amount = 0
+                other_taxes_amount = 0
+                vat_amount = 0
+                for move_tax in obj.move_tax_ids:
+                    if move_tax.tax_id.tax_group_id.tax_type == 'vat' and move_tax.tax_id.tax_group_id.l10n_ar_vat_afip_code != '2':
+                        vat_taxable_amount += move_tax.base_amount
+                        vat_amount += move_tax.tax_amount
+                    elif move_tax.tax_id.tax_group_id.tax_type == 'vat' and move_tax.tax_id.tax_group_id.l10n_ar_vat_afip_code == '2':
+                        vat_exempt_base_amount += move_tax.base_amount
+                    else:
+                        other_taxes_amount += move_tax.tax_amount
+
+                sheet.write(row + index, 6, vat_taxable_amount,money_format)
+                sheet.write(row + index, 7, vat_exempt_base_amount,money_format)
                 for tax_line in obj.move_tax_ids:
                     if tax_line.tax_id.amount == 21:
-                        sheet.write(row + index, 7, tax_line.tax_amount,money_format)
-                    if tax_line.tax_id.amount == 10.5:
                         sheet.write(row + index, 8, tax_line.tax_amount,money_format)
-                sheet.write(row + index, 9, obj.amount_total,money_format)
-                #sheet.write(row + index, 8, obj.vat_exempt_base_amount)
+                    if tax_line.tax_id.amount == 10.5:
+                        sheet.write(row + index, 9, tax_line.tax_amount,money_format)
+                sheet.write(row + index, 10, other_taxes_amount,money_format)
+                sheet.write(row + index, 11, obj.amount_total,money_format)
                 #sheet.write(row + index, 9, obj.vat_amount)
                 #sheet.write(row + index, 10, obj.amount_tax - obj.vat_amount)
                 #sheet.write(row + index, 11, obj.currency_id.name)
