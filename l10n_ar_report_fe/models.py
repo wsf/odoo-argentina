@@ -10,11 +10,15 @@ class AccountMoveLine(models.Model):
 
 	def _compute_price_subtotal_vat(self):
 		for line in self:
-                    line.price_subtotal_vat = 0
                     if line.tax_ids:
                         for tax_id in line.tax_ids:
                             if tax_id.tax_group_id.tax_type == 'vat':
                                 line.price_subtotal_vat = line.price_subtotal * ( 1 + tax_id.amount / 100 )
+                            else:
+                                line.price_subtotal_vat = 0
+                    else:
+                        line.price_subtotal_vat = 0
+
 
 	price_subtotal_vat = fields.Float('price_subtotal_vat',compute=_compute_price_subtotal_vat)
 
