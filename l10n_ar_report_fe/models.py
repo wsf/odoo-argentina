@@ -15,7 +15,7 @@ class AccountMoveLine(models.Model):
                             if tax_id.tax_group_id.tax_type == 'vat':
                                 line.price_subtotal_vat = line.price_subtotal * ( 1 + tax_id.amount / 100 )
                             else:
-                                line.price_subtotal_vat = 0
+                                line.price_subtotal_vat = line.price_subtotal
                     else:
                         line.price_subtotal_vat = 0
 

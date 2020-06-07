@@ -50,6 +50,8 @@ class AccountPaymentGroup(models.Model):
         for rec in self.filtered(lambda x: x.partner_type == 'supplier'):
             rec.company_regimenes_ganancias_ids = (
                 rec.company_id.regimenes_ganancias_ids)
+        for rec in self.filtered(lambda x: x.partner_type == 'customer'):
+            rec.company_regimenes_ganancias_ids = [(6,0,[])]
 
     @api.onchange('commercial_partner_id')
     def change_retencion_ganancias(self):

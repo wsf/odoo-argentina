@@ -283,7 +283,7 @@
           </div><!--END PAGE-->
           <!-- CAE -->
             <div class="footer" style="border: 1px solid black;">
-              <div class="row" style="margin-bottom: 0px !important;">
+              <div class="row" style="margin-bottom: 0px !important; padding-top: 2px;">
                 <div class="col-4" t-if="o.afip_cae">
                   <p/>
                     <p><strong> CAE: </strong><span t-field="o.afip_cae"/></p>
