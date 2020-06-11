@@ -84,7 +84,7 @@ class AccountMove(models.Model):
                     if self.partner_id.perception_ids:
                         for perception in self.partner_id.perception_ids:
                             for invoice_line in self.invoice_line_ids:
-                                if perception.tax_id.id not in invoice_line.tax_ids.ids:
+                                if perception.tax_id.id not in invoice_line.tax_ids.ids and perception.tax_id.type_tax_use == 'sale':
                                     invoice_line.tax_ids = [(4,perception.tax_id.id)] 
                     for invoice_line in self.invoice_line_ids:
                         if invoice_line.tax_ids:
