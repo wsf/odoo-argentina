@@ -37,9 +37,6 @@
                 <attribute name="attrs">{'invisible': ['|', ('state', '!=', 'draft'), ('validation_type', '!=', False)]}</attribute>
                 <attribute name="states"></attribute>
 	    </button>
-	    <xpath expr="//form/sheet/div[@name='button_box']" position="before">	
-		    <widget name="web_ribbon" title="Homologacion" attrs="{'invisible': [('state', '!=', 'draft'),('validation_type', '!=', 'production')]}"/>
-		</xpath>
 
             <button name="action_post" position="after">
 		    <button name="action_post" type="object" attrs="{'invisible': ['|', ('state', '!=', 'draft'), ('validation_type', '!=', 'production')]}"
