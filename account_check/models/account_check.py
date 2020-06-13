@@ -564,15 +564,29 @@ class AccountCheck(models.Model):
     def bank_debit(self):
         self.ensure_one()
         if self.state in ['handed']:
-            payment_values = self.get_payment_values(self.journal_id)
-            payment = self.env['account.payment'].with_context(
-                default_name=_('Check "%s" debit') % (self.name),
-                force_account_id=self.company_id._get_check_account(
-                    'deferred').id,
-            ).create(payment_values)
-            self.post_payment_check(payment)
-            self.handed_reconcile(payment.move_line_ids.mapped('move_id'))
-            self._add_operation('debited', payment, date=payment.payment_date)
+            #payment_values = self.get_payment_values(self.journal_id)
+            #payment = self.env['account.payment'].with_context(
+            #    default_name=_('Check "%s" debit') % (self.name),
+            #    force_account_id=self.company_id._get_check_account(
+            #        'deferred').id,
+            #).create(payment_values)
+            #self.post_payment_check(payment)
+            #payment.post()
+            journal_id = self.operation_ids[0].origin.journal_id
+            if not journal_id:
+                raise ValidationError('No puedo determinar el diario de deposito')
+            vals = self.get_bank_vals('bank_debit', journal_id)
+            action_date = self._context.get('action_date')
+            if not action_date:
+                vals['date'] = action_date or fields.Date.today()
+            else:
+                vals['date'] = str(action_date)
+            move = self.env['account.move'].create(vals)
+            move.post()
+            #self._add_operation('deposited', move, date=vals['date'])
+            #self.handed_reconcile(payment.move_line_ids.mapped('move_id'))
+            self._add_operation('debited', move, date=move.date)
+            self.state = 'debited'
 
     @api.model
     def post_payment_check(self, payment):
