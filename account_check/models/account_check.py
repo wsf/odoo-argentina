@@ -501,13 +501,13 @@ class AccountCheck(models.Model):
             # 'draft': [False],
             'holding': [
                 'draft', 'deposited', 'selled', 'delivered', 'transfered'],
-            'delivered': ['holding'],
+            'delivered': ['holding','rejected'],
             'deposited': ['holding', 'rejected'],
             'selled': ['holding'],
             'handed': ['draft'],
             'transfered': ['holding'],
             'withdrawed': ['draft'],
-            'rejected': ['delivered', 'deposited', 'selled', 'handed'],
+            'rejected': ['delivered', 'deposited', 'selled', 'handed','rejected'],
             'debited': ['handed'],
             'returned': ['handed', 'holding'],
             'changed': ['handed', 'holding'],
@@ -763,8 +763,10 @@ class AccountCheck(models.Model):
             self._add_operation('rejected', payment, date=payment.payment_date)
             self.state = 'rejected'
         elif self.state == 'delivered':
+            raise ValidationError('accion no implementada')
             operation = self._get_operation(self.state, True)
-            return self.action_create_debit_note(
+            self.write({'state': 'rejected'})
+            res = self.action_create_debit_note(
                 'rejected', 'supplier', operation.partner_id,
                 self.company_id._get_check_account('rejected'))
         elif self.state == 'handed':
@@ -781,7 +783,7 @@ class AccountCheck(models.Model):
         if partner_type == 'supplier':
             invoice_type = 'in_invoice'
             journal_type = 'purchase'
-            view_id = self.env.ref('account.invoice_supplier_form').id
+            view_id = self.env.ref('account.view_move_form').id
         else:
             invoice_type = 'out_invoice'
             journal_type = 'sale'
