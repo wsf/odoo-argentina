@@ -449,6 +449,8 @@ class AccountPayment(models.Model):
             _logger.info('Deliver Check')
             rec.check_ids._add_operation(
                 'delivered', rec, rec.partner_id, date=rec.payment_date)
+            for check in rec.check_ids:
+                check.state = 'delivered'
             try:
                 vals['account_id'] = rec.check_ids.get_third_check_account().id
                 vals['name'] = _('Deliver checks %s') % ', '.join(rec.check_ids.mapped('name'))
