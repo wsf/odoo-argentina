@@ -662,10 +662,13 @@ class AccountPaymentGroup(models.Model):
             rec['partner_id'] = self._context.get(
                 'default_partner_id', partner[0].id)
             partner_id = self._context.get('default_partner_id',partner[0].id)
-            if partner_id and partner_id.customer_rank:
-                rec['partner_type'] = 'customer'
-            if partner_id and partner_id.supplier_rank:
-                rec['partner_type'] = 'supplier'
+            if partner_id:
+                if type(partner_id) == int:
+                    partner_id = self.env['res.partner'].browse(partner_id)
+                if partner_id.customer_rank:
+                    rec['partner_type'] = 'customer'
+                if partner_id.supplier_rank:
+                    rec['partner_type'] = 'supplier'
             #rec['partner_type'] = MAP_ACCOUNT_TYPE_PARTNER_TYPE[
             #    internal_type[0]]
             # rec['currency_id'] = invoice['currency_id'][0]
