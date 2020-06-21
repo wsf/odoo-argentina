@@ -473,12 +473,40 @@ class AccountPaymentGroup(models.Model):
                 'journal_id.name'))
 
     def action_payment_sent(self):
-        # self.sent = True
-        raise ValidationError(_('Not implemented yet'))
+        """ Open a window to compose an email, with the edi payment template
+            message loaded by default
+        """
+        self.ensure_one()
+        template = self.env.ref(
+            'account_payment_group.email_template_edi_payment_group',
+            False)
+        compose_form = self.env.ref(
+            'mail.email_compose_message_wizard_form', False)
+        ctx = dict(
+            default_model='account.payment.group',
+            default_res_id=self.id,
+            default_use_template=bool(template),
+            default_template_id=template and template.id or False,
+            default_composition_mode='comment',
+            mark_payment_as_sent=True,
+        )
+        return {
+            'name': _('Compose Email'),
+            'type': 'ir.actions.act_window',
+            'view_type': 'form',
+            'view_mode': 'form',
+            'res_model': 'mail.compose.message',
+            'views': [(compose_form.id, 'form')],
+            'view_id': compose_form.id,
+            'target': 'new',
+            'context': ctx,
+        }
 
     def payment_print(self):
         # self.sent = True
-        raise ValidationError(_('Not implemented yet'))
+        report = self.env['ir.actions.report']._get_report_from_name('account_payment_group.report_payment_group')
+        return report.report_action(docids=self)
+
 
     @api.depends('to_pay_move_line_ids')
     def _compute_debt_move_line_ids(self):
