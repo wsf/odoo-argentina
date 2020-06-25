@@ -152,6 +152,8 @@ class AccountTax(models.Model):
             # TODO, tal vez sea mejor utilizar otro campo?
             vals['communication'] = "%s - %s" % (
                 regimen.codigo_de_regimen, regimen.concepto_referencia)
+            if amount < self.withholding_non_taxable_minimum:
+                amount = 0
             vals['period_withholding_amount'] = amount
         return vals
 
