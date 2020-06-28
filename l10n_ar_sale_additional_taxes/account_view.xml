@@ -7,7 +7,7 @@
             <field name="model">account.tax</field>
             <field name="inherit_id" ref="account.view_tax_form"/>
             <field name="arch" type="xml">
-		<field name="company_id" position="after">
+		<field name="active" position="after">
 			<field name="padron_prefix" />
 			<field name="is_padron" />
 		</field>
@@ -23,14 +23,15 @@
             <field name="arch" type="xml">
                 <notebook>
 	                <page string="Percepciones">
-				<button name="update_percepciones" type="object" string="Actualizar Percepciones" />
+				<button name="partner_update_percepciones" type="object" string="Actualizar Percepciones" />
         	            <group colspan="4" col="4">
                 	        <group colspan="4">
                         	    <field colspan="2" name="perception_ids" nolabel="1">
-	                                <tree string="Perceptions a Aplicar" editable="bottom">
+					    <tree string="Perceptions/Retenciones a Aplicar" editable="bottom">
         	                            <!-- field name="perception_id" on_change="perception_id_change(perception_id)" domain="[('type_tax_use','=','sale')]"/ -->
-                	                    <field name="tax_id" domain="[('type_tax_use','=','sale')]"/>
-                                	    <field name="percent"/>
+                	                    <field name="tax_id" />
+					    <field name="percent"/>
+					    <field name="date_from" />
 	                                </tree>	
         	                    </field>
                 	        </group>

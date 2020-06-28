@@ -31,42 +31,70 @@ class ResPartnerPerception(models.Model):
 
 	tax_id = fields.Many2one('account.tax',string='Impuesto',required=True)
 	percent = fields.Float('Percent', required=True)
+	date_from = fields.Date('Fecha Desde')
 	partner_id = fields.Many2one('res.partner', 'Cliente')
 
 class ResPartner(models.Model):
         _name = "res.partner"
         _inherit = "res.partner"
 
+        @api.model
         def update_percepciones(self):
-        	for partner in self:
-        		if partner.vat:
-        			if partner.perception_ids:
-        				for perception in partner.perception_ids:
-        					perception.unlink()
-        			padron_ids = self.env['account.padron'].search([('cuit','=',partner.vat)],order='id desc',limit=2)
-        			for padron in padron_ids[:2]:
-        				tax_id = self.env['account.tax'].search([('prefijo_padron','=',padron.tax)])
-        				if not tax_id:
-        					continue
-        				vals = {'partner_id': partner.id,'percent': padron.percent,'tax_id': tax_id.id}
-        				perception_id = self.env['res.partner.perception'].create(vals)
+            partners = self.env['res.partner'].search([])
+            for partner in partners:
+                for perception in partner.perception_ids:
+                    perception.unlink()
+                padron_ids = self.env['account.padron'].search([('cuit','=',partner.vat)])
+                for padron in padron_ids:
+                    tax_id = self.env['account.tax'].search([('padron_prefix','=',padron.tax)])
+                    if not tax_id:
+                        raise ValidationError('Impuesto no determinado %s'%(padron.tax))
+                    perception_ids = self.env['res.partner.perception'].search([('partner_id','=',partner.id),('tax_id','=',tax_id.id)],order='date_from desc')
+                    #perception_id = None
+                    #for perception in perception_ids:
+                    #    if perception.date_from > padron.date_from:
+                    #        perception_id = perception_id
+                    if not perception_ids:
+                        vals = {'partner_id': partner.id,'percent': padron.percent,'tax_id': tax_id.id,'date_from': padron.date_from}
+                        perception_id = self.env['res.partner.perception'].create(vals)
 
-        	partners = self.env['res.partner'].search([])
-        	for partner in partners:
-        		if partner.vat:
-        			if partner.perception_ids:
-        				for perception in partner.perception_ids:
-        					perception.unlink()
-        			padron_ids = self.env['account.padron'].search([('cuit','=',partner.vat)])
-        			for padron in padron_ids:
-        				if str(datetime.datetime.today())[:7] != str(padron.date_from)[:7]:
-        					continue
-        				tax_id = self.env['account.tax'].search([('prefijo_padron','=',padron.tax)])
-        				if not tax_id:
-        					continue
-        				vals = {'partner_id': partner.id,'percent': padron.percent,'tax_id': tax_id.id}
-        				perception_id = self.env['res.partner.perception'].create(vals)
+        def partner_update_percepciones(self):
+            self.ensure_one()
+            for partner in self:
+                for perception in partner.perception_ids:
+                    perception.unlink()
+                padron_ids = self.env['account.padron'].search([('cuit','=',partner.vat)],order='date_from desc')
+                for padron in padron_ids:
+                    tax_id = self.env['account.tax'].search([('padron_prefix','=',padron.tax)])
+                    if not tax_id:
+                        raise ValidationError('Impuesto no determinado %s'%(padron.tax))
+                    perception_ids = self.env['res.partner.perception'].search([('partner_id','=',partner.id),('tax_id','=',tax_id.id)])
+                    #for perception in perception_ids:
+                    #    if perception.date_from < padron.date_from:
+                    #        perception_id = perception
+                    if not perception_ids:
+                        vals = {'partner_id': partner.id,'percent': padron.percent,'tax_id': tax_id.id,'date_from': padron.date_from}
+                        perception_id = self.env['res.partner.perception'].create(vals)
+                    #else:
+                    #    perception_id.write({'percent': padron.percent,'date_from': padron.date_from})
 
+
+
+
+
+#        			padron_ids = self.env['account.padron'].search([('cuit','=',partner.vat)],order='id desc')
+#        			for padron in padron_ids:
+#        				if padron.tax == 'RET_IIBB_AGIP':
+#                                            tax_id = self.env['account.tax'].browse(32)
+#        				else:
+#                                            tax_id = self.env['account.tax'].search([('padron_prefix','=',padron.tax)])
+#        				#perception_id = self.env['res.partner.perception'].search([('partner_id','=',partner.id),('tax_id','=',tax_id.id),('date_from','=>',str(padron.date_from))])
+#        				perception_ids = self.env['res.partner.perception'].search([('partner_id','=',partner.id),('tax_id','=',tax_id.id)])
+#        				perception_id = None
+#        				for perception_id in perception_ids:
+#        				if not perception_id:
+#        					vals = {'partner_id': partner.id,'percent': padron.percent,'tax_id': tax_id.id,'date_from': padron.date_from}
+#        					perception_id = self.env['res.partner.perception'].create(vals)
 
         perception_ids = fields.One2many('res.partner.perception', 'partner_id', 'Percepciones Definidas')
 
@@ -83,8 +111,10 @@ class AccountMove(models.Model):
                         move_tax.unlink()
                     if self.partner_id.perception_ids:
                         for perception in self.partner_id.perception_ids:
+                            if perception.tax_id.type_tax_use != 'sale':
+                                continue
                             for invoice_line in self.invoice_line_ids:
-                                if perception.tax_id.id not in invoice_line.tax_ids.ids and perception.tax_id.type_tax_use == 'sale':
+                                if perception.tax_id.id not in invoice_line.tax_ids.ids:
                                     invoice_line.tax_ids = [(4,perception.tax_id.id)] 
                     for invoice_line in self.invoice_line_ids:
                         if invoice_line.tax_ids:
