@@ -346,3 +346,22 @@ class AccountPayment(models.Model):
                 self.payment_group_id.communication,
                 self.communication and ": %s" % self.communication or "")
         return vals
+
+
+    def _prepare_payment_moves(self):
+        res = super(AccountPayment, self)._prepare_payment_moves()
+        #for i,rec in enumerate(self):
+        #    if rec.signed_amount_company_currency != line.credit:
+        for i,rec in enumerate(self):
+            if rec.currency_id.id != rec.company_id.currency_id.id and rec.payment_type == 'inbound':
+                amount_debit = res[i]['line_ids'][0][2]['debit']
+                amount_credit = res[i]['line_ids'][0][2]['credit']
+                if amount_credit > 0 and rec.signed_amount_company_currency != amount_credit:
+                    #raise ValidationError('estamos aca %s %s'%(amount_credit,res[0]['line_ids'][0][2]))
+                    res[i]['line_ids'][0][2]['credit'] = rec.signed_amount_company_currency
+                amount_debit = res[i]['line_ids'][1][2]['debit']
+                amount_credit = res[i]['line_ids'][1][2]['credit']
+                if amount_debit > 0 and rec.signed_amount_company_currency != amount_debit:
+                    #raise ValidationError('estamos aca %s %s'%(amount_credit,res[0]['line_ids'][0][2]))
+                    res[i]['line_ids'][1][2]['debit'] = rec.signed_amount_company_currency
+        return res
