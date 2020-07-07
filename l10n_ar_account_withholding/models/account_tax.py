@@ -3,6 +3,7 @@ from odoo import models, fields, api
 from odoo.exceptions import UserError,ValidationError
 from dateutil.relativedelta import relativedelta
 import datetime
+from datetime import date
 
 
 class AccountTax(models.Model):
@@ -114,11 +115,28 @@ class AccountTax(models.Model):
                     #raise ValidationError('estamos aca %s %s'%(base_amount,previous_amount))
                     base_amount += previous_amount
                     payment_group.write({'temp_payment_ids': ','.join(prev_payments)})
+
                 if base_amount < non_taxable_amount:
                     base_amount = 0.0
                 else:
                     base_amount -= non_taxable_amount
                 vals['withholdable_base_amount'] = base_amount
+                escala = self.env['afip.tabla_ganancias.escala'].search([
+                        ('importe_desde', '<=', base_amount),
+                        ('importe_hasta', '>', base_amount),
+                ], limit=1)
+                importe_excedente = escala.importe_excedente
+                today = date.today()
+                prev_date = date(today.year,today.month,1)
+                prev_payments = self.env['account.payment'].search([('payment_type','=','outbound'),('state','=','posted'),('payment_date','>=',str(prev_date)),\
+                                        ('partner_id','=',payment_group.partner_id.id),('tax_withholding_id','=',self.id)])
+                if prev_payments:
+                    vals['withholding_non_taxable_amount'] = 0
+                    vals['withholdable_base_amount'] = vals['withholdable_base_amount'] + payment_group.partner_id.default_regimen_ganancias_id.montos_no_sujetos_a_retencion
+                    vals['period_withholding_amount'] = vals['withholdable_base_amount'] * payment_group.partner_id.default_regimen_ganancias_id.porcentaje_inscripto / 100
+                    vals['previous_withholding_amount'] = 0
+                    base_amount = vals['withholdable_base_amount']
+
                 if regimen.porcentaje_inscripto == -1:
                     # hacemos <= porque si es 0 necesitamos que encuentre
                     # la primer regla (0 es en el caso en que la no
@@ -132,11 +150,17 @@ class AccountTax(models.Model):
                             'No se encontro ninguna escala para el monto'
                             ' %s' % (base_amount))
                     amount = escala.importe_fijo
+                    #amount += (escala.porcentaje / 100.0) * (
+                    #    base_amount - escala.importe_excedente)
                     amount += (escala.porcentaje / 100.0) * (
-                        base_amount - escala.importe_excedente)
+                        base_amount - importe_excedente)
+                    #vals['comment'] = "%s + (%s x %s)" % (
+                    #    escala.importe_fijo,
+                    #    base_amount - escala.importe_excedente,
+                    #    escala.porcentaje / 100.0)
                     vals['comment'] = "%s + (%s x %s)" % (
                         escala.importe_fijo,
-                        base_amount - escala.importe_excedente,
+                        base_amount - importe_excedente,
                         escala.porcentaje / 100.0)
                 else:
                     amount = base_amount * (
@@ -154,7 +178,9 @@ class AccountTax(models.Model):
                 regimen.codigo_de_regimen, regimen.concepto_referencia)
             if amount < self.withholding_non_taxable_minimum:
                 amount = 0
+
             vals['period_withholding_amount'] = amount
+        # raise ValidationError('estamos aca %s'%(vals))
         return vals
 
     def get_partner_alicuota_percepcion(self, partner, date):
