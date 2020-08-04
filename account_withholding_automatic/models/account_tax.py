@@ -249,7 +249,9 @@ result = withholdable_base_amount * 0.10
             ('payment_date', '>=', from_date),
         ]
 
-        previous_payment_groups_domain = common_previous_domain + [
+        previous_payment_groups_domain = [
+            ('payment_date', '<=', to_date),
+            ('payment_date', '>=', from_date),
             ('state', 'not in', ['draft', 'cancel', 'confirmed']),
             ('id', '!=', payment_group.id),
         ]
@@ -286,6 +288,7 @@ result = withholdable_base_amount * 0.10
         if self.withholding_accumulated_payments:
             previos_payment_groups_domain, previos_payments_domain = (
                 self.get_period_payments_domain(payment_group))
+            #raise ValidationError('%s %s'%(previos_payment_groups_domain, previos_payments_domain))
             same_period_payments = self.env['account.payment.group'].search(
                 previos_payment_groups_domain)
 
@@ -295,9 +298,19 @@ result = withholdable_base_amount * 0.10
                         withholding_amount_type, self.withholding_advances)
                 accumulated_amount += \
                     same_period_amounts[0] + same_period_amounts[1]
-            previous_withholding_amount = sum(
-                self.env['account.payment'].search(
-                    previos_payments_domain).mapped('amount'))
+            if self.withholding_type != 'tabla_ganancias':
+                previous_withholding_amount = sum(
+                    self.env['account.payment'].search(
+                        previos_payments_domain).mapped('amount'))
+            else:
+                previous_withholding_amount = 0
+                prev_payments = self.env['account.payment'].search(previos_payments_domain)
+                for prev_payment in prev_payments:
+                    if prev_payment.payment_group_id.payment_date.year == payment_group.payment_date.year and prev_payment.payment_group_id.payment_date.month == payment_group.payment_date.month and \
+                            prev_payment.payment_group_id.payment_date.day <= payment_group.payment_date.day:
+                                previous_withholding_amount += prev_payment.amount
+
+            #raise ValidationError('%s %s'%(previous_withholding_amount,previos_payments_domain))
 
         total_amount = (
             accumulated_amount +
@@ -332,10 +345,11 @@ result = withholdable_base_amount * 0.10
                     withholdable_base_amount,
                     percentage,
                     fix_amount)
-
-            period_withholding_amount = (
-                (total_amount > withholding_non_taxable_minimum) and (
+            if self.withholding_type != 'tabla_ganancias':
+                period_withholding_amount = ((total_amount > withholding_non_taxable_minimum) and (
                     withholdable_base_amount * percentage + fix_amount) or 0.0)
+            else:
+                period_withholding_amount = total_amount
 
         return {
             'withholdable_invoiced_amount': withholdable_invoiced_amount,
