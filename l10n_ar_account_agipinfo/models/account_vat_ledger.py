@@ -211,7 +211,6 @@ class AccountVatLedger(models.Model):
         self.ensure_one()
         invoices = self.env['account.move'].search([
             ('l10n_latam_document_type_id.export_to_digital', '=', True),
-            ('state','=','posted'),
             ('id', 'in', self.invoice_ids.ids)], order='invoice_date asc')
         if self.digital_skip_lines:
             skip_lines = literal_eval(self.digital_skip_lines)
@@ -233,8 +232,8 @@ class AccountVatLedger(models.Model):
         #    invoices.check_argentinian_invoice_taxes()
         if self.type == 'purchase':
             partners = invoices.mapped('commercial_partner_id').filtered(
-                lambda r: r.l10n_latam_identification_type_id.l10n_ar_afip_code in (
-                    False, 99) or not r.vat)
+                lambda r: r.main_id_category_id.afip_code in (
+                    False, 99) or not r.main_id_number)
             if partners:
                 raise ValidationError(_(
                     "On purchase digital, partner document type is mandatory "
@@ -248,7 +247,7 @@ class AccountVatLedger(models.Model):
             # si no existe la factura en alicuotas es porque no tienen ninguna
             cant_alicuotas = len(alicuotas.get(inv))
 
-            currency_rate = inv.l10n_ar_currency_rate
+            currency_rate = inv.currency_rate
             currency_code = inv.currency_id.l10n_ar_afip_code
             doc_number = int(inv.name.split('-')[2])
 
@@ -282,9 +281,9 @@ class AccountVatLedger(models.Model):
                 row.append("{:0>20d}".format(doc_number))
             else:
                 # Campo 5: Despacho de importación
-                if inv.l10n_latam_document_type_id.code == '66':
+                if inv.document_type_id.code == '66':
                     row.append(
-                        (inv.l10n_latam_document_number or inv.number or '').rjust(
+                        (inv.document_number or inv.number or '').rjust(
                             16, '0'))
                 else:
                     row.append(''.rjust(16, ' '))
@@ -445,20 +444,15 @@ class AccountVatLedger(models.Model):
                             'Computable"'))
                 else:
                     row.append(self.format_amount(
-                        inv.vat_amount, invoice=inv))
+                        inv.cc_vat_amount, invoice=inv))
 
                 row += [
                     # Campo 22: Otros Tributos
-                    #self.format_amount(
-                    #    sum(inv.l10n_latam_tax_ids.filtered(lambda r: (
-                    #        r.l10n_latam_tax_ids[0].tax_group_id.tax_type \
-                    #        == 'others')).mapped(
-                    #        'cc_amount')), invoice=inv),
-                    self.format_amount(0),
-                        #sum(inv.l10n_latam_tax_ids.filtered(lambda r: (
-                        #    r.l10n_latam_tax_ids[0].tax_group_id.tax_type \
-                        #    == 'others')).mapped(
-                        #    'cc_amount')), invoice=inv),
+                    self.format_amount(
+                        sum(inv.tax_line_ids.filtered(lambda r: (
+                            r.tax_id.tax_group_id.application \
+                            == 'others')).mapped(
+                            'cc_amount')), invoice=inv),
 
                     # TODO implementar estos 3
                     # Campo 23: CUIT Emisor / Corredor
@@ -521,31 +515,29 @@ class AccountVatLedger(models.Model):
         else:
             row = [
                 # Campo 1: Tipo de Comprobante
-                #"{:0>3d}".format(int(inv.document_type_id.code)),
-                str(inv.l10n_latam_document_type_id.code).zfill(3),
+                "{:0>3d}".format(int(inv.document_type_id.code)),
 
                 # Campo 2: Punto de Venta
-                #self.get_point_of_sale(inv),
-                "{:0>5d}".format(int(inv.l10n_latam_document_number[:inv.l10n_latam_document_number.find('-')])),
+                self.get_point_of_sale(inv),
 
                 # Campo 3: Número de Comprobante
-                "{:0>19d}".format(int(inv.l10n_latam_document_number[inv.l10n_latam_document_number.find('-')+1:])),
+                "{:0>20d}".format(inv.invoice_number),
 
-                ## Campo 4: Código de documento del vendedor
-                #self.get_partner_document_code(
-                #    inv.commercial_partner_id),
+                # Campo 4: Código de documento del vendedor
+                self.get_partner_document_code(
+                    inv.commercial_partner_id),
 
-                ## Campo 5: Número de identificación del vendedor
-                #self.get_partner_document_number(
-                #    inv.commercial_partner_id),
+                # Campo 5: Número de identificación del vendedor
+                self.get_partner_document_number(
+                    inv.commercial_partner_id),
 
-                # Campo 4: Importe Neto Gravado
+                # Campo 6: Importe Neto Gravado
                 self.format_amount(base, invoice=inv),
 
-                # Campo 5: Alícuota de IVA.
+                # Campo 7: Alícuota de IVA.
                 str(code).rjust(4, '0'),
 
-                # Campo 6: Impuesto Liquidado.
+                # Campo 8: Impuesto Liquidado.
                 self.format_amount(tax_amount, invoice=inv),
             ]
         return row
@@ -578,23 +570,13 @@ class AccountVatLedger(models.Model):
             # * el impuesto es iva 21, 27 etc pero tiene impuesto liquidado,
             # si no tiene impuesto liquidado (is_zero), entonces se inventa
             # una linea
-            #vat_taxes = inv.move_tax_ids.filtered(
-            #vat_taxes = inv.l10n_latam_tax_ids.filtered(
+            vat_taxes = inv.move_tax_ids.filtered(
                 #lambda r: r.tax_id.tax_group_id.tax_type == 'vat' and r.tax_id.tax_group_id.l10n_ar_vat_afip_code == 3 or (
                 #    r.tax_id.tax_group_id.l10n_ar_vat_afip_code in [
                 #        4, 5, 6, 8, 9] and not is_zero(r.tax_amount)))
-            #    lambda r: r.l10n_latam_tax_ids[0].tax_group_id.tax_type == 'vat' and r.l10n_latam_tax_ids[0].tax_group_id.l10n_ar_vat_afip_code == '3' or (
-            #        r.l10n_latam_tax_ids[0].tax_group_id.l10n_ar_vat_afip_code in [
-            #            '4','5', '6', '8', '9'] and not is_zero(r.tax_base_amount)))
-            vat_taxes = self.env['account.move.line']
-            for mvl_tax in inv.l10n_latam_tax_ids:
-                #raise ValidationError('estamos aca %s %s %s'%(inv,mvl_tax.tax_group_id.l10n_ar_vat_afip_code + 'X',mvl_tax.tax_group_id.tax_type))
-                #if not mvl_tax.l10n_latam_tax_ids:
-                #    continue
-                tax_group_id = mvl_tax.tax_group_id
-                #if tax_group_id.tax_type == 'vat' and (tax_group_id.l10n_ar_vat_afip_code == 3 or (tax_group_id.l10n_ar_vat_afip_code in [4, 5, 6, 8, 9])):
-                if tax_group_id.tax_type == 'vat' and tax_group_id.l10n_ar_vat_afip_code in ['1','2','3', '4', '5', '6', '8', '9']:
-                    vat_taxes += mvl_tax
+                lambda r: r.tax_id.tax_group_id.tax_type == 'vat' and r.tax_id.tax_group_id.l10n_ar_vat_afip_code == '3' or (
+                    r.tax_id.tax_group_id.l10n_ar_vat_afip_code in [
+                        '4','5', '6', '8', '9'] and not is_zero(r.tax_amount)))
 
             if not vat_taxes and inv.move_tax_ids.filtered(
                     lambda r: r.tax_id.tax_group_id.tax_type == 'vat' and r.tax_id.tax_group_id.l10n_ar_vat_afip_code):
@@ -602,11 +584,11 @@ class AccountVatLedger(models.Model):
                     inv, 0.0, 3, 0.0, impo=impo)))
 
             # we group by afip_code
-            #raise ValidationError('estamos aca %s %s %s %s'%(inv,vat_taxes,vat_taxes[0].tax_base_amount,vat_taxes[0].price_subtotal))
-            for afip_code in vat_taxes.mapped('tax_group_id.l10n_ar_vat_afip_code'):
-                taxes = vat_taxes.filtered(lambda x: x.tax_group_id.l10n_ar_vat_afip_code == afip_code)
-                imp_neto = sum(taxes.mapped('tax_base_amount'))
-                imp_liquidado = sum(taxes.mapped('price_subtotal'))
+            for afip_code in vat_taxes.mapped('tax_id.tax_group_id.l10n_ar_vat_afip_code'):
+                taxes = vat_taxes.filtered(
+                    lambda x: x.tax_id.tax_group_id.l10n_ar_vat_afip_code == afip_code)
+                imp_neto = sum(taxes.mapped('base_amount'))
+                imp_liquidado = sum(taxes.mapped('tax_amount'))
                 lines.append(''.join(self.get_tax_row(
                     inv,
                     imp_neto,
