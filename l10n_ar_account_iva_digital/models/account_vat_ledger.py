@@ -188,7 +188,10 @@ class AccountVatLedger(models.Model):
 
     @api.model
     def get_point_of_sale(self, invoice):
-        return "{:0>5d}".format(invoice.journal_id.l10n_ar_afip_pos_number)
+        if self.type == 'sale':
+            return "{:0>5d}".format(invoice.journal_id.l10n_ar_afip_pos_number)
+        else:
+            return invoice.l10n_latam_document_number[:5]
 
     def action_see_skiped_invoices(self):
         invoices = self.get_digital_invoices(return_skiped=True)
@@ -211,7 +214,6 @@ class AccountVatLedger(models.Model):
         self.ensure_one()
         invoices = self.env['account.move'].search([
             ('l10n_latam_document_type_id.export_to_digital', '=', True),
-            ('state','=','posted'),
             ('id', 'in', self.invoice_ids.ids)], order='invoice_date asc')
         if self.digital_skip_lines:
             skip_lines = literal_eval(self.digital_skip_lines)
@@ -246,7 +248,23 @@ class AccountVatLedger(models.Model):
 
         for inv in invoices:
             # si no existe la factura en alicuotas es porque no tienen ninguna
-            cant_alicuotas = len(alicuotas.get(inv))
+            #cant_alicuotas = len(alicuotas.get(inv.))
+            cant_alicuotas = 0
+            vat_taxes = []
+            vat_exempt_base_amount = 0
+            for invl in inv.invoice_line_ids:
+                for tax in invl.tax_ids:
+                    if tax.tax_group_id.tax_type == 'vat':
+                        if tax.id not in vat_taxes:
+                            vat_taxes.append(tax.id)
+                    if self.type == 'purchase':
+                        if tax.amount == 0:
+                            vat_exempt_base_amount += invl.price_subtotal
+                    
+
+
+            cant_alicuotas = len(vat_taxes)
+
 
             currency_rate = inv.l10n_ar_currency_rate
             currency_code = inv.currency_id.l10n_ar_afip_code
@@ -309,12 +327,16 @@ class AccountVatLedger(models.Model):
                 # precio neto gravado
                 #self.format_amount(
                 #    inv.cc_vat_untaxed_base_amount, invoice=inv),
-                self.format_amount(
-                    inv.vat_untaxed_base_amount, invoice=inv),
+                #self.format_amount(
+                #    inv.vat_untaxed_base_amount, invoice=inv),
             ]
 
             if self.type == 'sale':
                 row += [
+                    # Campo 10: Importe total de conceptos que no integran el
+                    # precio neto gravado
+                    self.format_amount(
+                        inv.vat_untaxed_base_amount, invoice=inv),
                     # Campo 11: Percepción a no categorizados
                     self.format_amount(
                         sum(inv.move_tax_ids.filtered(lambda r: (
@@ -332,6 +354,10 @@ class AccountVatLedger(models.Model):
                 ]
             else:
                 row += [
+                    # Campo 10: Importe total de conceptos que no integran el
+                    # precio neto gravado
+                    self.format_amount(
+                        vat_exempt_base_amount, invoice=inv),
                     # Campo 11: Importe de operaciones exentas
                     #self.format_amount(
                     #    inv.vat_exempt_base_amount, invoice=inv),
@@ -519,6 +545,8 @@ class AccountVatLedger(models.Model):
                 self.format_amount(tax_amount, invoice=inv),
             ]
         else:
+            doc_number = int(inv.name.split('-')[2])
+            #raise ValidationError('estamos aca %s'%(doc_number))
             row = [
                 # Campo 1: Tipo de Comprobante
                 #"{:0>3d}".format(int(inv.document_type_id.code)),
@@ -529,15 +557,16 @@ class AccountVatLedger(models.Model):
                 "{:0>5d}".format(int(inv.l10n_latam_document_number[:inv.l10n_latam_document_number.find('-')])),
 
                 # Campo 3: Número de Comprobante
-                "{:0>19d}".format(int(inv.l10n_latam_document_number[inv.l10n_latam_document_number.find('-')+1:])),
+                #"{:0>19d}".format(int(inv.l10n_latam_document_number[inv.l10n_latam_document_number.find('-')+1:])),
+                "{:0>20d}".format(doc_number),
 
                 ## Campo 4: Código de documento del vendedor
-                #self.get_partner_document_code(
-                #    inv.commercial_partner_id),
+                self.get_partner_document_code(
+                    inv.commercial_partner_id),
 
                 ## Campo 5: Número de identificación del vendedor
-                #self.get_partner_document_number(
-                #    inv.commercial_partner_id),
+                self.get_partner_document_number(
+                    inv.commercial_partner_id),
 
                 # Campo 4: Importe Neto Gravado
                 self.format_amount(base, invoice=inv),
@@ -614,5 +643,29 @@ class AccountVatLedger(models.Model):
                     imp_liquidado,
                     impo=impo,
                 )))
+            # Agrega IVA exento e IVA no gravado
+            for inv_line in inv.invoice_line_ids:
+                for tax in inv_line.tax_ids:
+                    if tax.tax_group_id.tax_type == 'vat' and tax.tax_group_id.l10n_ar_vat_afip_code in ['1','2']:
+                        text_line = ''
+                        # Campo 1
+                        text_line += "{:0>3d}".format(int(inv.l10n_latam_document_type_id.code))
+                        # Campo 2
+                        text_line += "{:0>5d}".format(int(inv.l10n_latam_document_number[:inv.l10n_latam_document_number.find('-')]))
+                        # Campo 3
+                        doc_number = int(inv.name.split('-')[2])
+                        text_line += "{:0>20d}".format(doc_number)
+                        ## Campo 4: Código de documento del vendedor
+                        text_line += self.get_partner_document_code(inv.commercial_partner_id)
+                        ## Campo 5: Número de identificación del vendedor
+                        text_line += self.get_partner_document_number(inv.commercial_partner_id)
+                        # Campo 6: Importe Neto Gravado
+                        text_line += self.format_amount(inv_line.price_subtotal, invoice=inv)
+                        # Campo 5: Alícuota de IVA.
+                        text_line += str(tax.tax_group_id.l10n_ar_vat_afip_code).rjust(4, '0')
+                        # Campo 6: Impuesto Liquidado.
+                        text_line += self.format_amount(0, invoice=inv)
+                        lines.append(text_line)
             res[inv] = lines
         return res
+
