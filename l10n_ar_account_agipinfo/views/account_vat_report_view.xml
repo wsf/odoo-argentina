@@ -12,11 +12,11 @@
                 </field -->
                 <notebook>
                     <page string="AGIP" name="agip">
-                        <button name="compute_agip_data" type="object" string="Generar Informacion" states="draft"/>
+                        <button name="compute_agip_data" type="object" string="Generar Informacion" />
                         <group>
-                            <field name="digital_agip_filename" invisible="1"/>
+                            <field name="agip_vouchers_filename" invisible="1"/>
                             <group>
-                                <field name="digital_agip_file" filename="digital_vouchers_filename"/>
+                                <field name="agip_vouchers_file" filename="agip_vouchers_filename"/>
                             </group>
                         </group>
                         <group col="1" groups="base.group_no_one">
