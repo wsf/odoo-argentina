@@ -79,6 +79,10 @@ class AccountVatLedger(models.Model):
                 continue
             move_tax = None
             vat_amount = 0
+            if invoice.currency_id.id == invoice.company_id.currency_id.id:
+                currency_rate = 1
+            else:
+                currency_rate = invoice.l10n_ar_currency_rate
             for mvt in invoice.move_tax_ids:
                 if mvt.tax_id.tax_group_id.tax_type == 'withholdings':
                     move_tax = mvt
@@ -90,7 +94,7 @@ class AccountVatLedger(models.Model):
             # Campo 1 - tipo de operacion
             v = '2'
             # Campo 2 - Norma
-            v+= 'XXX'
+            v+= '014'
             # Campo 3 - Fecha percepcion
             v+= invoice.invoice_date.strftime('%d/%m/%Y')
             # Campo 4 - Tipo Comprobante
@@ -142,18 +146,18 @@ class AccountVatLedger(models.Model):
             # Campo 16
             v+= '0'.zfill(16)
             # Campo 17
-            vat_amount = int(vat_amount * 100)
-            v+= str(vat_amount).zfill(16)
+            #vat_amount = int(vat_amount * 100)
+            v+= str(round(vat_amount * currency_rate,2)).replace(',','.').zfill(16)
             # Campo 18
-            base_amount = int(mvt.base_amount * 100)
-            v+= str(base_amount).zfill(16)
+            base_amount = mvt.base_amount * currency_rate
+            v+= str(round(base_amount,2)).replace('.',',').zfill(16)
             # Campo 19
-            alicuota = int((mvt.tax_amount / mvt.base_amount) * 100)
-            v+= str(alicuota).zfill(5)
+            alicuota = (mvt.tax_amount / mvt.base_amount) * currency_rate
+            v+= str(round(alicuota,2)).replace('.',',').zfill(5)
             # Campo 20
-            tax_amount = int(mvt.tax_amount * 100)
-            v+= str(tax_amount).zfill(16)
-            v+= str(tax_amount).zfill(16)
+            tax_amount = round(mvt.tax_amount  * currency_rate,2)
+            v+= str(tax_amount).replace('.',',').zfill(16)
+            v+= str(tax_amount).replace(',','.').zfill(16)
             # Campo 21
             v+= ' ' 
             # Campo 22
