@@ -117,14 +117,26 @@ class AccountTax(models.Model):
                                     previous_amount += matched_amount
                                 else:
                                     previous_amount += payment.amount
-                            prev_payments.append(str(payment.id))
+                                    # esta linea MGO
+                                prev_payments.append(str(payment.id))
                     base_amount += previous_amount
                     payment_group.write({'temp_payment_ids': ','.join(prev_payments)})
 
-                if base_amount < non_taxable_amount:
+                if base_amount < non_taxable_amount and not prev_payments:
                     base_amount = 0.0
                 elif not prev_payments:
+                    #raise ValidationError('estamos aca #2')
                     base_amount -= non_taxable_amount
+                elif prev_payments:
+                    flag_substract = True
+                    for idx in prev_payments:
+                        prev_pay_obj = self.env['account.payment'].browse(int(idx))
+                        if prev_pay_obj.tax_withholding_id:
+                            flag_substract = False
+                    if flag_substract:
+                        #raise ValidationError('estamos aca #3')
+                        base_amount -= non_taxable_amount
+
                 vals['withholdable_base_amount'] = base_amount
                 escala = self.env['afip.tabla_ganancias.escala'].search([
                         ('importe_desde', '<=', base_amount),
@@ -138,10 +150,44 @@ class AccountTax(models.Model):
                                         ('payment_group_id.payment_date','<=',today),('partner_id','=',payment_group.partner_id.id),('tax_withholding_id','=',self.id)])
                 if prev_payments:
                     vals['withholding_non_taxable_amount'] = 0
-                    vals['withholdable_base_amount'] = vals['withholdable_base_amount'] + payment_group.partner_id.default_regimen_ganancias_id.montos_no_sujetos_a_retencion
+                    if vals['withholdable_base_amount'] == 0:
+                        vals['withholdable_base_amount'] = vals['total_amount']
+                    else:
+                        vals['withholdable_base_amount'] = vals['withholdable_base_amount'] + payment_group.partner_id.default_regimen_ganancias_id.montos_no_sujetos_a_retencion
                     vals['period_withholding_amount'] = vals['withholdable_base_amount'] * payment_group.partner_id.default_regimen_ganancias_id.porcentaje_inscripto / 100
                     vals['previous_withholding_amount'] = 0
                     base_amount = vals['withholdable_base_amount']
+                #raise ValidationError('estamos aca %s %s'%(prev_payments,vals))
+
+                # Changes MGO - base imponible
+                withholdable_base_amount = 0
+                if not payment_group.debt_move_line_ids:
+                    withholdable_base_amount += payment_group.to_pay_amount
+                else:
+                    for matched_move in payment_group.debt_move_line_ids:
+                        matched_amount = matched_move.move_id._get_tax_factor() * (-1) * matched_move.with_context({'payment_group_id': payment_group.id}).amount_residual
+                        withholdable_base_amount += matched_amount
+                #raise ValidationError('estamos aca %s'%(withholdable_base_amount))
+                period_withholding_amount = 0
+                non_taxable_amount = 0
+                non_taxable_amount = payment_group.partner_id.default_regimen_ganancias_id.montos_no_sujetos_a_retencion
+                # Agregar soporte a montos netos de facturas
+                prev_payments_no_withholding = self.env['account.payment'].search([('payment_type','=','outbound'),('state','=','posted'),('payment_group_id.payment_date','>=',str(prev_date)),\
+                                        ('payment_group_id.payment_date','<=',today),('partner_id','=',payment_group.partner_id.id),('tax_withholding_id','!=',self.id)])
+                prev_payments_with_withholding = self.env['account.payment'].search([('payment_type','=','outbound'),('state','=','posted'),('payment_group_id.payment_date','>=',str(prev_date)),\
+                                        ('payment_group_id.payment_date','<=',today),('partner_id','=',payment_group.partner_id.id),('tax_withholding_id','=',self.id)])
+                if not prev_payments_with_withholding :
+                    if prev_payments_no_withholding:
+                        for prev_payments in prev_payments_no_withholding:
+                            withholdable_base_amount += prev_payments.amount
+                    withholdable_base_amount = withholdable_base_amount - non_taxable_amount
+                if withholdable_base_amount > 0:
+                    period_withholding_amount = withholdable_base_amount * payment_group.partner_id.default_regimen_ganancias_id.porcentaje_inscripto / 100
+                if period_withholding_amount < self.withholding_non_taxable_minimum and not prev_payments_with_withholding:
+                    period_withholding_amount = 0
+                vals['withholdable_base_amount'] = withholdable_base_amount
+                vals['period_withholding_amount'] = period_withholding_amount
+
 
 
                 if regimen.porcentaje_inscripto == -1:
@@ -170,8 +216,10 @@ class AccountTax(models.Model):
                         base_amount - importe_excedente,
                         escala.porcentaje / 100.0)
                 else:
-                    amount = base_amount * (
-                        regimen.porcentaje_inscripto / 100.0)
+                    # raise ValidationError('llegamos aca')
+                    #amount = base_amount * (
+                    #    regimen.porcentaje_inscripto / 100.0)
+                    amount = period_withholding_amount
                     vals['comment'] = "%s x %s" % (
                         base_amount, regimen.porcentaje_inscripto / 100.0)
             elif imp_ganancias_padron == 'NI':
@@ -183,10 +231,10 @@ class AccountTax(models.Model):
             # TODO, tal vez sea mejor utilizar otro campo?
             vals['communication'] = "%s - %s" % (
                 regimen.codigo_de_regimen, regimen.concepto_referencia)
-            if amount < self.withholding_non_taxable_minimum:
-                amount = 0
+            #if amount < self.withholding_non_taxable_minimum:
+            #    amount = 0
 
-            vals['period_withholding_amount'] = amount
+            # vals['period_withholding_amount'] = amount
         # raise ValidationError('estamos aca %s'%(vals))
         return vals
 
