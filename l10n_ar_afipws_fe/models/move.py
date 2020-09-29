@@ -707,7 +707,7 @@ print "Observaciones:", wscdc.Obs
                         CbteAsoc.journal_id.l10n_ar_afip_pos_number,
                         CbteAsoc.document_number[5:],
                         self.company_id.vat,
-                        afip_ws != 'wsmtxca' and self.date.strftime('%Y%m%d') or self.date.strftime('%Y-%m-%d'),
+                        afip_ws != 'wsmtxca' and self.date.strftime('%Y%m%d') or self.invoice_date.strftime('%Y-%m-%d'),
                     )
 
             # analize line items - invoice detail
