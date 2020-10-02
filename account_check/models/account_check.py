@@ -346,8 +346,14 @@ class AccountCheck(models.Model):
 
     @api.depends('operation_ids.partner_id')
     def _compute_first_partner(self):
-        for rec in self.filtered('operation_ids'):
-            rec.first_partner_id = rec.operation_ids[-1].partner_id
+        for rec in self:
+            if rec.operation_ids:
+                if rec.operation_ids[-1].partner_id:
+                    rec.first_partner_id = rec.operation_ids[-1].partner_id
+                else:
+                    rec.first_partner_id = None
+            else:
+                rec.first_partner_id = None
 
     def onchange(self, values, field_name, field_onchange):
         """
