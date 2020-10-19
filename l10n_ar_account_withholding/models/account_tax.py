@@ -167,6 +167,39 @@ class AccountTax(models.Model):
                     for matched_move in payment_group.debt_move_line_ids:
                         matched_amount = matched_move.move_id._get_tax_factor() * (-1) * matched_move.with_context({'payment_group_id': payment_group.id}).amount_residual
                         withholdable_base_amount += matched_amount
+                prev_payments = self.env['account.payment'].search([('payment_type','=','outbound'),('state','=','posted'),('payment_group_id.payment_date','>=',str(prev_date)),\
+                                        ('payment_group_id.payment_date','<=',today),('partner_id','=',payment_group.partner_id.id)])
+
+                if prev_payments:
+                    for prev_payment in prev_payments:
+                        if prev_payment.payment_group_id.matched_move_line_ids and prev_payment.payment_group_id.prev_invoices:
+                            withholdable_base_amount += prev_payment.amount * prev_payment.payment_group_id.matched_move_line_ids[0].move_id._get_tax_factor()
+                            #withholdable_base_amount += prev_payment.amount
+                        else:
+                            withholdable_base_amount += prev_payment.amount
+                non_taxable_amount = payment_group.partner_id.default_regimen_ganancias_id.montos_no_sujetos_a_retencion
+                withholdable_base_amount = withholdable_base_amount - non_taxable_amount
+                if withholdable_base_amount > 0:
+                    period_withholding_amount = withholdable_base_amount * payment_group.partner_id.default_regimen_ganancias_id.porcentaje_inscripto / 100
+                else:
+                    period_withholding_amount = 0
+                prev_payments_with_withholding = self.env['account.payment'].search([('payment_type','=','outbound'),('state','=','posted'),('payment_group_id.payment_date','>=',str(prev_date)),\
+                                        ('payment_group_id.payment_date','<=',today),('partner_id','=',payment_group.partner_id.id),('tax_withholding_id','=',self.id)])
+                prev_withholdings = 0
+                for prev_payment_with_withholding in prev_payments_with_withholding:
+                    prev_withholdings += prev_payment_with_withholding.amount
+                if period_withholding_amount > 0:
+                    period_withholding_amount = period_withholding_amount - prev_withholdings
+                if period_withholding_amount < self.withholding_non_taxable_minimum and not prev_payments_with_withholding:
+                    period_withholding_amount = 0
+
+                """
+                if not payment_group.debt_move_line_ids:
+                    withholdable_base_amount += payment_group.to_pay_amount
+                else:
+                    for matched_move in payment_group.debt_move_line_ids:
+                        matched_amount = matched_move.move_id._get_tax_factor() * (-1) * matched_move.with_context({'payment_group_id': payment_group.id}).amount_residual
+                        withholdable_base_amount += matched_amount
                 #raise ValidationError('estamos aca %s'%(withholdable_base_amount))
                 period_withholding_amount = 0
                 non_taxable_amount = 0
@@ -179,12 +212,16 @@ class AccountTax(models.Model):
                 if not prev_payments_with_withholding :
                     if prev_payments_no_withholding:
                         for prev_payments in prev_payments_no_withholding:
-                            withholdable_base_amount += prev_payments.amount
+                            if prev_payments.payment_group_id.matched_move_line_ids:
+                                withholdable_base_amount += prev_payments.amount * prev_payments.payment_group_id.matched_move_line_ids[0].move_id._get_tax_factor()
+                            else:
+                                withholdable_base_amount += prev_payments.amount
                     withholdable_base_amount = withholdable_base_amount - non_taxable_amount
                 if withholdable_base_amount > 0:
                     period_withholding_amount = withholdable_base_amount * payment_group.partner_id.default_regimen_ganancias_id.porcentaje_inscripto / 100
                 if period_withholding_amount < self.withholding_non_taxable_minimum and not prev_payments_with_withholding:
                     period_withholding_amount = 0
+                """
                 vals['withholdable_base_amount'] = withholdable_base_amount
                 vals['period_withholding_amount'] = period_withholding_amount
 
