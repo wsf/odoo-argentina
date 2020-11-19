@@ -12,7 +12,7 @@
                 </field -->
                 <notebook>
                     <page string="IVA Digital" name="IVA Digital">
-                        <button name="compute_digital_data" type="object" string="Generar Informacion" states="draft"/>
+                        <button name="compute_digital_data" type="object" string="Generar Informacion" />
                         <group>
                             <field name="digital_vouchers_filename" invisible="1"/>
                             <field name="digital_aliquots_filename" invisible="1"/>
