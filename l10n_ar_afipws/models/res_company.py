@@ -143,6 +143,7 @@ class ResCompany(models.Model):
         TODO ver si podemos usar metodos de pyafipws para esto
         """
         self.ensure_one()
+        import pdb;pdb.set_trace()
         _logger.info(
             'Creating connection for company %s, environment type %s and ws '
             '%s' % (self.name, environment_type, afip_ws))

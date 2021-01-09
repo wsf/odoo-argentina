@@ -546,7 +546,8 @@ class AccountPaymentGroup(models.Model):
         for rec in self:
             lines = rec.move_line_ids.browse()
             # not sure why but self.move_line_ids dont work the same way
-            payment_lines = rec.payment_ids.mapped('move_line_ids')
+            #payment_lines = rec.payment_ids.mapped('move_line_ids')
+            payment_lines = rec.payment_ids.mapped('invoice_line_ids')
 
             reconciles = rec.env['account.partial.reconcile'].search([
                 ('credit_move_id', 'in', payment_lines.ids)])
@@ -558,10 +559,11 @@ class AccountPaymentGroup(models.Model):
 
             rec.matched_move_line_ids = lines - payment_lines
 
-    @api.depends('payment_ids.move_line_ids')
+    # @api.depends('payment_ids.move_line_ids')
+    @api.depends('payment_ids.invoice_line_ids')
     def _compute_move_lines(self):
         for rec in self:
-            rec.move_line_ids = rec.payment_ids.mapped('move_line_ids')
+            rec.move_line_ids = rec.payment_ids.mapped('invoice_line_ids')
 
     @api.depends('partner_type')
     def _compute_account_internal_type(self):
@@ -650,7 +652,7 @@ class AccountPaymentGroup(models.Model):
             ('account_id.internal_type', '=',
                 self.account_internal_type),
             ('account_id.reconcile', '=', True),
-            ('move_id.type', 'in', ['out_invoice','out_refund','in_invoice','in_refund']),
+            ('move_id.move_type', 'in', ['out_invoice','out_refund','in_invoice','in_refund']),
             ('reconciled', '=', False),
             ('full_reconcile_id', '=', False),
             ('company_id', '=', self.company_id.id),
@@ -732,7 +734,7 @@ class AccountPaymentGroup(models.Model):
                 # if rec.to_pay_move_line_ids:
                 #     move.line_ids.remove_move_reconcile()
             rec.payment_ids.cancel()
-            rec.payment_ids.write({'invoice_ids': [(5, 0, 0)]})
+            rec.payment_ids.write({'invoice_line_ids': [(5, 0, 0)]})
         self.write({'state': 'cancel'})
 
     def action_draft(self):
@@ -808,17 +810,19 @@ class AccountPaymentGroup(models.Model):
             # al crear desde website odoo crea primero el pago y lo postea
             # y no debemos re-postearlo
             if not create_from_website and not create_from_expense:
-                rec.payment_ids.filtered(lambda x: x.state == 'draft').post()
+                rec.payment_ids.filtered(lambda x: x.state == 'draft').action_post()
 
-            counterpart_aml = rec.payment_ids.mapped('move_line_ids').filtered(
+            #counterpart_aml = rec.payment_ids.mapped('move_line_ids').filtered(
+            counterpart_aml = rec.payment_ids.mapped('invoice_line_ids').filtered(
                 lambda r: not r.reconciled and r.account_id.internal_type in (
                     'payable', 'receivable'))
 
             # porque la cuenta podria ser no recivible y ni conciliable
             # (por ejemplo en sipreco)
             if counterpart_aml and rec.to_pay_move_line_ids:
-                (counterpart_aml + (rec.to_pay_move_line_ids)).reconcile(
-                    writeoff_acc_id, writeoff_journal_id)
+                #(counterpart_aml + (rec.to_pay_move_line_ids)).reconcile(
+                #    writeoff_acc_id, writeoff_journal_id)
+                (counterpart_aml + (rec.to_pay_move_line_ids)).reconcile()
 
             rec.state = 'posted'
             if rec.receiptbook_id.mail_template_id:

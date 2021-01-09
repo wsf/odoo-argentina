@@ -32,15 +32,10 @@
         'views/account_journal_view.xml',
         'views/product_uom_view.xml',
         'views/res_currency_view.xml',
-        #'views/report_invoice.xml',
+        #views/report_invoice.xml',
         #'views/menuitem.xml',
     ],
     'demo': [
-        # 'demo/account_journal_expo_demo.yml',
-        # '../l10n_ar_account/demo/account_customer_expo_invoice_demo.yml',
-        # 'demo/account_journal_demo.yml',
-        # '../l10n_ar_account/demo/account_customer_invoice_demo.yml',
-        # 'demo/account_journal_demo_without_doc.yml',
     ],
     'images': [
     ],

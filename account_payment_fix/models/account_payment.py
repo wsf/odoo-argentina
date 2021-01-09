@@ -187,8 +187,8 @@ class AccountPayment(models.Model):
             self.payment_method_id = (
                 payment_methods and payment_methods[0] or False)
             # si se eligió de origen el mismo diario de destino, lo resetiamos
-            if self.journal_id == self.destination_journal_id:
-                self.destination_journal_id = False
+            #if self.journal_id == self.destination_journal_id:
+            #    self.destination_journal_id = False
         #     # Set payment method domain
         #     # (restrict to methods enabled for the journal and to selected
         #     # payment type)
@@ -213,6 +213,7 @@ class AccountPayment(models.Model):
                 lambda x: not x.invoice_line_ids and x.payment_type != 'transfer'):
             partner = self.partner_id.with_context(
                 force_company=self.company_id.id)
+            partner = self.partner_id
             if self.partner_type == 'customer':
                 self.destination_account_id = (
                     partner.property_account_receivable_id.id)

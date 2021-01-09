@@ -10,7 +10,7 @@
 			<button name="compute_taxes" type="object" string="Computar Impuestos" states="draft" />
 		</field>
 		<field name="line_ids" position="after">
-			<field name="move_tax_ids" readonly="1" attrs="{'invisible': [('type','=','entry')]}">
+			<field name="move_tax_ids" readonly="1" attrs="{'invisible': [('move_type','=','entry')]}">
 				<tree>
 					<field name="move_id" />
 					<field name="tax_id" />

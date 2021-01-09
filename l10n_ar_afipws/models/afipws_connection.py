@@ -132,6 +132,7 @@ class AfipwsConnection(models.Model):
             'Getting connection to ws %s from libraries on '
             'connection id %s' % (self.afip_ws, self.id))
         ws = self._get_ws(self.afip_ws)
+        import pdb;pdb.set_trace()
 
         # parche por este error que da al consultar por esa opción de homo
         # https://groups.google.com/d/msg/pyafipws/Xr08e4ZuMmQ/6iDzXwdJAwAJ
