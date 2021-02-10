@@ -286,9 +286,9 @@ class AccountVatLedgerXlsx(models.AbstractModel):
                         if tax_line.tax_id.amount == 27:
                             sheet.write(row + index, 13, tax_line.tax_amount,money_format)
                             sheet.write(row + index, 8, (100*(tax_line.tax_amount)) / 27, money_format)
-                        if tax_line.tax_line_id.tax_group_id.l10n_ar_vat_afip_code == '1':
+                        if tax_line.tax_id.tax_group_id.l10n_ar_vat_afip_code == '1':
                             sheet.write(row + index, 9, tax_line.debit, money_format)
-                        if tax_line.tax_line_id.tax_group_id.tax_type == 'withholdings':
+                        if tax_line.tax_id.tax_group_id.tax_type == 'withholdings':
                             if tax_line.tax_line_id.tax_group_id.l10n_ar_tribute_afip_code == '06':
                                 sheet.write(row + index, 15, tax_line.debit, money_format)
                 else:
