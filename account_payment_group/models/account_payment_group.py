@@ -65,7 +65,7 @@ class AccountPaymentGroup(models.Model):
     )
     company_id = fields.Many2one(
         'res.company',
-        string='Company',
+        string='Compania',
         required=True,
         index=True,
         change_default=True,
@@ -151,7 +151,7 @@ class AccountPaymentGroup(models.Model):
         compute='_compute_selected_debt',
     )
     unreconciled_amount = fields.Monetary(
-        string='Adjustment / Advance',
+        string='Ajuste / Adelanto',
         readonly=True,
         states={'draft': [('readonly', False)]},
     )
@@ -167,7 +167,7 @@ class AccountPaymentGroup(models.Model):
     )
     payments_amount = fields.Monetary(
         compute='_compute_payments_amount',
-        string='Amount',
+        string='Monto',
         track_visibility='always',
     )
     state = fields.Selection([
@@ -200,7 +200,7 @@ class AccountPaymentGroup(models.Model):
         # actualiza bien con el onchange, hacemos computado mejor
         compute='_compute_debt_move_line_ids',
         inverse='_inverse_debt_move_line_ids',
-        string="Debt Lines",
+        string="Lineas de deuda",
         # no podemos ordenar por due date porque esta hardecodeado en
         # funcion _get_pair_to_reconcile
         help="Payment will be automatically matched with the oldest lines of "
@@ -233,6 +233,7 @@ class AccountPaymentGroup(models.Model):
     matched_move_line_ids = fields.Many2many(
         'account.move.line',
         compute='_compute_matched_move_line_ids',
+        string='Lineas pagadas',
         help='Lines that has been matched to payments, only available after '
         'payment validation',
     )
@@ -733,7 +734,7 @@ class AccountPaymentGroup(models.Model):
                 # TODO borrar esto si con el de arriba va bien
                 # if rec.to_pay_move_line_ids:
                 #     move.line_ids.remove_move_reconcile()
-            rec.payment_ids.cancel()
+            rec.payment_ids.action_cancel()
             rec.payment_ids.write({'invoice_line_ids': [(5, 0, 0)]})
         self.write({'state': 'cancel'})
 

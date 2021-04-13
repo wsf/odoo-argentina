@@ -9,17 +9,24 @@ from datetime import date
 class AccountTax(models.Model):
     _inherit = "account.tax"
 
-    amount_type = fields.Selection(
-        selection_add=([
-            ('partner_tax', 'Alícuota en el Partner'),
-        ])
-    )
-    withholding_type = fields.Selection(
-        selection_add=([
-            ('tabla_ganancias', 'Tabla Ganancias'),
-            ('partner_tax', 'Alícuota en el Partner'),
-        ])
-    )
+    amount_type = fields.Selection(default='percent', string="Tax Computation", required=True,
+        selection=[('group', 'Group of Taxes'), ('fixed', 'Fixed'), ('percent', 'Percentage of Price'), ('division', 'Percentage of Price Tax Included'),('partner_tax','Alicuota en el partner')],
+        help="""
+    - Group of Taxes: The tax is a set of sub taxes.
+    - Fixed: The tax amount stays the same whatever the price.
+    - Percentage of Price: The tax amount is a % of the price:
+        e.g 100 * (1 + 10%) = 110 (not price included)
+        e.g 110 / (1 + 10%) = 100 (price included)
+    - Percentage of Price Tax Included: The tax amount is a division of the price:
+        e.g 180 / (1 - 10%) = 200 (not price included)
+        e.g 200 * (1 - 10%) = 180 (price included)
+        """)
+    #withholding_type = fields.Selection(
+    #    selection_add=([
+    #        ('tabla_ganancias', 'Tabla Ganancias'),
+    #        ('partner_tax', 'Alícuota en el Partner'),
+    #    ])
+    #)
     # default_alicuot = fields.Float(
     #     'Alícuota por defecto',
     #     help="Alícuota por defecto para los partners que no figuran en el "

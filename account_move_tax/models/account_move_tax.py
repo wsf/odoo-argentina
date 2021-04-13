@@ -13,7 +13,7 @@ class AccountMove(models.Model):
         _inherit = 'account.move'
 
         def action_post(self):
-            if self.type in ['out_invoice','out_refund']:
+            if self.move_type in ['out_invoice','out_refund']:
                 self.compute_taxes()
             return super(AccountMove, self).action_post()
         
@@ -21,12 +21,12 @@ class AccountMove(models.Model):
         def _compute_tax_amounts(self):
             for rec in self:
                 if rec.move_tax_ids:
-                    if rec.type in ['out_invoice','out_refund']:
+                    if rec.move_type in ['out_invoice','out_refund']:
                         vat_taxable_amount = 0
                         other_taxes_amount = 0
                         vat_exempt_base_amount = 0
                         vat_amount = 0
-                        for move_tax in self.move_tax_ids:
+                        for move_tax in rec.move_tax_ids:
                             if move_tax.tax_id.tax_group_id.tax_type == 'vat' and move_tax.tax_id.tax_group_id.l10n_ar_vat_afip_code != '2':
                                 vat_taxable_amount += move_tax.base_amount
                                 vat_amount += move_tax.tax_amount
@@ -53,8 +53,9 @@ class AccountMove(models.Model):
                    rec.vat_untaxed_base_amount = 0
 
         def compute_taxes(self):
+            self.ensure_one()
             if self.state == 'draft':
-                if self.type in ['out_invoice','out_refund']:
+                if self.move_type in ['out_invoice','out_refund']:
                     for move_tax in self.move_tax_ids:
                         move_tax.unlink()
                     for invoice_line in self.invoice_line_ids:

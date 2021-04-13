@@ -55,7 +55,7 @@
                 <!--END DATOS FACTURA-->
             </div>
             <div class="row" style="border: 1px solid black; border-radius: 10px; margin-top: 10px !important; margin-bottom: 0px !important;">
-                <div  class="col-8" t-if="o.type == 'out_invoice' and (o.state == 'posted') and o.l10n_ar_afip_service_start and o.l10n_ar_afip_service_end">
+                <div  class="col-8" t-if="o.move_type == 'out_invoice' and (o.state == 'posted') and o.l10n_ar_afip_service_start and o.l10n_ar_afip_service_end">
                     <strong>Período facturado desde:</strong>
                     <span t-if="o.l10n_ar_afip_service_start">
                       <span t-field="o.l10n_ar_afip_service_start"  t-options="{'format': 'dd/MM/yyyy'}"/>
@@ -65,7 +65,7 @@
                       <span t-field="o.l10n_ar_afip_service_end"  t-options="{'format': 'dd/MM/yyyy'}"/>
                     </span>
                   </div>
-                  <div class="col-4" t-if="o.type == 'out_invoice' and (o.state == 'posted' or o.state == 'paid')">
+                  <div class="col-4" t-if="o.move_type == 'out_invoice' and (o.state == 'posted' or o.state == 'paid')">
                     <strong>Fecha Vto:</strong>
                     <span t-if="o.invoice_date_due">
                       <span t-field="o.invoice_date_due"/>

@@ -10,7 +10,7 @@ from io import BytesIO
 import logging
 import sys
 import traceback
-from datetime import datetime
+from datetime import datetime, date
 _logger = logging.getLogger(__name__)
 
 try:
@@ -18,6 +18,13 @@ try:
 except ImportError:
     _logger.debug('Can not `from pyafipws.soap import SoapFault`.')
 
+class AccountJournal(models.Model):
+    _inherit = 'account.journal'
+
+class IrSequence(models.Model):
+    _inherit = 'ir.sequence'
+
+    journal_id = fields.Many2one('account.journal','Diario facturacion')
 
 class AccountMove(models.Model):
     _inherit = "account.move"
@@ -130,6 +137,23 @@ class AccountMove(models.Model):
         '- SI: sí el comprobante asociado (original) se encuentra rechazado por el comprador\n'
         '- NO: sí el comprobante asociado (original) NO se encuentra rechazado por el comprador'
     )
+
+    def _compute_show_credit_button(self):
+        for rec in self:
+            res = True
+            if rec.move_type in ['in_invoice','out_invoice']:
+                if rec.state == 'posted':
+                    if rec.payment_state not in ['paid','reversed']:
+                        res = True
+                    else:
+                        res = False
+                else:
+                    res = False
+            else:
+                res = False
+            rec.show_credit_button = res
+
+    show_credit_button = fields.Boolean('show_credit_button',compute=_compute_show_credit_button)
 
     @api.depends('journal_id', 'afip_auth_code')
     def _compute_validation_type(self):
@@ -284,7 +308,7 @@ class AccountMove(models.Model):
             "54", "60", "61", "63", "64"
         ]
         verification_required = self.filtered(
-            lambda inv: inv.type in ['in_invoice', 'in_refund'] and
+            lambda inv: inv.move_type in ['in_invoice', 'in_refund'] and
             inv.afip_auth_verify_type == 'required' and
             (inv.document_type_id and
              inv.document_type_id.code in verify_codes) and
@@ -431,6 +455,7 @@ print "Observaciones:", wscdc.Obs
                 continue
 
             # get the electronic invoice type, point of sale and afip_ws:
+            # import pdb;pdb.set_trace()
             commercial_partner = inv.commercial_partner_id
             country = commercial_partner.country_id
             journal = inv.journal_id
@@ -502,7 +527,11 @@ print "Observaciones:", wscdc.Obs
                 fecha_serv_desde = fecha_serv_hasta = None
 
             # invoice amount totals:
-            imp_total = str("%.2f" % inv.amount_total)
+            amount_total = inv.amount_untaxed
+            for move_tax in inv.move_tax_ids:
+                amount_total += move_tax.tax_amount
+
+            imp_total = str("%.2f" % amount_total)
             # ImpTotConc es el iva no gravado
             imp_tot_conc = str("%.2f" % inv.vat_untaxed_base_amount)
             # imp_tot_conc = str("%.2f" % inv.amount_untaxed)
@@ -516,7 +545,8 @@ print "Observaciones:", wscdc.Obs
                 #imp_neto = str("%.2f" % inv.vat_taxable_amount)
                 imp_neto = str("%.2f" % inv.vat_taxable_amount)
             imp_trib = str("%.2f" % inv.other_taxes_amount)
-            imp_iva = str("%.2f" % (inv.amount_total - (inv.amount_untaxed + inv.other_taxes_amount)))
+            # imp_iva = str("%.2f" % (inv.amount_total - (inv.amount_untaxed + inv.other_taxes_amount)))
+            imp_iva = str("%.2f" % (inv.vat_amount))
             # se usaba para wsca..
             # imp_subtotal = str("%.2f" % inv.amount_untaxed)
             imp_op_ex = str("%.2f" % inv.vat_exempt_base_amount)
@@ -709,6 +739,16 @@ print "Observaciones:", wscdc.Obs
                         self.company_id.vat,
                         afip_ws != 'wsmtxca' and self.date.strftime('%Y%m%d') or self.invoice_date.strftime('%Y-%m-%d'),
                     )
+            # Notas de debito
+            if inv.l10n_latam_document_type_id.code in ['2','7']:
+                year = date.today().year
+                month = date.today().month
+                day = date.today().day
+                fecha_desde = str(year) + str(month).zfill(2) + '01'
+                fecha_hasta = str(year) + str(month).zfill(2) + str(day).zfill(2)
+                ws.AgregarPeriodoComprobantesAsociados(fecha_desde,fecha_hasta)
+
+
 
             # analize line items - invoice detail
             # wsfe do not require detail

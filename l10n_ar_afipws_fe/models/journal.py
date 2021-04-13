@@ -17,6 +17,7 @@ _logger = logging.getLogger(__name__)
 class AccountJournal(models.Model):
     _inherit = 'account.journal'
 
+    sequences = fields.One2many(comodel_name='ir.sequence',inverse_name='journal_id',string='Secuencias')
     _afip_ws_selection = (
         lambda self, *args, **kwargs: self._get_afip_ws_selection(
             *args, **kwargs))

@@ -204,7 +204,7 @@ class AccountPayment(models.Model):
     @api.depends('invoice_line_ids', 'payment_type', 'partner_type', 'partner_id')
     def _compute_destination_account_id(self):
         """
-        We send force_company on context so payments can be created from parent
+        We send with_company on context so payments can be created from parent
         companies. We try to send force_company on self but it doesnt works, it
         only works sending it on partner
         """
@@ -212,7 +212,7 @@ class AccountPayment(models.Model):
         for rec in self.filtered(
                 lambda x: not x.invoice_line_ids and x.payment_type != 'transfer'):
             partner = self.partner_id.with_context(
-                force_company=self.company_id.id)
+                with_company=self.company_id.id)
             partner = self.partner_id
             if self.partner_type == 'customer':
                 self.destination_account_id = (

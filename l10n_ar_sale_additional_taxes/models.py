@@ -99,14 +99,40 @@ class ResPartner(models.Model):
         perception_ids = fields.One2many('res.partner.perception', 'partner_id', 'Percepciones Definidas')
 
 
+class AccountMoveLine(models.Model):
+        _inherit = "account.move.line"
+
+        def _get_amount_updated_values(self,tax_amount=0):
+            debit = credit = 0
+            if self.move_id.move_type == "in_invoice":
+                if tax_amount > 0:
+                    debit = tax_amount
+                elif tax_amount < 0:
+                    credit = -tax_amount
+            else:  # For refund
+                if tax_amount > 0:
+                    credit = tax_amount
+                elif tax_amount < 0:
+                    debit = -tax_amount
+
+            # If multi currency enable
+            move_currency = self.move_id.currency_id
+            company_currency = self.move_id.company_currency_id
+            if move_currency and move_currency != company_currency:
+                return {'amount_currency': tax_amount if debit else -tax_amount,
+                        'debit': move_currency._convert(debit, company_currency, self.move_id.company_id, self.move_id.invoice_date),
+                        'credit': move_currency._convert(credit, company_currency, self.move_id.company_id, self.move_id.invoice_date)}
+
+            return {'debit': debit, 'credit': credit, 'balance': tax_amount}
+
+
 class AccountMove(models.Model):
         _inherit = "account.move"
-        
 
         def compute_taxes(self):
             self.ensure_one()
             if self.state == 'draft':
-                if self.type in ['out_invoice','out_refund']:
+                if self.move_type in ['out_invoice','out_refund']:
                     for move_tax in self.move_tax_ids:
                         move_tax.unlink()
                     if self.partner_id.perception_ids:
@@ -116,6 +142,7 @@ class AccountMove(models.Model):
                             for invoice_line in self.invoice_line_ids:
                                 if perception.tax_id.id not in invoice_line.tax_ids.ids:
                                     invoice_line.tax_ids = [(4,perception.tax_id.id)] 
+                                    invoice_line.recompute_tax_line = True
                     for invoice_line in self.invoice_line_ids:
                         if invoice_line.tax_ids:
                             for tax in invoice_line.tax_ids.ids:
@@ -129,14 +156,31 @@ class AccountMove(models.Model):
                                     move_tax_id = self.env['account.move.tax'].create(vals)
                                 move_tax_id.base_amount = move_tax_id.base_amount + invoice_line.price_subtotal
                                 tax_id = self.env['account.tax'].browse(tax)
+                                tax_amount = 0
                                 if not tax_id.is_padron:
                                     move_tax_id.tax_amount = move_tax_id.tax_amount + invoice_line.price_subtotal * (account_tax.amount / 100)
+                                    tax_amount = move_tax_id.tax_amount
                                 else:
                                     amount = 0
                                     for perception in self.partner_id.perception_ids:
                                         if perception.tax_id.id == tax_id.id:
                                             amount = perception.percent
                                     move_tax_id.tax_amount = move_tax_id.tax_amount + invoice_line.price_subtotal * (amount / 100)
+                                    tax_amount = move_tax_id.tax_amount
+                                if tax_id.tax_group_id.tax_type != 'vat':
+                                #    invoice_line.write(invoice_line._get_amount_updated_values(tax_amount))
+                                    res = invoice_line._get_amount_updated_values(tax_amount)
+                                    account_id = None
+                                    for rep_tax in tax_id.invoice_repartition_line_ids:
+                                        if rep_tax.account_id:
+                                            account_id = rep_tax.account_id
+                                    res['move_id'] = self.id
+                                    res['account_id'] = account_id.id
+                                    res['name'] = tax_id.display_name
+                                    res['exclude_from_invoice_tab'] = True
+                                    line_id = self.env['account.move.line'].with_context(check_move_validity=False).create(res)
+                    #self._onchange_invoice_line_ids()
+
 
 
 
