@@ -861,7 +861,8 @@ print "Observaciones:", wscdc.Obs
                 'afip_message': msg,
                 'afip_xml_request': ws.XmlRequest,
                 'afip_xml_response': ws.XmlResponse,
-                'document_number': str(pos_number).zfill(4) + '-' + str(cbte_nro).zfill(8)
+                'document_number': str(pos_number).zfill(5) + '-' + str(cbte_nro).zfill(8),
+                'name': inv.l10n_latam_document_type_id.doc_code_prefix + ' ' + str(pos_number).zfill(5) + '-' + str(cbte_nro).zfill(8),
             })
             # si obtuvimos el cae hacemos el commit porque estoya no se puede
             # volver atras

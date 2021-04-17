@@ -19,7 +19,7 @@
     'external_dependencies': {
     },
     'data': [
-        #'wizard/afip_ws_consult_wizard_view.xml',
+        'wizard/afip_ws_consult_wizard_view.xml',
         #'wizard/afip_ws_currency_rate_wizard_view.xml',
         #'wizard/res_config_settings_view.xml',
         'views/move_view.xml',
@@ -27,6 +27,7 @@
         'views/account_journal_view.xml',
         'views/product_uom_view.xml',
         'views/res_currency_view.xml',
+        'security/ir.model.access.csv',
         #views/report_invoice.xml',
         #'views/menuitem.xml',
     ],
