@@ -271,7 +271,7 @@ class AccountCheck(models.Model):
         if action == 'bank_debit':
             # self.journal_id.default_debit_account_id.id, al debitar
             # tenemos que usar esa misma
-            credit_account = journal.default_debit_account_id
+            credit_account = journal.default_account_id
             # la contrapartida es la cuenta que reemplazamos en el pago
             debit_account = self.company_id._get_check_account('deferred')
             name = _('Check "%s" debit') % (self.name)
@@ -279,7 +279,7 @@ class AccountCheck(models.Model):
             # al transferir a un banco se usa esta. al volver tiene que volver
             # por la opuesta
             # self.destination_journal_id.default_credit_account_id
-            credit_account = journal.default_debit_account_id
+            credit_account = journal.default_account_id
             debit_account = self.company_id._get_check_account('rejected')
             name = _('Check "%s" rejection') % (self.name)
         elif action == 'bank_deposit' or action == 'bank_sell':
@@ -288,7 +288,7 @@ class AccountCheck(models.Model):
             # self.destination_journal_id.default_credit_account_id
             name = _('Check "%s" deposit') % (self.name)
             if action == 'bank_deposit':
-                  debit_account = journal.default_debit_account_id
+                  debit_account = journal.default_account_id
                   credit_account = self.company_id._get_check_account('holding')
             if action == 'bank_sell' and not self.company_id.negotiated_check_account_id:
                   raise ValidationError('No esta definida la cuenta de cheques negociados a nivel empresa')
@@ -737,7 +737,7 @@ class AccountCheck(models.Model):
             'amount': self.amount,
             'currency_id': self.currency_id.id,
             'journal_id': journal.id,
-            'payment_date': action_date,
+            'date': action_date,
             'payment_type': 'outbound',
             'payment_method_id':
             journal._default_outbound_payment_methods().id,
@@ -777,8 +777,8 @@ class AccountCheck(models.Model):
             payment_vals = self.get_payment_values(journal)
             payment = self.env['account.payment'].with_context(
                 default_name=_('Check "%s" rejection') % (self.name),
-                force_account_id=self.company_id._get_check_account(
-                    'rejected').id,
+                #force_account_id=self.company_id._get_check_account(
+                #    'rejected').id,
             ).create(payment_vals)
             # self.post_payment_check(payment)
             self._add_operation('rejected', payment, date=payment.payment_date)
