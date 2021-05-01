@@ -168,7 +168,9 @@ class AccountVatLedger(models.Model):
         # TODO si es mayor a 1000 habria que validar reportar
         # DNI, LE, LC, CI o pasaporte
         if partner.l10n_ar_afip_responsibility_type_id.code == '5':
-            return "{:0>2d}".format(partner.l10n_latam_identification_type_id.l10n_ar_afip_code)
+            #return "{:0>2d}".format(partner.l10n_latam_identification_type_id.l10n_ar_afip_code)
+            res = str(partner.l10n_latam_identification_type_id.l10n_ar_afip_code).zfill(2)
+            return res
         return '80'
 
     @api.model
@@ -255,7 +257,7 @@ class AccountVatLedger(models.Model):
             for invl in inv.invoice_line_ids:
                 for tax in invl.tax_ids:
                     if tax.tax_group_id.tax_type == 'vat':
-                        if tax.id not in vat_taxes:
+                        if tax.id not in vat_taxes and tax.amount != 0 :
                             vat_taxes.append(tax.id)
                     if self.type == 'purchase':
                         if tax.amount == 0:
@@ -330,8 +332,11 @@ class AccountVatLedger(models.Model):
                 #self.format_amount(
                 #    inv.vat_untaxed_base_amount, invoice=inv),
             ]
+            #if inv.id == 10:
+            #    raise ValidationError('estamos aca %s'%(inv.l10n_latam_tax_ids[1].tax_line_id))
 
             if self.type == 'sale':
+
                 row += [
                     # Campo 10: Importe total de conceptos que no integran el
                     # precio neto gravado
@@ -349,10 +354,35 @@ class AccountVatLedger(models.Model):
                     # Campo 12: Importe de operaciones exentas
                     #self.format_amount(
                     #    inv.vat_exempt_base_amount, invoice=inv),
+                    # 2021-02-22 reemplazado por other_taxes_amount
+                    #self.format_amount(
+                    #    inv.vat_untaxed_base_amount, invoice=inv),
                     self.format_amount(
-                        inv.vat_untaxed_base_amount, invoice=inv),
+                        inv.other_taxes_amount, invoice=inv),
+                    # Campo 13: Importe de percepciones o pagos a cuenta de
+                    # impuestos nacionales
+                    self.format_amount(
+                        sum(inv.move_tax_ids.filtered(lambda r: (
+                            r.tax_id.tax_group_id.tax_type == 'withholding' and
+                            r.tax_id.tax_group_id.tax != 'vat' and
+                            r.tax_id.tax_group_id.l10n_ar_tribute_afip_code == '01')
+                        ).mapped('tax_amount')), invoice=inv),
+
+                    # Campo 14: Importe de percepciones de ingresos brutos
+                    self.format_amount(
+                        sum(inv.move_tax_ids.filtered(lambda r: (
+                            r.tax_id.tax_group_id.tax_type == 'withholding' and
+                            r.tax_id.tax_group_id.l10n_ar_tribute_afip_code \
+                            == '02')
+                        ).mapped('tax_amount')), invoice=inv),
+
                 ]
             else:
+                #if inv.id == 200:
+                #    raise ValidationError('estamos aca %s'%(inv.l10n_latam_tax_ids[1].tax_ids))a
+                amount_percepciones_iva = 0
+                amount_percepciones_iibb = 0
+
                 row += [
                     # Campo 10: Importe total de conceptos que no integran el
                     # precio neto gravado
@@ -367,33 +397,47 @@ class AccountVatLedger(models.Model):
                     # Campo 12: Importe de percepciones o pagos a cuenta del
                     # Impuesto al Valor Agregado
                     self.format_amount(
+                        sum(inv.l10n_latam_tax_ids.filtered(lambda r: (
+                            r.tax_line_id.tax_group_id.tax_type == 'withholdings' and
+                            r.tax_line_id.tax_group_id.l10n_ar_tribute_afip_code \
+                            == '06')
+                        #sum(inv.line_ids.filtered(lambda r: (
+                        #    r.tax_id.tax_group_id.tax_type == 'withholdings' and
+                        #    r.tax_id.tax_group_id.l10n_ar_tribute_afip_code \
+                        #    == '06')
+                        ).mapped(
+                            'debit')), invoice=inv),
+                    # Campo 13: Importe de percepciones o pagos a cuenta de
+                    # impuestos nacionales
+                    self.format_amount(
                         sum(inv.move_tax_ids.filtered(lambda r: (
                             r.tax_id.tax_group_id.tax_type == 'withholding' and
-                            r.tax_id.tax_group_id.tax == 'vat' and
-                            r.tax_id.tax_group_id.l10n_ar_tribute_afip_code \
-                            == '01')
-                        ).mapped(
-                            'tax_amount')), invoice=inv),
+                            r.tax_id.tax_group_id.tax != 'vat' and
+                            r.tax_id.tax_group_id.l10n_ar_tribute_afip_code == '01')
+                        ).mapped('tax_amount')), invoice=inv),
+
+                    # Campo 14: Importe de percepciones de ingresos brutos
                 ]
+                if inv.currency_id.id == inv.company_id.currency_id.id:
+                    row += [
+                        self.format_amount(
+                            sum(inv.l10n_latam_tax_ids.filtered(lambda r: (
+                                r.tax_line_id.tax_group_id.tax_type == 'withholdings' and
+                                r.tax_line_id.tax_group_id.l10n_ar_tribute_afip_code \
+                                == '07')
+                            ).mapped('debit')), invoice=inv)]
+                else:
+                    tot_percep_iibb = 0
+                    for tax_line in inv.l10n_latam_tax_ids:
+                        if tax_line.tax_group_id.tax_type == 'withholdings' and tax_line.tax_group_id.l10n_ar_tribute_afip_code == '07':
+                            tot_percep_iibb = tot_percep_iibb + abs(tax_line.amount_currency)
+                    row += [
+                        self.format_amount(tot_percep_iibb, invoice=inv)]
+
+
+
 
             row += [
-                # Campo 13: Importe de percepciones o pagos a cuenta de
-                # impuestos nacionales
-                self.format_amount(
-                    sum(inv.move_tax_ids.filtered(lambda r: (
-                        r.tax_id.tax_group_id.tax_type == 'withholding' and
-                        r.tax_id.tax_group_id.tax != 'vat' and
-                        r.tax_id.tax_group_id.l10n_ar_tribute_afip_code == '01')
-                    ).mapped('tax_amount')), invoice=inv),
-
-                # Campo 14: Importe de percepciones de ingresos brutos
-                self.format_amount(
-                    sum(inv.move_tax_ids.filtered(lambda r: (
-                        r.tax_id.tax_group_id.tax_type == 'withholding' and
-                        r.tax_id.tax_group_id.l10n_ar_tribute_afip_code \
-                        == '02')
-                    ).mapped('tax_amount')), invoice=inv),
-
                 # Campo 15: Importe de percepciones de impuestos municipales
                 self.format_amount(
                     sum(inv.move_tax_ids.filtered(lambda r: (
@@ -470,8 +514,23 @@ class AccountVatLedger(models.Model):
                             'correspondiente en el campo "Crédito Fiscal '
                             'Computable"'))
                 else:
-                    row.append(self.format_amount(
-                        inv.vat_amount, invoice=inv))
+                    vat_taxes = self.env['account.move.line']
+                    imp_neto = 0
+                    imp_liquidado = 0
+                    for mvl_tax in inv.l10n_latam_tax_ids:
+                        #raise ValidationError('estamos aca %s %s %s'%(inv,mvl_tax.tax_group_id.l10n_ar_vat_afip_code + 'X',mvl_tax.tax_group_id.tax_type))
+                        #if not mvl_tax.l10n_latam_tax_ids:
+                        #    continue
+                        tax_group_id = mvl_tax.tax_group_id
+                        #if tax_group_id.tax_type == 'vat' and (tax_group_id.l10n_ar_vat_afip_code == 3 or (tax_group_id.l10n_ar_vat_afip_code in [4, 5, 6, 8, 9])):
+                        if tax_group_id.tax_type == 'vat':
+                            imp_neto += mvl_tax.tax_base_amount
+                            imp_liquidado += mvl_tax.price_subtotal
+                    #if inv.id == 904:
+                    #    raise ValidationError('%s %s %s %s %s'%(inv.amount_total,inv.amount_untaxed,imp_neto,imp_liquidado,inv.id))
+                    row.append(self.format_amount(round(imp_liquidado,2), invoice=inv))
+                    # row.append(self.format_amount(
+                        #    inv.vat_amount, invoice=inv))
 
                 row += [
                     # Campo 22: Otros Tributos
@@ -621,9 +680,18 @@ class AccountVatLedger(models.Model):
                 #if not mvl_tax.l10n_latam_tax_ids:
                 #    continue
                 tax_group_id = mvl_tax.tax_group_id
+                #if tax_group_id.l10n_ar_vat_afip_code == '1':
+                #    raise ValidationError('existe el registro')
                 #if tax_group_id.tax_type == 'vat' and (tax_group_id.l10n_ar_vat_afip_code == 3 or (tax_group_id.l10n_ar_vat_afip_code in [4, 5, 6, 8, 9])):
-                if tax_group_id.tax_type == 'vat' and tax_group_id.l10n_ar_vat_afip_code in ['1','2','3', '4', '5', '6', '8', '9']:
+                if tax_group_id.tax_type == 'vat' and tax_group_id.l10n_ar_vat_afip_code in ['2','3', '4', '5', '6', '8', '9']:
                     vat_taxes += mvl_tax
+
+            #for mvl_tax in inv.line_ids:
+            #    #if inv.id == 652 and mvl_tax.name == 'No gravado':
+            #    #    raise ValidationError('estamos aca %s'%(mvl_tax.tax_ids[0].tax_group_id.l10n_ar_vat_afip_code))
+            #    if mvl_tax.tax_ids and mvl_tax.tax_ids[0].tax_group_id.l10n_ar_vat_afip_code == '3':
+            #        lines.append(''.join(self.get_tax_row(
+            #            inv, 0.0, 3, 0.0, impo=impo)))
 
             if not vat_taxes and inv.move_tax_ids.filtered(
                     lambda r: r.tax_id.tax_group_id.tax_type == 'vat' and r.tax_id.tax_group_id.l10n_ar_vat_afip_code):
@@ -634,7 +702,13 @@ class AccountVatLedger(models.Model):
             #raise ValidationError('estamos aca %s %s %s %s'%(inv,vat_taxes,vat_taxes[0].tax_base_amount,vat_taxes[0].price_subtotal))
             for afip_code in vat_taxes.mapped('tax_group_id.l10n_ar_vat_afip_code'):
                 taxes = vat_taxes.filtered(lambda x: x.tax_group_id.l10n_ar_vat_afip_code == afip_code)
-                imp_neto = sum(taxes.mapped('tax_base_amount'))
+                if inv.currency_id.id == inv.company_id.currency_id.id:
+                    imp_neto = sum(taxes.mapped('tax_base_amount'))
+                else:
+                    imp_neto = 0
+                    other_lines = self.env['account.move.line'].search([('debit','>',0),('move_id','=',inv.id),('tax_ids','!=',False)])
+                    for other_line in other_lines:
+                        imp_neto = imp_neto + other_line.amount_currency
                 imp_liquidado = sum(taxes.mapped('price_subtotal'))
                 lines.append(''.join(self.get_tax_row(
                     inv,
@@ -646,7 +720,7 @@ class AccountVatLedger(models.Model):
             # Agrega IVA exento e IVA no gravado
             for inv_line in inv.invoice_line_ids:
                 for tax in inv_line.tax_ids:
-                    if tax.tax_group_id.tax_type == 'vat' and tax.tax_group_id.l10n_ar_vat_afip_code in ['1','2']:
+                    if tax.tax_group_id.tax_type == 'vat' and tax.tax_group_id.l10n_ar_vat_afip_code in ['2']:
                         text_line = ''
                         # Campo 1
                         text_line += "{:0>3d}".format(int(inv.l10n_latam_document_type_id.code))
