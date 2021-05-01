@@ -724,6 +724,7 @@ print "Observaciones:", wscdc.Obs
 
             if CbteAsoc:
                 # fex no acepta fecha
+                doc_number = CbteAsoc.document_number.split('_')[1]
                 if afip_ws == 'wsfex':
                     ws.AgregarCmpAsoc(
                         CbteAsoc.l10n_latam_document_type_id.document_type_id.code,
