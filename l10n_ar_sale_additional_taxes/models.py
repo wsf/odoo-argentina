@@ -50,10 +50,6 @@ class ResPartner(models.Model):
                     if not tax_id:
                         raise ValidationError('Impuesto no determinado %s'%(padron.tax))
                     perception_ids = self.env['res.partner.perception'].search([('partner_id','=',partner.id),('tax_id','=',tax_id.id)],order='date_from desc')
-                    #perception_id = None
-                    #for perception in perception_ids:
-                    #    if perception.date_from > padron.date_from:
-                    #        perception_id = perception_id
                     if not perception_ids:
                         vals = {'partner_id': partner.id,'percent': padron.percent,'tax_id': tax_id.id,'date_from': padron.date_from}
                         perception_id = self.env['res.partner.perception'].create(vals)
@@ -69,32 +65,9 @@ class ResPartner(models.Model):
                     if not tax_id:
                         raise ValidationError('Impuesto no determinado %s'%(padron.tax))
                     perception_ids = self.env['res.partner.perception'].search([('partner_id','=',partner.id),('tax_id','=',tax_id.id)])
-                    #for perception in perception_ids:
-                    #    if perception.date_from < padron.date_from:
-                    #        perception_id = perception
                     if not perception_ids:
                         vals = {'partner_id': partner.id,'percent': padron.percent,'tax_id': tax_id.id,'date_from': padron.date_from}
                         perception_id = self.env['res.partner.perception'].create(vals)
-                    #else:
-                    #    perception_id.write({'percent': padron.percent,'date_from': padron.date_from})
-
-
-
-
-
-#        			padron_ids = self.env['account.padron'].search([('cuit','=',partner.vat)],order='id desc')
-#        			for padron in padron_ids:
-#        				if padron.tax == 'RET_IIBB_AGIP':
-#                                            tax_id = self.env['account.tax'].browse(32)
-#        				else:
-#                                            tax_id = self.env['account.tax'].search([('padron_prefix','=',padron.tax)])
-#        				#perception_id = self.env['res.partner.perception'].search([('partner_id','=',partner.id),('tax_id','=',tax_id.id),('date_from','=>',str(padron.date_from))])
-#        				perception_ids = self.env['res.partner.perception'].search([('partner_id','=',partner.id),('tax_id','=',tax_id.id)])
-#        				perception_id = None
-#        				for perception_id in perception_ids:
-#        				if not perception_id:
-#        					vals = {'partner_id': partner.id,'percent': padron.percent,'tax_id': tax_id.id,'date_from': padron.date_from}
-#        					perception_id = self.env['res.partner.perception'].create(vals)
 
         perception_ids = fields.One2many('res.partner.perception', 'partner_id', 'Percepciones Definidas')
 
@@ -174,11 +147,22 @@ class AccountMove(models.Model):
                                     for rep_tax in tax_id.invoice_repartition_line_ids:
                                         if rep_tax.account_id:
                                             account_id = rep_tax.account_id
-                                    res['move_id'] = self.id
-                                    res['account_id'] = account_id.id
-                                    res['name'] = tax_id.display_name
-                                    res['exclude_from_invoice_tab'] = True
-                                    line_id = self.env['account.move.line'].with_context(check_move_validity=False).create(res)
+                                    move_line = self.env['account.move.line'].search([('move_id','=',self.id),('account_id','=',account_id.id)])
+                                    if not move_line:
+                                        res['move_id'] = self.id
+                                        res['account_id'] = account_id.id
+                                        res['name'] = tax_id.display_name
+                                        res['exclude_from_invoice_tab'] = True
+                                        line_id = self.env['account.move.line'].with_context(check_move_validity=False).create(res)
+                                    for move_line in self.line_ids:
+                                        if move_line.account_id.reconcile:
+                                            move_line.with_context(check_move_validity=False).debit = move_line.debit + tax_amount
+                    return {
+                        'type': 'ir.actions.client',
+                        'tag': 'reload',
+                        }
+
+
                     #self._onchange_invoice_line_ids()
 
 

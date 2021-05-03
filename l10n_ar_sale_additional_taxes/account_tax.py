@@ -17,7 +17,6 @@ class AccountTax(models.Model):
             price_unit * quantity eventually affected by previous taxes (if tax is include_base_amount XOR price_include)
         """
         self.ensure_one()
-
         if self.amount_type == 'fixed':
             # Use copysign to take into account the sign of the base amount which includes the sign
             # of the quantity and the sign of the price_unit
@@ -38,7 +37,6 @@ class AccountTax(models.Model):
         if self.amount_type == 'percent' and not price_include:
             #if self.id == 8:
             #    raise ValidatoinError('estamos aca')
-            ##    import pdb;pdb.set_trace()
             if self.is_padron:
                 amount = self.amount
                 if partner and partner.perception_ids:
