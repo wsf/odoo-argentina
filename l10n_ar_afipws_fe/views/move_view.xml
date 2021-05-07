@@ -72,6 +72,7 @@
 
             <field name="l10n_ar_afip_concept" position="after">
 		<field name="afip_fce_es_anulacion"/>
+		<field name="afip_mypyme_sca_adc"/>
 	    	<field name="l10n_ar_currency_rate" readonly="1"/>	    
             </field>
             <notebook>

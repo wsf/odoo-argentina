@@ -29,6 +29,7 @@ class IrSequence(models.Model):
 class AccountMove(models.Model):
     _inherit = "account.move"
 
+    afip_mypyme_sca_adc = fields.Selection(selection=[('SCA','Sistema Circulacion Abierta'),('ADC','Agente Deposito Colectivo')],string='SCA o ADC',default='SCA')
     afip_auth_verify_type = fields.Selection(
         related='company_id.afip_auth_verify_type',
     )
@@ -686,7 +687,10 @@ print "Observaciones:", wscdc.Obs
                     # agregamos cbu para factura de credito electronica
                     ws.AgregarOpcional(
                         opcional_id=2101,
-                        valor=inv.invoice_partner_bank_id.cbu)
+                        valor=inv.partner_bank_id.cbu)
+                    ws.AgregarOpcional(
+                        opcional_id=27,
+                        valor=inv.afip_mypyme_sca_adc)
                 elif int(doc_afip_code) in [202, 203, 207, 208, 212, 213]:
                     valor = inv.afip_fce_es_anulacion and 'S' or 'N'
                     ws.AgregarOpcional(
