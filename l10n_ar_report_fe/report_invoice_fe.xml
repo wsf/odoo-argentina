@@ -191,7 +191,7 @@
 
               <!--SUBTOTAL E IMPUESTOS INTEGRADOS-->
               <div class="row mt32 mb32">
-                  <div class="col-8"/>
+                  <div class="col-7"/>
                   <div class="col-4">
                       <table class="table table-condensed">
                           <tr class="border-black" t-if="o.l10n_latam_document_type_id.l10n_ar_letter != 'B'">
