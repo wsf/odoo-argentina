@@ -108,7 +108,7 @@
               </div>
               <!-- END CLIENTE  -->
               <!-- ENCABEZADO FACTURA -->
-              <div class="row mt32 mb32">
+              <div class="row mt20 mb20">
                 <div class="col-2" t-if="o.currency_id">
                   <strong>Moneda: </strong>
                   <p t-field="o.currency_id.name"/>
