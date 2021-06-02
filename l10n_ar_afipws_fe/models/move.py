@@ -728,19 +728,19 @@ print "Observaciones:", wscdc.Obs
 
             if CbteAsoc:
                 # fex no acepta fecha
-                doc_number = CbteAsoc.document_number.split('_')[1]
+                doc_number = CbteAsoc.document_number.split('-')[1]
                 if afip_ws == 'wsfex':
                     ws.AgregarCmpAsoc(
                         CbteAsoc.l10n_latam_document_type_id.document_type_id.code,
                         CbteAsoc.journal_id.l10n_ar_afip_pos_number,
-                        CbteAsoc.document_number[5:],
+                        doc_number,
                         self.company_id.vat,
                     )
                 else:
                     ws.AgregarCmpAsoc(
                         CbteAsoc.l10n_latam_document_type_id.code,
                         CbteAsoc.journal_id.l10n_ar_afip_pos_number,
-                        CbteAsoc.document_number[5:],
+                        doc_number,
                         self.company_id.vat,
                         afip_ws != 'wsmtxca' and self.date.strftime('%Y%m%d') or self.invoice_date.strftime('%Y-%m-%d'),
                     )
