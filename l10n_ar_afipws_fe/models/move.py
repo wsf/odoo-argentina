@@ -742,7 +742,7 @@ print "Observaciones:", wscdc.Obs
                         CbteAsoc.journal_id.l10n_ar_afip_pos_number,
                         doc_number,
                         self.company_id.vat,
-                        afip_ws != 'wsmtxca' and self.date.strftime('%Y%m%d') or self.invoice_date.strftime('%Y-%m-%d'),
+                        CbteAsoc.invoice_date.replace('-',''),
                     )
             # Notas de debito
             if inv.l10n_latam_document_type_id.code in ['2','7']:
