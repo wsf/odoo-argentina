@@ -729,6 +729,7 @@ print "Observaciones:", wscdc.Obs
             if CbteAsoc:
                 # fex no acepta fecha
                 doc_number = CbteAsoc.document_number.split('-')[1]
+                invoice_date = str(CbteAsoc.invoice_date).replace('-','')
                 if afip_ws == 'wsfex':
                     ws.AgregarCmpAsoc(
                         CbteAsoc.l10n_latam_document_type_id.document_type_id.code,
@@ -742,7 +743,7 @@ print "Observaciones:", wscdc.Obs
                         CbteAsoc.journal_id.l10n_ar_afip_pos_number,
                         doc_number,
                         self.company_id.vat,
-                        CbteAsoc.invoice_date.replace('-',''),
+                        invoice_date,
                     )
             # Notas de debito
             if inv.l10n_latam_document_type_id.code in ['2','7']:
