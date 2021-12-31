@@ -18,7 +18,7 @@ class AccountPayment(models.Model):
 
     # nuevo campo funcion para definir dominio de los metodos
     payment_method_ids = fields.Many2many(
-        'account.payment.method',
+        'account.payment.method.line',
         compute='_compute_payment_methods',
         string='Available payment methods',
     )
@@ -55,12 +55,12 @@ class AccountPayment(models.Model):
         self.ensure_one()
         domain = [('type', 'in', ('bank', 'cash'))]
         if self.payment_type == 'inbound':
-            domain.append(('at_least_one_inbound', '=', True))
+            domain.append(('inbound_payment_method_line_ids', '!=', False))
         # Al final dejamos que para transferencias se pueda elegir
         # cualquier sin importar si tiene outbound o no
         # else:
         elif self.payment_type == 'outbound':
-            domain.append(('at_least_one_outbound', '=', True))
+            domain.append(('outbound_payment_method_line_ids', '!=', False))
         return domain
 
     @api.depends(
@@ -145,14 +145,14 @@ class AccountPayment(models.Model):
             # (we consider the first to be the default one)
             payment_methods = (
                 self.payment_type == 'inbound' and
-                self.journal_id.inbound_payment_method_ids or
-                self.journal_id.outbound_payment_method_ids)
+                self.journal_id.inbound_payment_method_line_ids or
+                self.journal_id.outbound_payment_method_line_ids)
             # si es una transferencia y no hay payment method de origen,
             # forzamos manual
             if not payment_methods and self.payment_type == 'transfer':
                 payment_methods = self.env.ref(
                     'account.account_payment_method_manual_out')
-            self.payment_method_id = (
+            self.payment_method_line_id = (
                 payment_methods and payment_methods[0] or False)
 
     @api.depends('invoice_line_ids', 'payment_type', 'partner_type', 'partner_id')
