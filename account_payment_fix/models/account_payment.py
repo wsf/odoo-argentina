@@ -7,15 +7,6 @@ _logger = logging.getLogger(__name__)
 class AccountPayment(models.Model):
     _inherit = "account.payment"
 
-    #state = fields.Selection(track_visibility='always')
-    #amount = fields.Monetary(track_visibility='always')
-    #partner_id = fields.Many2one(track_visibility='always')
-    #journal_id = fields.Many2one(track_visibility='always')
-    #destination_journal_id = fields.Many2one(track_visibility='always')
-    #currency_id = fields.Many2one(track_visibility='always')
-    # campo a ser extendido y mostrar un nombre detemrinado en las lineas de
-    # pago de un payment group o donde se desee (por ej. con cheque, retención,
-    # etc)
     payment_method_description = fields.Char(
         compute='_compute_payment_method_description',
         string='Payment Method',
@@ -23,7 +14,7 @@ class AccountPayment(models.Model):
 
     def _compute_payment_method_description(self):
         for rec in self:
-            rec.payment_method_description = rec.payment_method_id.display_name
+            rec.payment_method_description = rec.payment_method_line_id.display_name
 
     # nuevo campo funcion para definir dominio de los metodos
     payment_method_ids = fields.Many2many(
@@ -35,9 +26,6 @@ class AccountPayment(models.Model):
         'account.journal',
         compute='_compute_journals'
     )
-    # journal_at_least_type = fields.Char(
-    #     compute='_compute_journal_at_least_type'
-    # )
     destination_journal_ids = fields.Many2many(
         'account.journal',
         compute='_compute_destination_journals'
@@ -59,17 +47,6 @@ class AccountPayment(models.Model):
                 ('id', '!=', rec.journal_id.id),
             ]
             rec.destination_journal_ids = rec.journal_ids.search(domain)
-
-    # @api.depends(
-    #     'payment_type',
-    # )
-    # def _compute_journal_at_least_type(self):
-    #     for rec in self:
-    #         if rec.payment_type == 'inbound':
-    #             journal_at_least_type = 'at_least_one_inbound'
-    #         else:
-    #             journal_at_least_type = 'at_least_one_outbound'
-    #         rec.journal_at_least_type = journal_at_least_type
 
     def get_journals_domain(self):
         """
@@ -94,16 +71,16 @@ class AccountPayment(models.Model):
             rec.journal_ids = rec.journal_ids.search(rec.get_journals_domain())
 
     @api.depends(
-        'journal_id.outbound_payment_method_ids',
-        'journal_id.inbound_payment_method_ids',
+        'journal_id.outbound_payment_method_line_ids',
+        'journal_id.inbound_payment_method_line_ids',
         'payment_type',
     )
     def _compute_payment_methods(self):
         for rec in self:
             if rec.payment_type in ('outbound', 'transfer'):
-                methods = rec.journal_id.outbound_payment_method_ids
+                methods = rec.journal_id.outbound_payment_method_line_ds
             else:
-                methods = rec.journal_id.inbound_payment_method_ids
+                methods = rec.journal_id.inbound_payment_method_line_ids
             rec.payment_method_ids = methods
 
     @api.onchange('currency_id')
@@ -131,15 +108,6 @@ class AccountPayment(models.Model):
             # limpiamos journal ya que podria no estar disponible para la nueva
             # operacion y ademas para que se limpien los payment methods
             self.journal_id = False
-        # # Set payment method domain
-        # res = self._onchange_journal()
-        # if not res.get('domain', {}):
-        #     res['domain'] = {}
-        # res['domain']['journal_id'] = self.payment_type == 'inbound' and [
-        #     ('at_least_one_inbound', '=', True)] or [
-        #     ('at_least_one_outbound', '=', True)]
-        # res['domain']['journal_id'].append(('type', 'in', ('bank', 'cash')))
-        # return res
 
     # @api.onchange('partner_type')
     def _onchange_partner_type(self):
@@ -186,20 +154,6 @@ class AccountPayment(models.Model):
                     'account.account_payment_method_manual_out')
             self.payment_method_id = (
                 payment_methods and payment_methods[0] or False)
-            # si se eligió de origen el mismo diario de destino, lo resetiamos
-            #if self.journal_id == self.destination_journal_id:
-            #    self.destination_journal_id = False
-        #     # Set payment method domain
-        #     # (restrict to methods enabled for the journal and to selected
-        #     # payment type)
-        #     payment_type = self.payment_type in (
-        #         'outbound', 'transfer') and 'outbound' or 'inbound'
-        #     return {
-        #         'domain': {
-        #             'payment_method_id': [
-        #                 ('payment_type', '=', payment_type),
-        #                 ('id', 'in', payment_methods.ids)]}}
-        # return {}
 
     @api.depends('invoice_line_ids', 'payment_type', 'partner_type', 'partner_id')
     def _compute_destination_account_id(self):
