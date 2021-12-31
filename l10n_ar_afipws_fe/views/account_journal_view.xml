@@ -8,7 +8,8 @@
         <field name="inherit_id" ref="base.sequence_view"/>
         <field name="arch" type="xml">
                 <field name="active" position="after">
-                        <field name="journal_id" domain="[('type','=','sale')]"/>
+			<field name="journal_id" domain="[('type','=','sale')]"/>
+			<field name="l10n_latam_document_type_id" />
                 </field>
                 <xpath expr="//sheet" position="before">
                             <button name="comp_consultar" type="object" string="Consultar comprobante" />

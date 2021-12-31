@@ -24,5 +24,5 @@ class IrSequence(models.Model):
             'target': 'new',
         }
 
-
+    l10n_latam_document_type_id = fields.Many2one('l10n_latam.document.type','Tipo de documento')
 
