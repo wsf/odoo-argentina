@@ -96,6 +96,17 @@ class AccountMoveLine(models.Model):
 class AccountMove(models.Model):
         _inherit = "account.move"
 
+        @api.model
+        def _get_tax_totals(self, partner, tax_lines_data, amount_total, amount_untaxed, currency):
+            res = super(AccountMove, self)._get_tax_totals(partner, tax_lines_data, amount_total, amount_untaxed, currency)
+            for rec in self:
+                for move_tax in rec.move_tax_ids:
+                    if move_tax.tax_id.is_padron:
+                        res['amount_total'] = res['amount_total'] + move_tax.tax_amount
+                        res['formatted_amount_total'] = rec.currency_id.symbol + str(round(res['amount_total'],rec.currency_id.decimal_places))
+            return res
+
+
         def _prepare_tax_lines_data_for_totals_from_invoice(self, tax_line_id_filter=None, tax_ids_filter=None):
             """ Prepares data to be passed as tax_lines_data parameter of _get_tax_totals() from an invoice.
 
