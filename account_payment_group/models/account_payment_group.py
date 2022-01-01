@@ -30,7 +30,6 @@ class AccountPaymentGroup(models.Model):
         copy=False,
         readonly=True,
         states={'draft': [('readonly', False)]},
-        track_visibility='always',
         index=True,
     )
     document_sequence_id = fields.Many2one(
@@ -44,7 +43,6 @@ class AccountPaymentGroup(models.Model):
         'account.payment.receiptbook',
         'Talonario de Recibos',
         readonly=True,
-        track_visibility='always',
         states={'draft': [('readonly', False)]},
         ondelete='restrict',
         auto_join=True,
@@ -80,7 +78,6 @@ class AccountPaymentGroup(models.Model):
     )
     partner_type = fields.Selection(
         [('customer', 'Customer'), ('supplier', 'Vendor')],
-        track_visibility='always',
         change_default=True,
     )
     partner_id = fields.Many2one(
@@ -89,7 +86,6 @@ class AccountPaymentGroup(models.Model):
         required=True,
         readonly=True,
         states={'draft': [('readonly', False)]},
-        track_visibility='always',
         change_default=True,
         index=True,
     )
@@ -103,7 +99,6 @@ class AccountPaymentGroup(models.Model):
         default=lambda self: self.env.user.company_id.currency_id,
         readonly=True,
         states={'draft': [('readonly', False)]},
-        track_visibility='always',
     )
     payment_date = fields.Date(
         string='Fecha de Pago',
@@ -163,12 +158,10 @@ class AccountPaymentGroup(models.Model):
         # string='Total To Pay Amount',
         readonly=True,
         states={'draft': [('readonly', False)]},
-        track_visibility='always',
     )
     payments_amount = fields.Monetary(
         compute='_compute_payments_amount',
         string='Monto',
-        track_visibility='always',
     )
     state = fields.Selection([
         ('draft', 'Borrador'),
@@ -182,7 +175,6 @@ class AccountPaymentGroup(models.Model):
         default='draft',
         copy=False,
         string="Status",
-        track_visibility='onchange',
         index=True,
     )
     move_lines_domain = [
