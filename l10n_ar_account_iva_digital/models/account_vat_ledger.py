@@ -675,6 +675,7 @@ class AccountVatLedger(models.Model):
             #        r.l10n_latam_tax_ids[0].tax_group_id.l10n_ar_vat_afip_code in [
             #            '4','5', '6', '8', '9'] and not is_zero(r.tax_base_amount)))
             vat_taxes = self.env['account.move.line']
+            import pdb;pdb.set_trace()
             for mvl_tax in inv.l10n_latam_tax_ids:
                 #raise ValidationError('estamos aca %s %s %s'%(inv,mvl_tax.tax_group_id.l10n_ar_vat_afip_code + 'X',mvl_tax.tax_group_id.tax_type))
                 #if not mvl_tax.l10n_latam_tax_ids:
