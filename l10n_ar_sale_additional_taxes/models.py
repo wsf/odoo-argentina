@@ -96,6 +96,58 @@ class AccountMoveLine(models.Model):
 class AccountMove(models.Model):
         _inherit = "account.move"
 
+        def _prepare_tax_lines_data_for_totals_from_invoice(self, tax_line_id_filter=None, tax_ids_filter=None):
+            """ Prepares data to be passed as tax_lines_data parameter of _get_tax_totals() from an invoice.
+
+                NOTE: tax_line_id_filter and tax_ids_filter are used in l10n_latam to restrict the taxes with consider
+                  in the totals.
+
+                :param tax_line_id_filter: a function(aml, tax) returning true if tax should be considered on tax move line aml.
+                :param tax_ids_filter: a function(aml, taxes) returning true if taxes should be considered on base move line aml.
+
+                :return: A list of dict in the format described in _get_tax_totals's tax_lines_data's docstring.
+            """
+            self.ensure_one()
+
+            tax_line_id_filter = tax_line_id_filter or (lambda aml, tax: True)
+            tax_ids_filter = tax_ids_filter or (lambda aml, tax: True)
+
+            balance_multiplicator = -1 if self.is_inbound() else 1
+            tax_lines_data = []
+
+            for line in self.line_ids:
+                if line.tax_line_id and tax_line_id_filter(line, line.tax_line_id):
+                    if not line.tax_line_id.is_padron:
+                        tax_lines_data.append({
+                            'line_key': 'tax_line_%s' % line.id,
+                            'tax_amount': line.amount_currency * balance_multiplicator,
+                            'tax': line.tax_line_id,
+                        })
+
+                if line.tax_ids:
+                    for base_tax in line.tax_ids.flatten_taxes_hierarchy():
+                        if tax_ids_filter(line, base_tax) or base_tax.is_padron:
+                               tax_lines_data.append({
+                                    'line_key': 'base_line_%s' % line.id,
+                                    'base_amount': line.amount_currency * balance_multiplicator,
+                                    'tax': base_tax,
+                                    'tax_affecting_base': line.tax_line_id,
+                                })
+                        if base_tax.is_padron:
+                            domain = [('move_id','=',line.move_id.id),('tax_id','=',base_tax.id)]
+                            account_move_tax_line = self.env['account.move.tax'].search(domain)
+                            if not account_move_tax_line:
+                                raise ValidationError('Problemas con la configuracion de impuestos\nConsulte al administrador')
+                            tax_lines_data.append({
+                                'line_key': 'tax_line_%s' % line.id,
+                                'tax_amount': account_move_tax_line.tax_amount,
+                                'tax': base_tax,
+                            })
+
+            return tax_lines_data
+
+
+
         def compute_taxes(self):
             self.ensure_one()
             if self.state == 'draft':
