@@ -32,7 +32,7 @@
         'account_payment_group',
     ],
     'data': [
-        #'data/account_payment_method_data.xml',
+        'data/account_payment_method_data.xml',
         'wizard/account_check_action_wizard_view.xml',
         'wizard/res_config_settings_view.xml',
         'views/res_company_view.xml',
