@@ -650,8 +650,8 @@ class AccountCheck(models.Model):
             #credit_account = rec.journal_id.default_credit_account_id
             #debit_account = rec.journal_id.default_debit_account_id
             debit_account = credit_account = rec.company_id._get_check_account('holding')
-            inbound_methods = rec.journal_id['inbound_payment_method_ids']
-            outbound_methods = rec.journal_id['outbound_payment_method_ids']
+            inbound_methods = rec.journal_id['inbound_payment_method_line_ids']
+            outbound_methods = rec.journal_id['outbound_payment_method_line_ids']
             # si hay cuenta en diario y son iguales, y si los metodos de pago
             # y cobro son solamente uno, usamos el del diario, si no, usamos el
             # de la compañía
