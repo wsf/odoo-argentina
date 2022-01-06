@@ -539,9 +539,9 @@ class AccountPayment(models.Model):
                     'de cheque en cada línea de pago.\n'
                     '* ID del pago: %s') % rec.id)
 
+
         res = super(AccountPayment, self).action_post()
         for rec in self:
-            #raise ValidationError('estamos aca %s'%(rec.payment_method_id.code))
             if rec.payment_method_id.code in ['received_third_check','delivered_third_check','issue_check']:
                 rec.do_checks_operations()
         return res
@@ -672,3 +672,5 @@ class AccountPayment(models.Model):
                 x.check_deposit_type == 'detailed'):
             self._split_aml_line_per_check(transfer_debit_aml.move_id)
         return transfer_debit_aml
+
+
