@@ -770,12 +770,9 @@ class AccountCheck(models.Model):
                     'The deposit operation is not linked to a payment.'
                     'If you want to reject you need to do it manually.'))
             # TODO debemos crear un movimiento contable en lugar de un pago
-            payment_vals = self.get_payment_values(journal)
-            payment = self.env['account.payment'].with_context(
-                default_name=_('Check "%s" rejection') % (self.name),
-            ).create(payment_vals)
-            # self.post_payment_check(payment)
-            self._add_operation('rejected', payment, date=payment.payment_date)
+            reject_account = self.company_id._get_check_account('rejected')
+            reject_move = self.action_create_reject_move(journal_id = journal, 
+                    account_id = reject_account)
             self.state = 'rejected'
         elif self.state == 'delivered':
             raise ValidationError('accion no implementada')
@@ -860,3 +857,41 @@ class AccountCheck(models.Model):
             'res_id': invoice.id,
             'type': 'ir.actions.act_window',
         }
+
+    def action_create_reject_move(
+            self, journal_id, account_id):
+        self.ensure_one()
+        action_date = self._context.get('action_date') or date.today()
+
+        name = 'Rechazo cheque "%s"' % (self.name)
+
+        move_vals = {
+            # this is the reference that goes on account.move
+            'rejected_check_id': self.id,
+            #'ref': name,
+            'date': action_date,
+            'ref': _('Rechazo check nro (id): %s (%s)') % (self.name, self.id),
+            'journal_id': journal_id.id,
+            'move_type': 'entry',
+        }
+        move_id = self.env['account.move'].with_context({'check_move_validity': False}).create(move_vals)
+
+        debit_line = {
+                'account_id': account_id.id,
+                'name': 'Rechazo de check %s'%(self.name),
+                'debit': self.amount,
+                'move_id': move_id.id,
+                }
+
+        credit_line = {
+                'account_id': journal_id.default_account_id.id,
+                'name': 'Rechazo de check %s'%(self.name),
+                'credit': self.amount,
+                'move_id': move_id.id,
+                }
+        debit_id = self.env['account.move.line'].with_context({'check_move_validity': False}).create(debit_line)
+        credit_id = self.env['account.move.line'].with_context({'check_move_validity': False}).create(credit_line)
+        # we send internal_type for compatibility with account_document
+        self._add_operation('rejected', move_id, date=action_date)
+        move_id._post()
+
