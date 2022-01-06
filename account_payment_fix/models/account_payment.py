@@ -78,7 +78,7 @@ class AccountPayment(models.Model):
     def _compute_payment_methods(self):
         for rec in self:
             if rec.payment_type in ('outbound', 'transfer'):
-                methods = rec.journal_id.outbound_payment_method_line_ds
+                methods = rec.journal_id.outbound_payment_method_line_ids
             else:
                 methods = rec.journal_id.inbound_payment_method_line_ids
             rec.payment_method_ids = methods

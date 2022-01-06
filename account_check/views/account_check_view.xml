@@ -88,13 +88,13 @@
                 </group>
                 <group string="Operations">
                     <field name="operation_ids" nolabel="1" readonly="1">
-                        <tree>
+                        <tree create="0" edit="0" delete="0">
                             <field name="date"/>
                             <field name="operation"/>
                             <field name="origin_name" string="Origin"/>
                             <field name="partner_id"/>
                         </tree>
-                        <form>
+                        <form edit="0" create="0" delete="0">
                             <group>
                                 <field name="date"/>
                                 <field name="operation"/>
