@@ -70,7 +70,14 @@ class AccountMove(models.Model):
                                             }
                                     move_tax_id = self.env['account.move.tax'].create(vals)
                                 move_tax_id.base_amount = move_tax_id.base_amount + invoice_line.price_subtotal
-                                move_tax_id.tax_amount = move_tax_id.tax_amount + invoice_line.price_subtotal * (account_tax.amount / 100)
+                                if account_tax.tax_group_id.tax_type == 'vat':
+                                    move_tax_id.tax_amount = move_tax_id.tax_amount + invoice_line.price_subtotal * (account_tax.amount / 100)
+                                else:
+                                    taxes_inv = move_tax_id.move_id._prepare_tax_lines_data_for_totals_from_invoice()
+                                    for tax_inv in taxes_inv:
+                                        if tax_inv.get('line_key').startswith('tax_line_') and tax_inv.get('tax').id == tax:
+                                            tax_amount = tax_inv.get('tax_amount',0)
+                                    move_tax_id.tax_amount = move_tax_id.tax_amount + tax_amount
 
 
 
