@@ -1,4 +1,6 @@
 from odoo import fields, models, _, api
+from functools import partial
+
 import json
 import base64
 
@@ -6,6 +8,34 @@ class PosOrder(models.Model):
     _inherit = 'pos.order'
 
     to_invoice = fields.Boolean('To invoice', default=True)
+
+
+    @api.model
+    def _order_fields(self, ui_order):
+        process_line = partial(self.env['pos.order.line']._order_line_fields, session_id=ui_order['pos_session_id'])
+        if not ui_order.get('partner_id'):
+            ui_order['partner_id'] = self.env.ref('l10n_ar.par_cfa') and self.env.ref('l10n_ar.par_cfa').id or False
+        return {
+            'user_id':      ui_order['user_id'] or False,
+            'session_id':   ui_order['pos_session_id'],
+            'lines':        [process_line(l) for l in ui_order['lines']] if ui_order['lines'] else False,
+            'pos_reference': ui_order['name'],
+            'sequence_number': ui_order['sequence_number'],
+            'partner_id':   ui_order['partner_id'] or False,
+            'date_order':   ui_order['creation_date'].replace('T', ' ')[:19],
+            'fiscal_position_id': ui_order['fiscal_position_id'],
+            'pricelist_id': ui_order['pricelist_id'],
+            'amount_paid':  ui_order['amount_paid'],
+            'amount_total':  ui_order['amount_total'],
+            'amount_tax':  ui_order['amount_tax'],
+            'amount_return':  ui_order['amount_return'],
+            'company_id': self.env['pos.session'].browse(ui_order['pos_session_id']).company_id.id,
+            'to_invoice': ui_order['to_invoice'] if "to_invoice" in ui_order else False,
+            'to_ship': ui_order['to_ship'] if "to_ship" in ui_order else False,
+            'is_tipped': ui_order.get('is_tipped', False),
+            'tip_amount': ui_order.get('tip_amount', 0),
+        }
+
 
 
     @api.model
