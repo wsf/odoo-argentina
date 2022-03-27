@@ -14,7 +14,6 @@
         "bin": [],
     },
     "depends": [
-        #"account_cancel",
         "account_financial_amount",
         # for fixes related to domains and company_id field on form view
         "account_payment_fix",
@@ -29,7 +28,6 @@
         'views/account_payment_group_view.xml',
         'views/account_payment_receiptbook_view.xml',
         'views/account_journal_dashboard_view.xml',
-        'report/report_payment_group.xml',
         'data/mail_template_data.xml',
     ],
     "demo": [
