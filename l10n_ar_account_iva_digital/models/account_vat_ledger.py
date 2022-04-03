@@ -146,6 +146,7 @@ class AccountVatLedger(models.Model):
 
     def compute_digital_data(self):
         alicuotas = self.get_REGDIGITAL_CV_ALICUOTAS()
+        import pdb;pdb.set_trace()
         # sacamos todas las lineas y las juntamos
         lines = []
         for k, v in alicuotas.items():
@@ -661,38 +662,12 @@ class AccountVatLedger(models.Model):
         for inv in invoices:
             lines = []
             is_zero = inv.currency_id.is_zero
-            # reportamos como linea de iva si:
-            # * el impuesto es iva cero
-            # * el impuesto es iva 21, 27 etc pero tiene impuesto liquidado,
-            # si no tiene impuesto liquidado (is_zero), entonces se inventa
-            # una linea
-            #vat_taxes = inv.move_tax_ids.filtered(
-            #vat_taxes = inv.l10n_latam_tax_ids.filtered(
-                #lambda r: r.tax_id.tax_group_id.tax_type == 'vat' and r.tax_id.tax_group_id.l10n_ar_vat_afip_code == 3 or (
-                #    r.tax_id.tax_group_id.l10n_ar_vat_afip_code in [
-                #        4, 5, 6, 8, 9] and not is_zero(r.tax_amount)))
-            #    lambda r: r.l10n_latam_tax_ids[0].tax_group_id.tax_type == 'vat' and r.l10n_latam_tax_ids[0].tax_group_id.l10n_ar_vat_afip_code == '3' or (
-            #        r.l10n_latam_tax_ids[0].tax_group_id.l10n_ar_vat_afip_code in [
-            #            '4','5', '6', '8', '9'] and not is_zero(r.tax_base_amount)))
             vat_taxes = self.env['account.move.line']
             import pdb;pdb.set_trace()
             for mvl_tax in inv.l10n_latam_tax_ids:
-                #raise ValidationError('estamos aca %s %s %s'%(inv,mvl_tax.tax_group_id.l10n_ar_vat_afip_code + 'X',mvl_tax.tax_group_id.tax_type))
-                #if not mvl_tax.l10n_latam_tax_ids:
-                #    continue
                 tax_group_id = mvl_tax.tax_group_id
-                #if tax_group_id.l10n_ar_vat_afip_code == '1':
-                #    raise ValidationError('existe el registro')
-                #if tax_group_id.tax_type == 'vat' and (tax_group_id.l10n_ar_vat_afip_code == 3 or (tax_group_id.l10n_ar_vat_afip_code in [4, 5, 6, 8, 9])):
                 if tax_group_id.tax_type == 'vat' and tax_group_id.l10n_ar_vat_afip_code in ['2','3', '4', '5', '6', '8', '9']:
                     vat_taxes += mvl_tax
-
-            #for mvl_tax in inv.line_ids:
-            #    #if inv.id == 652 and mvl_tax.name == 'No gravado':
-            #    #    raise ValidationError('estamos aca %s'%(mvl_tax.tax_ids[0].tax_group_id.l10n_ar_vat_afip_code))
-            #    if mvl_tax.tax_ids and mvl_tax.tax_ids[0].tax_group_id.l10n_ar_vat_afip_code == '3':
-            #        lines.append(''.join(self.get_tax_row(
-            #            inv, 0.0, 3, 0.0, impo=impo)))
 
             if not vat_taxes and inv.move_tax_ids.filtered(
                     lambda r: r.tax_id.tax_group_id.tax_type == 'vat' and r.tax_id.tax_group_id.l10n_ar_vat_afip_code):
@@ -700,7 +675,6 @@ class AccountVatLedger(models.Model):
                     inv, 0.0, 3, 0.0, impo=impo)))
 
             # we group by afip_code
-            #raise ValidationError('estamos aca %s %s %s %s'%(inv,vat_taxes,vat_taxes[0].tax_base_amount,vat_taxes[0].price_subtotal))
             for afip_code in vat_taxes.mapped('tax_group_id.l10n_ar_vat_afip_code'):
                 taxes = vat_taxes.filtered(lambda x: x.tax_group_id.l10n_ar_vat_afip_code == afip_code)
                 if inv.currency_id.id == inv.company_id.currency_id.id:

@@ -256,6 +256,8 @@ class AccountMove(models.Model):
         The last thing we do is request the cae because if an error occurs
         after cae requested, the invoice has been already validated on afip
         """
+        for rec in self:
+            rec.compute_taxes()
         res = super(AccountMove, self).action_post()
         self.check_afip_auth_verify_required()
         self.do_pyafipws_request_cae()

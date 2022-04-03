@@ -67,6 +67,7 @@ class ResPartner(models.Model):
 
         def get_tax_percent(self, tax = None):
             self.ensure_one()
+            import pdb;pdb.set_trace()
             if not tax:
                 return 0
             perception = self.env['res.partner.perception'].search(
