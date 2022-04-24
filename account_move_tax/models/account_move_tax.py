@@ -92,10 +92,15 @@ class AccountMoveTax(models.Model):
         _name = 'account.move.tax'
         _description = 'account.move.tax'
 
-        move_id = fields.Many2one('account.move',string='Account Move')
-        tax_id = fields.Many2one('account.tax',string='Tax')
-        base_amount = fields.Float('Base Amount')
-        tax_amount = fields.Float('Tax Amount')
+        move_id = fields.Many2one('account.move',string='Factura')
+        tax_id = fields.Many2one('account.tax',string='Impuesto')
+        base_amount = fields.Float('Monto base')
+        tax_amount = fields.Float('Impuesto')
+        partner_id = fields.Many2one(comodel_name='res.partner',string='Cliente/Proveedor',related='move_id.partner_id')
+        l10n_latam_document_type_id = fields.Many2one('l10n_latam.document.type',string='Tipo de documento',related='move_id.l10n_latam_document_type_id')
+        invoice_date = fields.Date('Fecha de factura',related='move_id.invoice_date')
+        state_id = fields.Many2one('res.country.state',string='Provincia',related='partner_id.state_id')
+        l10n_ar_afip_responsibility_type_id = fields.Many2one('l10n_ar.afip.responsibility.type',string='Responsabilidad AFIP',related='partner_id.l10n_ar_afip_responsibility_type_id')
 
 class AccountTaxGroup(models.Model):
         _inherit = 'account.tax.group'
