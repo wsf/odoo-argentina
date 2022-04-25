@@ -38,6 +38,7 @@
 			<field name="tax_id" />
 			<field name="partner_id" />
 			<field name="state_id" />
+			<field name="move_type" />
 			<field name="l10n_latam_document_type_id" />
 			<field name="l10n_ar_afip_responsibility_type_id" />
 			<field name="invoice_date" />

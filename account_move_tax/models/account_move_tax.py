@@ -67,7 +67,13 @@ class AccountMove(models.Model):
                             if not move_tax_id:
                                 vals = {
                                         'move_id': self.id,
-                                        'tax_id': tax
+                                        'tax_id': tax,
+                                        'invoice_date': self.invoice_date,
+                                        'partner_id': self.partner_id.id,
+                                        'l10n_latam_document_type_id': self.l10n_latam_document_type_id.id,
+                                        'l10n_ar_afip_responsibility_type_id': self.partner_id.l10n_ar_afip_responsibility_type_id.id,
+                                        'state_id': self.partner_id.state_id.id,
+                                        'move_type': self.move_type,
                                         }
                                 move_tax_id = self.env['account.move.tax'].create(vals)
                             move_tax_id.base_amount = move_tax_id.base_amount + invoice_line.price_subtotal
@@ -96,11 +102,20 @@ class AccountMoveTax(models.Model):
         tax_id = fields.Many2one('account.tax',string='Impuesto')
         base_amount = fields.Float('Monto base')
         tax_amount = fields.Float('Impuesto')
-        partner_id = fields.Many2one(comodel_name='res.partner',string='Cliente/Proveedor',related='move_id.partner_id')
-        l10n_latam_document_type_id = fields.Many2one('l10n_latam.document.type',string='Tipo de documento',related='move_id.l10n_latam_document_type_id')
-        invoice_date = fields.Date('Fecha de factura',related='move_id.invoice_date')
-        state_id = fields.Many2one('res.country.state',string='Provincia',related='partner_id.state_id')
-        l10n_ar_afip_responsibility_type_id = fields.Many2one('l10n_ar.afip.responsibility.type',string='Responsabilidad AFIP',related='partner_id.l10n_ar_afip_responsibility_type_id')
+        partner_id = fields.Many2one(comodel_name='res.partner',string='Cliente/Proveedor')
+        l10n_latam_document_type_id = fields.Many2one('l10n_latam.document.type',string='Tipo de documento')
+        invoice_date = fields.Date('Fecha de factura')
+        state_id = fields.Many2one('res.country.state',string='Provincia')
+        l10n_ar_afip_responsibility_type_id = fields.Many2one('l10n_ar.afip.responsibility.type',string='Responsabilidad AFIP')
+        move_type = fields.Selection(selection=[
+            ('entry', 'Journal Entry'),
+            ('out_invoice', 'Customer Invoice'),
+            ('out_refund', 'Customer Credit Note'),
+            ('in_invoice', 'Vendor Bill'),
+            ('in_refund', 'Vendor Credit Note'),
+            ('out_receipt', 'Sales Receipt'),
+            ('in_receipt', 'Purchase Receipt'),
+            ], string='Type')
 
 class AccountTaxGroup(models.Model):
         _inherit = 'account.tax.group'
