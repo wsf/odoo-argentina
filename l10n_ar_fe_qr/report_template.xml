@@ -3,8 +3,8 @@
 	<data>
 
 	   <template id="qr_report_fe_invoice_document" inherit_id="l10n_ar_report_fe.report_fe_invoice_document">
-		<xpath expr="//div[@class='footer']" position="replace">
-	            <div class="footer" style="border: 1px solid black;">
+		<xpath expr="//div[@class='my_footer']" position="replace">
+	            <div class="my_footer" style="border: 1px solid black;">
 	              <div class="row" style="margin-bottom: 0px !important; padding-top: 3px; padding-bottom: 3px;">
         	        <div class="col-4" t-if="o.afip_cae">
                 	    <p/>
