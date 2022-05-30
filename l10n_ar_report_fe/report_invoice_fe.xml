@@ -76,7 +76,9 @@
               </div>
           </div><!--END HEADER-->
           <!--PAGE-->
-          <div class="page" style="margin-top: 0px !important;">
+	  <div class="page" style="margin-top: 0px !important;">
+
+	     <t t-call="l10n_ar.custom_header"></t>
 
              <!--MY COMPANY-->
               <div class="row" style="border: 1px solid black; border-radius: 10px; margin-top: 0px !important;">
