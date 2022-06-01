@@ -290,7 +290,7 @@ class AccountVatLedger(models.Model):
         for inv in self.invoice_ids:
             line = ""
             if self.type == 'sale':
-                for move_tax in inv.move_tax_ids.filtered(lambda l: l.tax_id.tax_group_id.tax_type == 'vat'):
+                for move_tax in inv.move_tax_ids.filtered(lambda l: l.tax_id.tax_group_id.tax_type == 'vat').sorted(lambda l: l.tax_id.tax_group_id.l10n_ar_vat_afip_code):
                     # Tipo de comprobante
                     line = line + inv.l10n_latam_document_type_id.code.zfill(3)
                     # Punto de venta
