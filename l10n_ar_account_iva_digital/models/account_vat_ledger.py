@@ -65,18 +65,6 @@ class AccountVatLedger(models.Model):
     )
     prorate_tax_credit = fields.Boolean(
     )
-    #prorate_type = fields.Selection(
-    #    [('global', 'Global'), ('by_voucher', 'By Voucher')],
-    #)
-    #tax_credit_computable_amount = fields.Float(
-    #    'Credit Computable Amount',
-    #)
-    #sequence = fields.Integer(
-    #    default=0,
-    #    required=True,
-    #    help='Se deberá indicar si la presentación es Original (00) o '
-    #    'Rectificativa y su orden'
-    #)
 
     def format_amount(self, amount, padding=15, decimals=2, invoice=False):
         # get amounts on correct sign despite conifiguration on taxes and tax
@@ -115,7 +103,9 @@ class AccountVatLedger(models.Model):
                 self.date_to,
                 # self.period_id.name
             )
-            self.digital_aliquots_file = base64.encodestring(
+            #self.digital_aliquots_file = base64.encodestring(
+            #    self.REGDIGITAL_CV_ALICUOTAS.encode('ISO-8859-1'))
+            self.digital_aliquots_file = base64.encodebytes(
                 self.REGDIGITAL_CV_ALICUOTAS.encode('ISO-8859-1'))
         else:
             self.digital_aliquots_file = False
@@ -146,23 +136,19 @@ class AccountVatLedger(models.Model):
 
     def compute_digital_data(self):
         alicuotas = self.get_REGDIGITAL_CV_ALICUOTAS()
-        import pdb;pdb.set_trace()
         # sacamos todas las lineas y las juntamos
-        lines = []
-        for k, v in alicuotas.items():
-            lines += v
-        self.REGDIGITAL_CV_ALICUOTAS = '\r\n'.join(lines)
+        self.REGDIGITAL_CV_ALICUOTAS = '\r\n'.join(alicuotas)
 
-        impo_alicuotas = {}
-        if self.type == 'purchase':
-            impo_alicuotas = self.get_REGDIGITAL_CV_ALICUOTAS(impo=True)
-            # sacamos todas las lineas y las juntamos
-            lines = []
-            for k, v in impo_alicuotas.items():
-                lines += v
-            self.REGDIGITAL_CV_COMPRAS_IMPORTACIONES = '\r\n'.join(lines)
-        alicuotas.update(impo_alicuotas)
-        self.get_REGDIGITAL_CV_CBTE(alicuotas)
+        #impo_alicuotas = {}
+        #if self.type == 'purchase':
+        #    impo_alicuotas = self.get_REGDIGITAL_CV_ALICUOTAS(impo=True)
+        #    # sacamos todas las lineas y las juntamos
+        #    lines = []
+        #    for k, v in impo_alicuotas.items():
+        #        lines += v
+        #    self.REGDIGITAL_CV_COMPRAS_IMPORTACIONES = '\r\n'.join(lines)
+        #alicuotas.update(impo_alicuotas)
+        #self.get_REGDIGITAL_CV_CBTE(alicuotas)
 
     def get_partner_document_code(self, partner):
         # se exige cuit para todo menos consumidor final.
@@ -645,7 +631,7 @@ class AccountVatLedger(models.Model):
         hacemos los comprobantes
         """
         self.ensure_one()
-        res = {}
+        res = []
         # only vat taxes with codes 3, 4, 5, 6, 8, 9
         # segun: http://contadoresenred.com/regimen-de-informacion-de-
         # compras-y-ventas-rg-3685-como-cargar-la-informacion/
@@ -653,68 +639,22 @@ class AccountVatLedger(models.Model):
         # si no hay alicuotas, sumamos una de esta con 0, 0, 0 en detalle
         # usamos mapped por si hay afip codes duplicados (ej. manual y
         # auto)
-        if impo:
-            invoices = self.get_digital_invoices().filtered(
-                lambda r: r.l10n_latam_document_type_id.code == '66')
-        else:
-            invoices = self.get_digital_invoices().filtered(
-                lambda r: r.l10n_latam_document_type_id.code != '66')
-        for inv in invoices:
-            lines = []
-            is_zero = inv.currency_id.is_zero
-            vat_taxes = self.env['account.move.line']
-            import pdb;pdb.set_trace()
-            for mvl_tax in inv.l10n_latam_tax_ids:
-                tax_group_id = mvl_tax.tax_group_id
-                if tax_group_id.tax_type == 'vat' and tax_group_id.l10n_ar_vat_afip_code in ['2','3', '4', '5', '6', '8', '9']:
-                    vat_taxes += mvl_tax
-
-            if not vat_taxes and inv.move_tax_ids.filtered(
-                    lambda r: r.tax_id.tax_group_id.tax_type == 'vat' and r.tax_id.tax_group_id.l10n_ar_vat_afip_code):
-                lines.append(''.join(self.get_tax_row(
-                    inv, 0.0, 3, 0.0, impo=impo)))
-
-            # we group by afip_code
-            for afip_code in vat_taxes.mapped('tax_group_id.l10n_ar_vat_afip_code'):
-                taxes = vat_taxes.filtered(lambda x: x.tax_group_id.l10n_ar_vat_afip_code == afip_code)
-                if inv.currency_id.id == inv.company_id.currency_id.id:
-                    imp_neto = sum(taxes.mapped('tax_base_amount'))
-                else:
-                    imp_neto = 0
-                    other_lines = self.env['account.move.line'].search([('debit','>',0),('move_id','=',inv.id),('tax_ids','!=',False)])
-                    for other_line in other_lines:
-                        imp_neto = imp_neto + other_line.amount_currency
-                imp_liquidado = sum(taxes.mapped('price_subtotal'))
-                lines.append(''.join(self.get_tax_row(
-                    inv,
-                    imp_neto,
-                    afip_code,
-                    imp_liquidado,
-                    impo=impo,
-                )))
-            # Agrega IVA exento e IVA no gravado
-            for inv_line in inv.invoice_line_ids:
-                for tax in inv_line.tax_ids:
-                    if tax.tax_group_id.tax_type == 'vat' and tax.tax_group_id.l10n_ar_vat_afip_code in ['2']:
-                        text_line = ''
-                        # Campo 1
-                        text_line += "{:0>3d}".format(int(inv.l10n_latam_document_type_id.code))
-                        # Campo 2
-                        text_line += "{:0>5d}".format(int(inv.l10n_latam_document_number[:inv.l10n_latam_document_number.find('-')]))
-                        # Campo 3
-                        doc_number = int(inv.name.split('-')[2])
-                        text_line += "{:0>20d}".format(doc_number)
-                        ## Campo 4: Código de documento del vendedor
-                        text_line += self.get_partner_document_code(inv.commercial_partner_id)
-                        ## Campo 5: Número de identificación del vendedor
-                        text_line += self.get_partner_document_number(inv.commercial_partner_id)
-                        # Campo 6: Importe Neto Gravado
-                        text_line += self.format_amount(inv_line.price_subtotal, invoice=inv)
-                        # Campo 5: Alícuota de IVA.
-                        text_line += str(tax.tax_group_id.l10n_ar_vat_afip_code).rjust(4, '0')
-                        # Campo 6: Impuesto Liquidado.
-                        text_line += self.format_amount(0, invoice=inv)
-                        lines.append(text_line)
-            res[inv] = lines
+        for inv in self.invoice_ids:
+            line = ""
+            if self.type == 'sale':
+                for move_tax in inv.move_tax_ids.filtered(lambda l: l.tax_id.tax_group_id.tax_type == 'vat'):
+                    # Tipo de comprobante
+                    line = line + inv.l10n_latam_document_type_id.code.zfill(3)
+                    # Punto de venta
+                    pos, number = inv.name[5:].split('-')
+                    line = line + pos
+                    # Numero de comprobante
+                    line = line + number.zfill(20)
+                    # Importe neto gravado
+                    line = line + self.format_amount(move_tax.base_amount)
+                    # Alicuota de IVA
+                    line = line + move_tax.tax_id.tax_group_id.l10n_ar_vat_afip_code.zfill(4)
+                    # Impuesto liquidado
+                    line = line + self.format_amount(move_tax.tax_amount)
+            res.append(line)
         return res
-
