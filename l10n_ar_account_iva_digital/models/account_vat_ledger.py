@@ -304,5 +304,24 @@ class AccountVatLedger(models.Model):
                     line = line + move_tax.tax_id.tax_group_id.l10n_ar_vat_afip_code.zfill(4)
                     # Impuesto liquidado
                     line = line + self.format_amount(move_tax.tax_amount)
+            if self.type == 'purchase':
+                for move_tax in inv.move_tax_ids.filtered(lambda l: l.tax_id.tax_group_id.tax_type == 'vat').sorted(lambda l: l.tax_id.tax_group_id.l10n_ar_vat_afip_code):
+                    # Tipo de comprobante
+                    line = line + inv.l10n_latam_document_type_id.code.zfill(3)
+                    # Punto de venta
+                    pos, number = inv.name[5:].split('-')
+                    line = line + pos
+                    # Numero de comprobante
+                    line = line + number.zfill(20)
+                    # Codigo de documento del comprador
+                    line = line + self.get_partner_document_code(inv.partner_id)
+                    # Nro de identificacion del comprador
+                    line = line + inv.partner_id.vat.zfill(20)
+                    # Importe neto gravado
+                    line = line + self.format_amount(move_tax.base_amount)
+                    # Alicuota de IVA
+                    line = line + move_tax.tax_id.tax_group_id.l10n_ar_vat_afip_code.zfill(4)
+                    # Impuesto liquidado
+                    line = line + self.format_amount(move_tax.tax_amount)
             res.append(line)
         return res
