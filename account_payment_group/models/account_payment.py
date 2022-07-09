@@ -56,15 +56,16 @@ class AccountPayment(models.Model):
     )
     exchange_rate = fields.Float(
         string='Tipo de Cambio',
-        #compute='_compute_exchange_rate',
+        compute='_compute_exchange_rate',
         # readonly=False,
-        # inverse='_inverse_exchange_rate',
+        #inverse='_inverse_exchange_rate',
         digits=(16, 4),
     )
     company_currency_id = fields.Many2one(
         related='company_id.currency_id',
         string='Company currency',
     )
+
 
     @api.depends(
         'amount', 'payment_type', 'partner_type', 'amount_company_currency')
@@ -95,9 +96,12 @@ class AccountPayment(models.Model):
 
     @api.depends('amount', 'other_currency', 'amount_company_currency')
     def _compute_exchange_rate(self):
-        for rec in self.filtered('other_currency'):
-            rec.exchange_rate = rec.amount and (
-                rec.amount_company_currency / rec.amount) or 0.0
+        for rec in self:
+            if rec.other_currency:
+                rec.exchange_rate = rec.amount and (
+                    rec.amount_company_currency / rec.amount) or 0.0
+            else:
+                rec.exchange_rate = 1
 
     # this onchange is necesary because odoo, sometimes, re-compute
     # and overwrites amount_company_currency. That happends due to an issue
@@ -282,6 +286,13 @@ class AccountPayment(models.Model):
             })
             vals['payment_group_id'] = payment_group.id
         payment = super(AccountPayment, self).create(vals)
+        if payment.move_id and payment.currency_id.id != payment.company_id.currency_id.id \
+                and abs(payment.amount_company_currency) > 0:
+            for move_line in payment.move_id.line_ids:
+                if move_line.debit > 0:
+                    move_line.with_context({'check_move_validity': False}).write({'debit': abs(payment.amount_company_currency)})
+                if move_line.credit > 0:
+                    move_line.with_context({'check_move_validity': False}).write({'credit': abs(payment.amount_company_currency)})
         if create_payment_group:
             payment.payment_group_id.post()
         return payment
