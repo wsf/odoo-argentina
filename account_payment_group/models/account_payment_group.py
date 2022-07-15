@@ -649,6 +649,7 @@ class AccountPaymentGroup(models.Model):
             ('reconciled', '=', False),
             ('full_reconcile_id', '=', False),
             ('company_id', '=', self.company_id.id),
+            ('move_id.state','=','posted'),
             # '|',
             # ('amount_residual', '!=', False),
             # ('amount_residual_currency', '!=', False),
