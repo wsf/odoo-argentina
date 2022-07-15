@@ -728,7 +728,7 @@ class AccountPaymentGroup(models.Model):
                 # if rec.to_pay_move_line_ids:
                 #     move.line_ids.remove_move_reconcile()
             rec.payment_ids.action_cancel()
-            rec.payment_ids.write({'invoice_line_ids': [(5, 0, 0)]})
+            #rec.payment_ids.write({'invoice_line_ids': [(5, 0, 0)]})
         self.write({'state': 'cancel'})
 
     def action_draft(self):
