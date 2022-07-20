@@ -80,6 +80,7 @@ class AccountMove(models.Model):
                             if account_tax.tax_group_id.tax_type == 'vat':
                                 move_tax_id.tax_amount = move_tax_id.tax_amount + invoice_line.price_subtotal * (account_tax.amount / 100)
                             else:
+                                tax_amount = 0
                                 taxes_inv = move_tax_id.move_id._prepare_tax_lines_data_for_totals_from_invoice()
                                 for tax_inv in taxes_inv:
                                     if tax_inv.get('line_key').startswith('tax_line_') and tax_inv.get('tax').id == tax:
