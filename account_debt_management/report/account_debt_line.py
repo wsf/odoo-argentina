@@ -92,7 +92,7 @@ class AccountDebtLine(models.Model):
         'Cuenta',
         readonly=True
     )
-    internal_type = fields.Selection([
+    account_type = fields.Selection([
         ('receivable', 'Receivable'),
         ('payable', 'Payable')],
         'Tipo',
@@ -285,7 +285,7 @@ class AccountDebtLine(models.Model):
                 -- es una funcion y se renumera constantemente, por eso
                 -- necesita el over
                 -- ROW_NUMBER() OVER (ORDER BY l.partner_id, am.company_id,
-                --     l.account_id, l.currency_id, a.internal_type,
+                --     l.account_id, l.currency_id, a.account_type,
                 --     a.user_type_id, c.document_number, am.document_type_id,
                 --     l.date_maturity) as id,
                 -- igualmente los move lines son unicos, usamos eso como id
@@ -323,13 +323,13 @@ class AccountDebtLine(models.Model):
                 -- l.reconcile_partial_id as reconcile_partial_id,
                 l.partner_id as partner_id,
                 am.company_id as company_id,
-                a.internal_type as internal_type,
+                a.account_type as account_type,
                 -- am.journal_id as journal_id,
                 -- p.fiscalyear_id as fiscalyear_id,
                 -- am.period_id as period_id,
                 l.account_id as account_id,
                 --l.analytic_account_id as analytic_account_id,
-                -- a.internal_type as type,
+                -- a.account_type as type,
                 a.user_type_id as account_type,
                 l.currency_id as currency_id,
                 sum(l.amount_currency) as amount_currency,
@@ -349,11 +349,11 @@ class AccountDebtLine(models.Model):
                     am.l10n_latam_document_type_id=dt.id)
             WHERE
                 am.state != 'draft' and
-                a.internal_type IN ('payable', 'receivable')
+                a.account_type IN ('payable', 'receivable')
             GROUP BY
                 l.partner_id, am.company_id, l.account_id, l.currency_id,
                 l.full_reconcile_id,
-                a.internal_type, a.user_type_id, am.name, am.move_type,
+                a.account_type, a.user_type_id, am.name, am.move_type,
                 am.l10n_latam_document_type_id %s
                 -- dt.doc_code_prefix, am.document_number
         """ % params

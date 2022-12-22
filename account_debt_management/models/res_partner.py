@@ -11,8 +11,8 @@ class ResPartner(models.Model):
 
     unreconciled_domain = [
         ('reconciled', '=', False), ('full_reconcile_id', '=', False)]
-    receivable_domain = [('internal_type', '=', 'receivable')]
-    payable_domain = [('internal_type', '=', 'payable')]
+    receivable_domain = [('account_type', '=', 'receivable')]
+    payable_domain = [('account_type', '=', 'payable')]
 
     receivable_debt_ids = fields.One2many(
         'account.debt.line',
