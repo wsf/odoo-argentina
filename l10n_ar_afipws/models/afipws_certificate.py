@@ -71,7 +71,7 @@ class AfipwsCertificate(models.Model):
     def _compute_request_file(self):
         for rec in self.filtered('csr'):
             rec.request_filename = 'request.csr'
-            rec.request_file = base64.encodestring(self.csr.encode('utf-8'))
+            rec.request_file = base64.encodebytes(self.csr.encode('utf-8'))
 
     def action_to_draft(self):
         if self.alias_id.state != 'confirmed':

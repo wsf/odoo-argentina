@@ -57,19 +57,6 @@
         </field>
     </record>
 
-    <record id="view_afipws_certificate_alias_filter" model="ir.ui.view">
-        <field name="name">afipws.certificate_alias.filter</field>
-        <field name="model">afipws.certificate_alias</field>
-        <field name="arch" type="xml">
-            <search string="AFIP Certificates">
-                <field name="type"/>
-                <field name="common_name"/>
-                <field name="company_id"/>
-                <field name="state"/>
-            </search>
-        </field>
-    </record>
-
     <record id="view_afipws_certificate_alias_tree" model="ir.ui.view">
         <field name="name">afipws.certificate_alias.tree</field>
         <field name="model">afipws.certificate_alias</field>
