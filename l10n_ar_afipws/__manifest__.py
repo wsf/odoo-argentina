@@ -14,7 +14,6 @@
         'python': ['pyafipws', 'OpenSSL', 'pysimplesoap']
     },
     'data': [
-        'wizard/upload_certificate_view.xml',
         'views/afipws_menuitem.xml',
         'views/afipws_certificate_view.xml',
         'views/afipws_certificate_alias_view.xml',
@@ -23,8 +22,6 @@
         'security/security.xml',
     ],
     'demo': [
-        'demo/certificate_demo.xml',
-        'demo/parameter_demo.xml',
     ],
     'images': [
     ],
