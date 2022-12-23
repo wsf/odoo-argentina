@@ -1,7 +1,7 @@
 {
     "name": "Accounting Financial Amounts",
-    "version": "12.0.1.0.0",
-    "author": "ADHOC SA",
+    "version": "16.0.1.0.0",
+    "author": "A2 Systems, ADHOC SA",
     "license": "AGPL-3",
     "category": "Accounting",
     "depends": [
