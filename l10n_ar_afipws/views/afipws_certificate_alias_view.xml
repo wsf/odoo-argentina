@@ -14,12 +14,6 @@
                         class="oe_highlight"
                         help="Confirm and generate Key"
                         />
-                    <button name="action_create_certificate_request"
-                        type="object"
-                        states="confirmed"
-                        class="oe_highlight"
-                        string="Create Certificate Request"
-                        />
                     <button name="action_cancel"
                         type="object"
                         states="draft,confirmed"
@@ -37,9 +31,11 @@
                         <group>
                             <field name="company_id" groups="base.group_multi_company"/>
                             <field name="type"/>
-                            <field name="service_type" groups="base.group_no_one"/>
-                            <field name="service_provider_cuit" attrs="{'invisible':[('service_type','!=','outsourced')],'required':[('service_type','=','outsourced')]}"/>
-                            <field name="company_cuit" attrs="{'invisible':[('service_type','!=','in_house')],'required':[('service_type','=','in_house')]}"/>
+                            <field name="service_type" />
+			    <field name="service_provider_cuit" 
+				    attrs="{'invisible':[('service_type','!=','outsourced')],'required':[('service_type','=','outsourced')]}"/>
+			    <field name="company_cuit" 
+				    attrs="{'invisible':[('service_type','!=','in_house')],'required':[('service_type','=','in_house')]}"/>
                         </group>
                         <group>
                             <field name="common_name"/>
@@ -94,6 +90,9 @@
         <field name="view_mode">tree,form</field>
     </record>
 
-    <menuitem name="Certificates" action="act_afipws_certificate_alias" id="menu_action_afipws_certificate_alias" parent="menu_afipws"/>
+    <menuitem name="Certificates" 
+	    action="act_afipws_certificate_alias" 
+	    id="menu_action_afipws_certificate_alias" 
+	    parent="menu_afipws"/>
 
 </odoo>
