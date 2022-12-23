@@ -93,8 +93,8 @@ class AccountDebtLine(models.Model):
         readonly=True
     )
     account_type = fields.Selection([
-        ('receivable', 'Receivable'),
-        ('payable', 'Payable')],
+        ('asset_receivable', 'Receivable'),
+        ('liability_payable', 'Payable')],
         'Tipo',
         readonly=True,
     )
@@ -112,11 +112,6 @@ class AccountDebtLine(models.Model):
     partner_id = fields.Many2one(
         'res.partner',
         'Cliente/Proveedor',
-        readonly=True
-    )
-    account_type = fields.Many2one(
-        'account.account.type',
-        'Account Type',
         readonly=True
     )
     company_id = fields.Many2one(
@@ -180,32 +175,7 @@ class AccountDebtLine(models.Model):
         compute='_compute_move_lines_data',
     )
 
-    # TODO por ahora, y si nadie lo extraña, vamos a usar document_number
-    # en vez de este, alternativas por si se extraña:
-    # si se extraña entonces tal vez mejor restaurarlo con otro nombre
-    # @api.one
-    # def get_display_name(self):
-    #     # usamos display_name para que contenga doc number o name
-    #     # luego si el ref es igual al name del move no lo mostramos
-    #     display_name = self.move_id.display_name
-    #     ref = False
-    #     # because account voucher replace / with ''
-    #     move_names = [self.move_id.name, self.move_id.name.replace('/', '')]
-    #     # solo agregamos el ref del asiento o el name del line si son
-    #     # distintos a el name del asiento
-    #     if self.ref and self.ref not in move_names:
-    #         ref = self.ref
-    #     elif (
-    #             self.move_line_id.name and
-    #             self.move_line_id.name != '/' and
-    #             self.move_line_id.name not in move_names):
-    #         ref = self.move_line_id.name
-    #     if ref:
-    #         display_name = '%s (%s)' % (display_name, ref)
-    #     self.display_name = display_name
-
     @api.depends('move_lines_str')
-    # @api.depends('amount', 'amount_currency')
     def _compute_move_lines_data(self):
         """
         If debt_together in context then we discount payables and make
@@ -243,10 +213,6 @@ class AccountDebtLine(models.Model):
 
             invoice_id = rec.move_line_ids.mapped('move_id')
             rec.invoice_id = len(invoice_id) == 1 and invoice_id
-
-            payment_group = rec.move_line_ids.mapped(
-                'payment_id.payment_group_id')
-            rec.payment_group_id = len(payment_group) == 1 and payment_group
 
             statement = rec.move_line_ids.mapped('statement_id')
             rec.statement_id = len(statement) == 1 and statement
@@ -330,7 +296,6 @@ class AccountDebtLine(models.Model):
                 l.account_id as account_id,
                 --l.analytic_account_id as analytic_account_id,
                 -- a.account_type as type,
-                a.user_type_id as account_type,
                 l.currency_id as currency_id,
                 sum(l.amount_currency) as amount_currency,
                 sum(l.amount_residual_currency) as amount_residual_currency,
@@ -349,11 +314,11 @@ class AccountDebtLine(models.Model):
                     am.l10n_latam_document_type_id=dt.id)
             WHERE
                 am.state != 'draft' and
-                a.account_type IN ('payable', 'receivable')
+                a.account_type IN ('liability_payable', 'asset_receivable')
             GROUP BY
-                l.partner_id, am.company_id, l.account_id, l.currency_id,
+                l.partner_id, am.company_id, a.account_type, l.account_id, l.currency_id,
                 l.full_reconcile_id,
-                a.account_type, a.user_type_id, am.name, am.move_type,
+                am.name, am.move_type,
                 am.l10n_latam_document_type_id %s
                 -- dt.doc_code_prefix, am.document_number
         """ % params
@@ -387,11 +352,6 @@ class AccountDebtLine(models.Model):
             return [
                 'account.bank.statement', self.statement_id.id,
                 _('View Bank Statement'), False]
-        if self.payment_group_id:
-            return [
-                'account.payment.group',
-                self.payment_group_id.id,
-                _('View Payment Group'), False]
         if self.invoice_id:
             view_id = self.move_id.get_formview_id()
             return [
