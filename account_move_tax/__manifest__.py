@@ -17,6 +17,7 @@
     },
     'data': [
         'views/move_view.xml',
+        'views/tax_view.xml',
         'security/ir.model.access.csv',
     ],
     'demo': [
