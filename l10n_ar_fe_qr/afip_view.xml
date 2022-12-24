@@ -7,11 +7,12 @@
 		<field name="model">account.move</field>
 		<field name="inherit_id" ref="l10n_ar_afipws_fe.view_move_form"></field>
 		<field name="arch" type="xml">
-			<!-- xpath expr="//field[@name='afip_xml_response']" position="after" -->
-			<field name="afip_xml_response" position="after">
-				<field name="json_qr"></field>
-				<field name="texto_modificado_qr"></field>
-			</field>
+			<xpath expr="//notebook/page[@name='afip']/group" position="after">
+				<group>
+					<field name="json_qr" readonly="1"></field>
+					<field name="texto_modificado_qr" readonly="1"></field>
+				</group>
+			</xpath>
 		</field>
 	</record>
 

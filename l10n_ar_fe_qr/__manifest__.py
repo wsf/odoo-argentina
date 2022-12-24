@@ -1,6 +1,6 @@
 {
     'name': 'l10n_ar_fe_qr',
-    'version': '1.0',
+    'version': '16.0.1.0',
     'category': 'l10n_ar_fe_qr',
     'summary': 'Agrega simbolo QR a factura',
     'depends': ['account','l10n_ar','l10n_ar_afipws_fe'],
