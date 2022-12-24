@@ -17,7 +17,7 @@ class AccountTax(models.Model):
     all_products = fields.Boolean('Todos los productos')
 
 
-    def _compute_amount(self, base_amount, price_unit, quantity=1.0, product=None, partner=None):
+    def _compute_amount(self, base_amount, price_unit, quantity=1.0, product=None, partner=None, fixed_multiplicator=1):
         self.ensure_one()
         if product and product._name == 'product.template':
             product = product.product_variant_id
@@ -26,9 +26,9 @@ class AccountTax(models.Model):
             localdict = {'base_amount': base_amount, 'price_unit':price_unit, 'quantity': quantity, 'product':product, 'partner':partner, 'company': company, 'tax': self}
             safe_eval(self.python_compute, localdict, mode="exec", nocopy=True)
             return localdict['result']
-        return super(AccountTax, self)._compute_amount(base_amount, price_unit, quantity, product, partner)
+        return super(AccountTax, self)._compute_amount(base_amount, price_unit, quantity, product, partner, fixed_multiplicator)
 
-    def compute_all(self, price_unit, currency=None, quantity=1.0, product=None, partner=None, is_refund=False, handle_price_include=True, include_caba_tags=False):
+    def compute_all(self, price_unit, currency=None, quantity=1.0, product=None, partner=None, is_refund=False, handle_price_include=True, include_caba_tags=False, fixed_multiplicator=1):
         taxes = self.filtered(lambda r: r.amount_type != 'code')
         company = self.env.company
         if product and product._name == 'product.template':
@@ -39,6 +39,6 @@ class AccountTax(models.Model):
             safe_eval(tax.python_applicable, localdict, mode="exec", nocopy=True)
             if localdict.get('result', False):
                 taxes += tax
-        return super(AccountTax, taxes).compute_all(price_unit, currency, quantity, product, partner, is_refund=is_refund, handle_price_include=handle_price_include, include_caba_tags=include_caba_tags)
+        return super(AccountTax, taxes).compute_all(price_unit, currency, quantity, product, partner, is_refund=is_refund, handle_price_include=handle_price_include, include_caba_tags=include_caba_tags, fixed_multiplicator=fixed_multiplicator)
 
 
