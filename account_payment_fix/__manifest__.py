@@ -1,6 +1,5 @@
 {
-    'author': 'ADHOC SA',
-    'website': 'www.adhoc.com.ar',
+    'author': 'A2 Systems,ADHOC SA',
     'license': 'AGPL-3',
     'category': 'Accounting & Finance',
     'data': [
