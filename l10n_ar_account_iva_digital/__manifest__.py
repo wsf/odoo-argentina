@@ -1,9 +1,9 @@
 {
     "name": "Libro de IVA Digital",
-    'version': '13.0.1.1.0',
+    'version': '16.0.1.1.0',
     'category': 'Localization/Argentina',
     'sequence': 14,
-    'author': 'Moldeo Interactive,ADHOC SA,Moldeo Interactive,Odoo Community Association (OCA)',
+    'author': 'A2 Systems,Moldeo Interactive,ADHOC SA,Moldeo Interactive,Odoo Community Association (OCA)',
     'license': 'AGPL-3',
     'summary': '',
     "depends": [

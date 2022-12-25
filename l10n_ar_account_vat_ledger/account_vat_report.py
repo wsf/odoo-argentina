@@ -42,16 +42,6 @@ class account_vat_ledger(models.Model):
         states={'draft': [('readonly', False)]},
     )
 
-    #@api.onchange('date_range_id')
-    #def onchange_date_range_id(self):
-    #    if self.date_range_id:
-    #        self.date_from = self.date_range_id.date_start
-    #        self.date_to = self.date_range_id.date_end
-    #    else:
-    #        self.date_from = self.date_to = None
-    # period_id = fields.Many2one(
-    #     'account.period', 'Period', required=True,
-    #     readonly=True, states={'draft': [('readonly', False)]},)
     journal_ids = fields.Many2many(
         'account.journal', 'account_vat_ledger_journal_rel',
         'vat_ledger_id', 'journal_id',
@@ -60,17 +50,6 @@ class account_vat_ledger(models.Model):
         readonly=True,
         states={'draft': [('readonly', False)]},
     )
-    #first_page = fields.Integer(
-    #    "First Page",
-    #    required=True,
-    #    readonly=True,
-    #    states={'draft': [('readonly', False)]},
-    #)
-    #last_page = fields.Integer(
-    #    "Last Page",
-    #    readonly=True,
-    #    states={'draft': [('readonly', False)]},
-    #)
     presented_ledger = fields.Binary(
         "Presented Ledger",
         readonly=True,

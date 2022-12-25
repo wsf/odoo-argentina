@@ -253,7 +253,7 @@ class AccountVatLedger(models.Model):
                         and l.tax_id.tax_group_id.l10n_ar_tribute_afip_code in ['04']).mapped('tax_amount'))
                 line = line + self.format_amount(perception_amount)
                 # Codigo de moneda
-                line = line + inv.currency_id.afip_code
+                line = line + inv.currency_id.l10n_ar_afip_code
                 # Tipo de cambio 
                 if inv.l10n_ar_currency_rate > 0:
                     line = line + self.format_amount(1 / inv.l10n_ar_currency_rate)
@@ -268,6 +268,82 @@ class AccountVatLedger(models.Model):
                 line = line + self.format_amount(0)
                 # Fecha de vencimiento 
                 line = line + inv.invoice_date_due.strftime('%Y%m%d')
+            if self.type == 'purchase':
+                # Fecha de comprobante
+                line = line + inv.invoice_date.strftime('%Y%m%d')
+                # Tipo de comprobante
+                line = line + inv.l10n_latam_document_type_id.code.zfill(3)
+                # Punto de venta
+                pos, number = inv.name[5:].split('-')
+                line = line + pos
+                # Numero de comprobante
+                line = line + number.zfill(20)
+                # Despacho de importacion
+                line = line + '0'.zfill(16)
+                # Codigo de documento del vendedor
+                line = line + self.get_partner_document_code(inv.partner_id)
+                # Nro de identificacion del vendedor
+                line = line + inv.partner_id.vat.zfill(20)
+                # Apellido y nombre o denominación del comprador
+                line = line + inv.partner_id.name.encode('ascii', 'replace').decode('ascii').ljust(30,' ')
+                # Importe total de la operacion
+                line = line + self.format_amount(inv.amount_total)
+                # Importe total de conceptos que no integran el precio neto gravado
+                net_amount = 0
+                for inv_line in inv.invoice_line_ids:
+                    if not inv_line.tax_ids:
+                        net_amount = net_amount + inv_line.price_subtotal
+                line = line + self.format_amount(net_amount)
+                # Importe de operaciones exentas
+                exempt_amount = sum(inv.move_tax_ids.filtered(lambda l: l.tax_id.tax_group_id.tax_type == 'vat' and l.tax_id.amount == 0).mapped('base_amount'))
+                line = line + self.format_amount(exempt_amount)
+                # Importe de percepciones o pagos a cuenta de IVA 
+                perception_amount = sum(inv.move_tax_ids.filtered(lambda l: l.tax_id.tax_group_id.tax_type == 'withholdings' \
+                        and l.tax_id.tax_group_id.l10n_ar_tribute_afip_code in ['06']).mapped('tax_amount'))
+                line = line + self.format_amount(perception_amount)
+                # Importe de percepciones o pagos a cuenta de impuestos Nacionales
+                perception_amount = sum(inv.move_tax_ids.filtered(lambda l: l.tax_id.tax_group_id.tax_type == 'withholdings' \
+                        and l.tax_id.tax_group_id.l10n_ar_tribute_afip_code in ['01']).mapped('tax_amount'))
+                line = line + self.format_amount(perception_amount)
+                # Importe de percepciones de Ingresos Brutos 
+                perception_amount = sum(inv.move_tax_ids.filtered(lambda l: l.tax_id.tax_group_id.tax_type == 'withholdings' \
+                        and l.tax_id.tax_group_id.l10n_ar_tribute_afip_code in ['07']).mapped('tax_amount'))
+                line = line + self.format_amount(perception_amount)
+                # Importe de percepciones de Impuestos Municipales
+                perception_amount = sum(inv.move_tax_ids.filtered(lambda l: l.tax_id.tax_group_id.tax_type == 'withholdings' \
+                        and l.tax_id.tax_group_id.l10n_ar_tribute_afip_code in ['03']).mapped('tax_amount'))
+                line = line + self.format_amount(perception_amount)
+                # Importe de percepciones de Impuestos Internos
+                perception_amount = sum(inv.move_tax_ids.filtered(lambda l: l.tax_id.tax_group_id.tax_type == 'withholdings' \
+                        and l.tax_id.tax_group_id.l10n_ar_tribute_afip_code in ['04']).mapped('tax_amount'))
+                line = line + self.format_amount(perception_amount)
+                # Codigo de moneda
+                line = line + inv.currency_id.l10n_ar_afip_code
+                # Tipo de cambio 
+                if inv.l10n_ar_currency_rate > 0:
+                    line = line + self.format_amount(1 / inv.l10n_ar_currency_rate, padding=10)
+                else:
+                    line = line + self.format_amount(0, padding=10)
+                # Cantidad de alícuotas de IVA
+                cantidad = len(inv.move_tax_ids.filtered(lambda l: l.tax_id.tax_group_id.tax_type == 'vat'))
+                line = line + str(cantidad)
+                # Codigo de operacion
+                line = line + '0'
+                # Credito fiscal computable
+                fiscal_credit_amount = sum(inv.move_tax_ids.filtered(lambda l: l.tax_id.tax_group_id.tax_type == 'vat' and l.tax_id.amount != 0).mapped('tax_amount'))
+                line = line + self.format_amount(fiscal_credit_amount, padding=15)
+                # Otros tributos
+                other_taxes = 0
+                line = line + self.format_amount(0)
+                # cuit emisor/corredor
+                cuit = '0'.zfill(11)
+                line = line + cuit
+                # denominacion emisor/corredor
+                denominacion = ' '.ljust(30)
+                line = line + denominacion
+                # iva comision
+                iva_comision = 0
+                line = line + self.format_amount(iva_comision)
 
             if line != '':
                 res.append(line)
