@@ -179,7 +179,7 @@ class AccountPaymentGroup(models.Model):
     )
     move_lines_domain = [
         #('move_id.partner_id.id', '=', partner_id.id),
-        # ('account_id.internal_type', '=', account_internal_type),
+        # ('account_id.account_type', '=', account_internal_type),
         ('move_id.state', '=', 'posted'),
         ('account_id.reconcile', '=', True),
         ('reconciled', '=', False),
@@ -642,7 +642,7 @@ class AccountPaymentGroup(models.Model):
         return [
             ('partner_id.commercial_partner_id', '=',
                 self.commercial_partner_id.id),
-            ('account_id.internal_type', '=',
+            ('account_id.account_type', '=',
                 self.account_internal_type),
             ('account_id.reconcile', '=', True),
             ('move_id.move_type', 'in', ['out_invoice','out_refund','in_invoice','in_refund']),
@@ -671,7 +671,7 @@ class AccountPaymentGroup(models.Model):
         to_pay_move_lines = self.env['account.move.line'].browse(
             to_pay_move_line_ids).filtered(lambda x: (
                 x.account_id.reconcile and
-                x.account_id.internal_type in ('receivable', 'payable')))
+                x.account_id.account_type in ('receivable', 'payable')))
         if to_pay_move_lines:
             partner = to_pay_move_lines.mapped('partner_id')
             if len(partner) != 1:
@@ -679,7 +679,7 @@ class AccountPaymentGroup(models.Model):
                     'You can not send to pay lines from different partners'))
 
             internal_type = to_pay_move_lines.mapped(
-                'account_id.internal_type')
+                'account_id.account_type')
             if len(internal_type) != 1:
                 raise ValidationError(_(
                     'You can not send to pay lines from different partners'))
@@ -693,12 +693,6 @@ class AccountPaymentGroup(models.Model):
                     rec['partner_type'] = 'customer'
                 if partner_id.supplier_rank:
                     rec['partner_type'] = 'supplier'
-            #rec['partner_type'] = MAP_ACCOUNT_TYPE_PARTNER_TYPE[
-            #    internal_type[0]]
-            # rec['currency_id'] = invoice['currency_id'][0]
-            # rec['payment_type'] = (
-            #     internal_type[0] == 'receivable' and
-            #     'inbound' or 'outbound')
             rec['to_pay_move_line_ids'] = [(6, False, to_pay_move_line_ids)]
         return rec
 
@@ -808,8 +802,8 @@ class AccountPaymentGroup(models.Model):
 
             #counterpart_aml = rec.payment_ids.mapped('move_line_ids').filtered(
             counterpart_aml = rec.payment_ids.mapped('invoice_line_ids').filtered(
-                lambda r: not r.reconciled and r.account_id.internal_type in (
-                    'payable', 'receivable'))
+                lambda r: not r.reconciled and r.account_id.account_type in (
+                    'liability_payable', 'asset_receivable'))
 
             # porque la cuenta podria ser no recivible y ni conciliable
             # (por ejemplo en sipreco)

@@ -175,8 +175,8 @@ class AccountPayment(models.Model):
             return True
         for rec in self:
             receivable_payable = all([
-                x['move_line'].account_id.internal_type in [
-                    'receivable', 'payable']
+                x['move_line'].account_id.account_type in [
+                    'asset_receivable', 'liability_payable']
                 for x in self._context.get('counterpart_aml_dicts', [])])
             if rec.partner_type and rec.partner_id and receivable_payable and \
                not rec.payment_group_id:
@@ -232,11 +232,11 @@ class AccountPayment(models.Model):
         # odoo manda partner type segun si el pago es positivo o no, nosotros
         # mejoramos infiriendo a partir de que tipo de deuda se esta pagando
         partner_type = False
-        internal_type = amls.mapped('account_id.internal_type')
+        internal_type = amls.mapped('account_id.account_type')
         if len(internal_type) == 1:
-            if internal_type == ['payable']:
+            if internal_type == ['liability_payable']:
                 partner_type = 'supplier'
-            elif internal_type == ['receivable']:
+            elif internal_type == ['asset_receivable']:
                 partner_type = 'customer'
             if partner_type:
                 res.update({'partner_type': partner_type})
@@ -265,8 +265,8 @@ class AccountPayment(models.Model):
         create_from_statement = self._context.get(
             'create_from_statement', False) and vals.get('partner_type') \
             and vals.get('partner_id') and all([
-                x['move_line'].account_id.internal_type in [
-                    'receivable', 'payable']
+                x['move_line'].account_id.account_type in [
+                    'asset_receivable', 'liability_payable']
                 for x in counterpart_aml_data])
         create_from_expense = self._context.get('create_from_expense', False)
         create_from_website = self._context.get('create_from_website', False)
