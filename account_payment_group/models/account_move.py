@@ -43,11 +43,11 @@ class AccountMove(models.Model):
         return (self.amount_total and (
             self.amount_untaxed / self.amount_total) or 1.0)
 
-    @api.depends('line_ids.account_id.internal_type', 'line_ids.reconciled')
+    @api.depends('line_ids.account_id.account_type', 'line_ids.reconciled')
     def _compute_open_move_lines(self):
         for rec in self:
             rec.open_move_line_ids = rec.line_ids.filtered(
-                lambda r: not r.reconciled and r.account_id.internal_type in (
+                lambda r: not r.reconciled and r.account_id.account_type in (
                     'payable', 'receivable'))
 
 
@@ -167,14 +167,6 @@ class AccountMove(models.Model):
             result['res_id'] = self.payment_group_ids.id
         return result
 
-#    def pay_and_reconcile(self, pay_journal, pay_amount=None, date=None,
-#                          writeoff_acc=None):
-#       res = super(AccountInvoice, self.with_context(
-#            create_from_website=True)).pay_and_reconcile(
-#                pay_journal, pay_amount=pay_amount, date=date,
-#                writeoff_acc=writeoff_acc)
-#        return res
-
     @api.onchange('company_id')
     def _onchange_company_id(self):
         self.pay_now_journal_id = False
@@ -184,10 +176,6 @@ class AccountMove(models.Model):
             lambda x: x.state == 'open' and x.pay_now_journal_id).write(
                 {'pay_now_journal_id': False})
         return super(AccountMove, self).button_cancel()
-
-
-
-
 
     def action_account_invoice_payment_group(self):
         self.ensure_one()

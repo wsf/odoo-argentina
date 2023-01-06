@@ -2,7 +2,7 @@
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
 from odoo import models, fields, api
-# from odoo.exceptions import UserError, ValidationError
+from odoo.exceptions import UserError, ValidationError
 
 
 class AccountMoveLine(models.Model):
@@ -17,9 +17,6 @@ class AccountMoveLine(models.Model):
         'payment_group_id',
         string="Payment Groups",
         readonly=True,
-        # auto_join not yet implemented for m2m. TODO enable when implemented
-        # https://github.com/odoo/odoo/blob/master/odoo/osv/expression.py#L899
-        # auto_join=True,
     )
 
     def _compute_payment_group_matched_amount(self):

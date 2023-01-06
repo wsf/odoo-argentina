@@ -208,7 +208,7 @@
 </record>
 
 <record id="action_account_payments_group" model="ir.actions.act_window">
-    <field name="name">Customer Receipts</field>
+    <field name="name">Recibos de Clientes</field>
     <field name="res_model">account.payment.group</field>
     <field name="view_mode">tree,form,graph</field>
     <!-- <field name="context">{'default_payment_type': 'inbound'}</field> -->
@@ -236,7 +236,7 @@
 </record> -->
 
 <record id="action_account_payments_group_payable" model="ir.actions.act_window">
-    <field name="name">Supplier Payments</field>
+    <field name="name">Pagos de Proveedores</field>
     <field name="res_model">account.payment.group</field>
     <field name="view_mode">tree,form,graph</field>
     <field name="context">{'default_partner_type': 'supplier', 'search_default_not_cancelled': 1}</field>

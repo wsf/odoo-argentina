@@ -285,6 +285,12 @@ class AccountPayment(models.Model):
                 'communication': vals.get('communication'),
             })
             vals['payment_group_id'] = payment_group.id
+        if not vals.get('currency_id'):
+            vals['currency_id'] = self.env.user.company_id.currency_id.id
+        #raise ValidationError('%s'%(vals))
+        vals['payment_type'] = vals['payment_type_copy']
+        del vals['payment_type_copy']
+        del vals['destination_journal_id']
         payment = super(AccountPayment, self).create(vals)
         if payment.move_id and payment.currency_id.id != payment.company_id.currency_id.id \
                 and abs(payment.amount_company_currency) > 0:
@@ -360,18 +366,14 @@ class AccountPayment(models.Model):
 
     def _prepare_payment_moves(self):
         res = super(AccountPayment, self)._prepare_payment_moves()
-        #for i,rec in enumerate(self):
-        #    if rec.signed_amount_company_currency != line.credit:
         for i,rec in enumerate(self):
             if rec.currency_id.id != rec.company_id.currency_id.id and rec.payment_type == 'inbound':
                 amount_debit = res[i]['line_ids'][0][2]['debit']
                 amount_credit = res[i]['line_ids'][0][2]['credit']
                 if amount_credit > 0 and rec.signed_amount_company_currency != amount_credit:
-                    #raise ValidationError('estamos aca %s %s'%(amount_credit,res[0]['line_ids'][0][2]))
                     res[i]['line_ids'][0][2]['credit'] = rec.signed_amount_company_currency
                 amount_debit = res[i]['line_ids'][1][2]['debit']
                 amount_credit = res[i]['line_ids'][1][2]['credit']
                 if amount_debit > 0 and rec.signed_amount_company_currency != amount_debit:
-                    #raise ValidationError('estamos aca %s %s'%(amount_credit,res[0]['line_ids'][0][2]))
                     res[i]['line_ids'][1][2]['debit'] = rec.signed_amount_company_currency
         return res
