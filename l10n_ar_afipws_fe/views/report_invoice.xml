@@ -4,7 +4,8 @@
 	<template id="l10n_ar_afipws_fe_report_invoice_document" inherit_id="account.document_tax_totals">
 		<xpath expr="//tr[@class='border-black o_total']/td[@class='text-end']" position="replace">
 		    	<td class="text-end">
-                    		<span t-esc="o.amount_total"/>
+				<span 	t-esc="o.amount_total"
+					t-options='{"widget": "monetary", "display_currency": o.currency_id}'/>
                 	</td>
 		</xpath>
 	</template>
