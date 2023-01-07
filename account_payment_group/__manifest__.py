@@ -16,6 +16,7 @@
         "account_financial_amount",
         # for fixes related to domains and company_id field on form view
         "account_payment_fix",
+        "l10n_latam_check"
     ],
     "data": [
         'security/security.xml',
