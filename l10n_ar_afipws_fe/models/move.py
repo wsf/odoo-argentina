@@ -594,17 +594,6 @@ print "Observaciones:", wscdc.Obs
                             alic = None
                             ws.AgregarTributo(tributo_id, desc, base_imp, alic, importe)
 
-            # elif afip_ws == 'wsmtxca':
-            #     obs_generales = inv.coment
-            #     ws.CrearFactura(
-            #         concepto, tipo_doc, nro_doc, doc_afip_code, pos_number,
-            #         cbt_desde, cbt_hasta, imp_total, imp_tot_conc, imp_neto,
-            #         imp_subtotal,   # difference with wsfe
-            #         imp_trib, imp_op_ex, fecha_cbte, fecha_venc_pago,
-            #         fecha_serv_desde, fecha_serv_hasta,
-            #         moneda_id, moneda_ctz,
-            #         obs_generales   # difference with wsfe
-            #     )
             elif afip_ws == 'wsfex':
                 # # foreign trade data: export permit, country code, etc.:
                 if inv.invoice_incoterm_id:
@@ -725,20 +714,6 @@ print "Observaciones:", wscdc.Obs
                                 "%.2f" % vat.tax_amount,
                             )
 
-                #for tax in inv.not_vat_tax_ids:
-                #    _logger.info(
-                #        'Adding TAX %s' % tax.tax_id.tax_group_id.name)
-                #    ws.AgregarTributo(
-                #        tax.tax_id.tax_group_id.application_code,
-                #        tax.tax_id.tax_group_id.name,
-                #        "%.2f" % tax.base,
-                #        # "%.2f" % abs(tax.base_amount),
-                #        # TODO pasar la alicuota
-                #        # como no tenemos la alicuota pasamos cero, en v9
-                #        # podremos pasar la alicuota
-                #        0,
-                #        "%.2f" % tax.amount,
-                #    )
 
             if CbteAsoc:
                 # fex no acepta fecha
@@ -760,7 +735,7 @@ print "Observaciones:", wscdc.Obs
                         invoice_date,
                     )
             # Notas de debito
-            if inv.l10n_latam_document_type_id.code in ['2','7']:
+            if inv.l10n_latam_document_type_id.code in ['2','7','12','3','8','13'] and not CbteAsoc:
                 year = date.today().year
                 month = date.today().month
                 day = date.today().day
