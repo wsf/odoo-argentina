@@ -13,6 +13,16 @@ import traceback
 from datetime import datetime, date
 _logger = logging.getLogger(__name__)
 
+TYPE_REVERSE_MAP = {
+    'entry': 'entry',
+    'out_invoice': 'out_refund',
+    'out_refund': 'entry',
+    'in_invoice': 'in_refund',
+    'in_refund': 'entry',
+    'out_receipt': 'entry',
+    'in_receipt': 'entry',
+}
+
 try:
     from pysimplesoap.client import SoapFault
 except ImportError:
@@ -881,3 +891,5 @@ print "Observaciones:", wscdc.Obs
             # solicitar. Lo mismo podriamos usar para grabar los mensajes de
             # afip de respuesta
             inv._cr.commit()
+
+

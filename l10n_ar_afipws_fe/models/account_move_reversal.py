@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from odoo import models, fields, api
-from odoo.exceptions import UserError
+from odoo.exceptions import UserError, ValidationError
 from odoo.tools.translate import _
 
 
@@ -30,7 +30,7 @@ class AccountMoveReversal(models.TransientModel):
                 'invoice_origin': move.document_number,
                 'move_type': move_type,
                 'l10n_latam_document_type_id': doc_type,
-                'auto_post': True if self.date > fields.Date.context_today(self) else False,
+                'auto_post': 'no', 
             })
 
         # Handle reverse method.
