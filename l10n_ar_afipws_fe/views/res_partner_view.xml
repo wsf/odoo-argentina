@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_res_partner_afipws_fe_form" model="ir.ui.view">
+        <field name="name">res.partner.afipws_fe.form</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="account.view_partner_property_form"/>
+	<field name="arch" type="xml">
+		<xpath expr="//field[@name='bank_ids']/tree/field[@name='acc_number']" position="after">
+			<field name="cbu" />
+		</xpath>
+        </field>
+    </record>
+
+</odoo>

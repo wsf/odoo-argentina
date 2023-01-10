@@ -688,9 +688,12 @@ print "Observaciones:", wscdc.Obs
             if afip_ws in ['wsfe', 'wsbfe']:
                 if mipyme_fce:
                     # agregamos cbu para factura de credito electronica
+                    if not inv.company_id.partner_id.bank_ids \
+                            or not inv.company_id.partner_id.bank_ids[0].cbu:
+                        raise ValidationError('La empresa no tiene declarado el CBU de su cuenta')
                     ws.AgregarOpcional(
                         opcional_id=2101,
-                        valor=inv.partner_bank_id.cbu)
+                        valor=inv.company_id.partner_id.bank_ids[0].cbu)
                     ws.AgregarOpcional(
                         opcional_id=27,
                         valor=inv.afip_mypyme_sca_adc)
@@ -736,6 +739,7 @@ print "Observaciones:", wscdc.Obs
                     )
             # Notas de debito
             if inv.l10n_latam_document_type_id.code in ['2','7','12','3','8','13'] and not CbteAsoc:
+                raise ValidationError('estamos aca')
                 year = date.today().year
                 month = date.today().month
                 day = date.today().day
