@@ -28,7 +28,7 @@ class ResCompany(models.Model):
     connection_ids = fields.One2many(
         'afipws.connection',
         'company_id',
-        'Connections',
+        'Conecciones',
         auto_join=True,
     )
 

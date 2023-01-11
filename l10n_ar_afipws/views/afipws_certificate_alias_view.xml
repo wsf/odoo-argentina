@@ -5,28 +5,28 @@
         <field name="name">afipws.certificate_alias.form</field>
         <field name="model">afipws.certificate_alias</field>
         <field name="arch" type="xml">
-            <form string="AFIP Certificates">
+            <form string="Certificados AFIP">
                 <header>
                     <button name="action_confirm"
                         type="object"
                         states="draft"
-                        string="Confirm"
+                        string="Confirmar"
                         class="oe_highlight"
                         help="Confirm and generate Key"
                         />
                     <button name="action_cancel"
                         type="object"
                         states="draft,confirmed"
-                        string="Cancel"
+                        string="Cancelar"
                         />
                     <button name="action_to_draft"
                         type="object"
                         states="cancel"
-                        string="To Draft"
+                        string="Pasar a Borrador"
                         />
                     <field name="state" widget="statusbar"/>
                 </header>
-                <sheet string="AFIP Certificates">
+                <sheet string="Certificados AFIP">
                     <group>
                         <group>
                             <field name="company_id" groups="base.group_multi_company"/>
@@ -45,7 +45,7 @@
                         </group>
                     </group>
                     <notebook>
-                        <page string="Ceritificates">
+                        <page string="Ceritificados">
                             <field name="certificate_ids"/>
                         </page>
                         <page string="Key" groups="base.group_no_one">
