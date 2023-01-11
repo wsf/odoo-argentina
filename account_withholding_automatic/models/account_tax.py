@@ -186,15 +186,19 @@ result = withholdable_base_amount * 0.10
                 payment_method = self.env.ref(
                     'account_withholding.'
                     'account_payment_method_out_withholding')
-                journal = self.env['account.journal'].search([
+                journals = self.env['account.journal'].search([
                     ('company_id', '=', tax.company_id.id),
-                    ('outbound_payment_method_ids', '=', payment_method.id),
-                    ('type', 'in', ['cash', 'bank']),
-                ], limit=1)
+                    ('type', '=', 'cash'),
+                ])
+                journal = None
+                for jour in journals:
+                    for outbound_payment_method in jour.outbound_payment_method_line_ids:
+                        if payment_method.id == payment_method.id:
+                            journal = jour
                 if not journal:
                     raise UserError(_(
-                        'No journal for withholdings found on company %s') % (
-                        tax.company_id.name))
+                        'No hay diario de retenciones definido para la empresa %s %s') % (
+                        tax.company_id.name,payment_method.name))
                 vals['journal_id'] = journal.id
                 vals['payment_method_id'] = payment_method.id
                 vals['payment_type'] = 'outbound'

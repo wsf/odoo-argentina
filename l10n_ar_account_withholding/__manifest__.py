@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 ##############################################################################
 #
-#    Copyright (C) 2015  ADHOC SA  (http://www.adhoc.com.ar)
 #    All Rights Reserved.
 #
 #    This program is free software: you can redistribute it and/or modify
@@ -19,7 +18,7 @@
 #
 ##############################################################################
 {
-    'author': 'ADHOC SA,Odoo Community Association (OCA)',
+    'author': 'A2 Systems,ADHOC SA,Odoo Community Association (OCA)',
     'license': 'AGPL-3',
     'category': 'Accounting & Finance',
     'data': [
@@ -49,5 +48,5 @@
     'installable': True,
     'name': 'Argentina - Retenciones automtaicas en pagos',
     'test': [],
-    'version': '12.0.1.8.0',
+    'version': '16.0.1.8.0',
 }

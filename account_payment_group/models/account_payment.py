@@ -317,9 +317,11 @@ class AccountPayment(models.Model):
         if not vals.get('currency_id'):
             vals['currency_id'] = self.env.user.company_id.currency_id.id
         #raise ValidationError('%s'%(vals))
-        vals['payment_type'] = vals['payment_type_copy']
-        del vals['payment_type_copy']
-        del vals['destination_journal_id']
+        if 'payment_type_copy' in vals:
+            vals['payment_type'] = vals['payment_type_copy']
+            del vals['payment_type_copy']
+        if 'destination_journal_id' in vals:
+            del vals['destination_journal_id']
         payment = super(AccountPayment, self).create(vals)
         if payment.move_id and payment.currency_id.id != payment.company_id.currency_id.id \
                 and abs(payment.amount_company_currency) > 0:
