@@ -1,8 +1,5 @@
 ##############################################################################
 #
-#    Copyright (C) 2015  ADHOC SA  (http://www.adhoc.com.ar)
-#    All Rights Reserved.
-#
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
 #    published by the Free Software Foundation, either version 3 of the
@@ -33,5 +30,5 @@
     'installable': True,
     'name': 'Retenciones en pagos',
     'test': [],
-    'version': '13.0.1.0.0',
+    'version': '16.0.1.0.0',
 }
