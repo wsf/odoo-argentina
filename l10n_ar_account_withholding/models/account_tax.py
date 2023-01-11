@@ -234,7 +234,7 @@ class AccountTax(models.Model):
 
     def _compute_amount(
             self, base_amount, price_unit, quantity=1.0, product=None,
-            partner=None):
+            partner=None, fixed_multiplicator=1):
         if self.amount_type == 'partner_tax':
             # TODO obtener fecha de otra manera?
             try:
@@ -245,4 +245,4 @@ class AccountTax(models.Model):
                 partner, date)
         else:
             return super(AccountTax, self)._compute_amount(
-                base_amount, price_unit, quantity, product, partner)
+                base_amount, price_unit, quantity, product, partner, fixed_multiplicator)
