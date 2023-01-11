@@ -18,7 +18,7 @@
 #
 ##############################################################################
 {
-    'author': 'ADHOC SA',
+    'author': 'A2 Systems, Moldeo Interactive, ADHOC SA',
     'license': 'AGPL-3',
     'category': 'Accounting & Finance',
     'data': [
@@ -36,5 +36,5 @@
     'installable': True,
     'name': 'Retenciones automaticas en pagos',
     'test': [],
-    'version': '13.0.1.1.0',
+    'version': '16.0.1.1.0',
 }
