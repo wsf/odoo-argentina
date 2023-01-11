@@ -149,6 +149,12 @@ class AccountMove(models.Model):
         '- NO: sí el comprobante asociado (original) NO se encuentra rechazado por el comprador'
     )
 
+    def unlink(self):
+        for rec in self:
+            if rec.move_type in ['out_invoice','out_refund'] and rec.afip_auth_code and rec.state == 'posted':
+                raise ValidationError('No se puede borrar una factura con CAE')
+        return super(AccountMove, self).unlink()
+
     def _compute_show_credit_button(self):
         for rec in self:
             res = True
@@ -739,7 +745,6 @@ print "Observaciones:", wscdc.Obs
                     )
             # Notas de debito
             if inv.l10n_latam_document_type_id.code in ['2','7','12','3','8','13'] and not CbteAsoc:
-                raise ValidationError('estamos aca')
                 year = date.today().year
                 month = date.today().month
                 day = date.today().day
