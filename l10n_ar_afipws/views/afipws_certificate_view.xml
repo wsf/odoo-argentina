@@ -9,21 +9,21 @@
                     <button name="action_confirm"
                         type="object"
                         states="draft"
-                        string="Confirm"
+                        string="Confirmar"
                         />
                     <button name="action_to_draft"
                         type="object"
                         states="cancel"
-                        string="To Draft"
+                        string="Pasar a Borrador"
                         />
                     <button name="action_cancel"
                         type="object"
                         states="draft,confirmed"
-                        string="Cancel"
+                        string="Cancelar"
                         />
                     <field name="state" widget="statusbar"/>
                 </header>
-                <sheet string="AFIP Certificates">
+                <sheet string="Certificados AFIP">
                     <group>
                         <field name="csr" groups="base.group_no_one"/>
                         <field name="request_filename" invisible="1"/>
@@ -39,7 +39,7 @@
         <field name="name">afipws.certificate.tree</field>
         <field name="model">afipws.certificate</field>
         <field name="arch" type="xml">
-            <tree string="AFIP Certificates">
+            <tree string="Certificados AFIP">
                 <field name="create_date"/>
                 <field name="state"/>
             </tree>
