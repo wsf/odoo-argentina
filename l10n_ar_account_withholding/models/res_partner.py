@@ -63,6 +63,19 @@ class ResPartner(models.Model):
             arba = self.arba_alicuot_ids.sudo().create(arba_data)
         return arba
 
+    def get_retencion(self, tax_code = ''):
+        res = 0
+        if tax_code:
+            tax_id = self.env['account.tax'].search([('padron_prefix','=',tax_code)],limit=1)
+            if tax_id:
+                retention_id = self.env['res.partner.perception'].search(
+                        [('partner_id','=',self.id),('tax_id','=',tax_id.id)],
+                        order='date_from desc',
+                        limit=1)
+                if retention_id:
+                    res = retention_id.percent / 100
+        return res
+
 
 class ResPartnerArbaAlicuot(models.Model):
     # TODO rename model to res.partner.tax or similar
