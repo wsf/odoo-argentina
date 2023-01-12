@@ -917,3 +917,7 @@ print "Observaciones:", wscdc.Obs
                 img.save(temp, format="PNG")
                 qr_image = base64.b64encode(temp.getvalue())
                 rec.qr_code = qr_image
+            else:
+                rec.fe_qr_url = ''
+                rec.qr_code = None
+

@@ -20,4 +20,16 @@
         </field>
     </record>
 
+    <record id="withholding_account_payment_group_form" model="ir.ui.view">
+        <field name="name">withholding.account.payment.group.form</field>
+        <field name="model">account.payment</field>
+        <field name="inherit_id" ref="account_payment_group.view_account_payment_from_group_tree"/>
+        <field name="arch" type="xml">
+                <field name="partner_type" position="after">
+			<field name="tax_withholding_id" optional="hide" />
+                </field>
+        </field>
+    </record>
+
+
 </odoo>
