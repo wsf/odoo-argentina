@@ -11,6 +11,11 @@ import logging
 import sys
 import traceback
 from datetime import datetime, date
+
+import qrcode
+import json
+
+
 _logger = logging.getLogger(__name__)
 
 TYPE_REVERSE_MAP = {
@@ -148,6 +153,8 @@ class AccountMove(models.Model):
         '- SI: sí el comprobante asociado (original) se encuentra rechazado por el comprador\n'
         '- NO: sí el comprobante asociado (original) NO se encuentra rechazado por el comprador'
     )
+    fe_qr_url = fields.Char('Data QR',compute='_compute_qrcode')
+    qr_code   = fields.Binary('AFIP QR Image',compute='_compute_qrcode')
 
     def unlink(self):
         for rec in self:
@@ -877,3 +884,36 @@ print "Observaciones:", wscdc.Obs
             inv._cr.commit()
 
 
+    def _compute_qrcode(self):
+        for rec in self:
+            if rec.afip_auth_code:
+                #rec.qr_code = base64.b64encode(qrcode.make(rec.fe_qr_url))a
+                qr = qrcode.QRCode(
+                    version=1,
+                    error_correction=qrcode.constants.ERROR_CORRECT_L,
+                    box_size=10,
+                    border=4,
+                )
+                vals_qr = {
+                    "ver": 1,
+                    "fecha": str(rec.invoice_date),
+                    "cuit": int(rec.company_id.partner_id.vat),
+                    "ptoVta": rec.journal_id.l10n_ar_afip_pos_number,
+                    "tipoCmp": int(rec.l10n_latam_document_type_id.code),
+                    "nroCmp": int(rec.name.split('-')[2]),
+                    "importe": rec.amount_total,
+                    "moneda": rec.currency_id.l10n_ar_afip_code,
+                    "ctz": rec.l10n_ar_currency_rate,
+                    "tipoDocRec": int(rec.partner_id.l10n_latam_identification_type_id.l10n_ar_afip_code),
+                    "nroDocRec": int(rec.partner_id.vat),
+                    "tipoCodAut": 'E',
+                    "codAut": rec.afip_auth_code,
+                }
+                rec.fe_qr_url = vals_qr
+                qr.add_data(rec.fe_qr_url)
+                qr.make(fit=True)
+                img = qr.make_image()
+                temp = BytesIO()
+                img.save(temp, format="PNG")
+                qr_image = base64.b64encode(temp.getvalue())
+                rec.qr_code = qr_image
