@@ -39,7 +39,7 @@ class AccountMove(models.Model):
         Si al validar la factura, la misma tiene un cheque de rechazo asociado
         intentamos concilarlo
         """
-        res = super(AccountInvoice, self).action_move_create()
+        res = super(AccountMove, self).action_move_create()
         for rec in self.filtered(lambda x: x.rejected_check_id):
             check = rec.rejected_check_id
             if check.state == 'rejected' and check.type == 'issue_check':

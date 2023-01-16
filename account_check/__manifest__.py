@@ -35,6 +35,7 @@
         'wizard/account_check_action_wizard_view.xml',
         'views/account_payment_view.xml',
         'views/account_check_view.xml',
+        'views/account_journal_view.xml',
         'views/account_checkbook_view.xml',
         'security/ir.model.access.csv',
     ],
