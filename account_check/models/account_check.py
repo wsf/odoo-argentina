@@ -829,6 +829,12 @@ class AccountCheck(models.Model):
         # si pedimos la de holding es una devolucion
         elif operation == 'returned':
             name = 'Devolución cheque "%s"' % (self.name)
+            account = None
+            for move_line in self.payment_id.move_id.line_ids:
+                if move_line.account_id.account_type == 'asset_current':
+                    account = move_line.account_id
+            if not account:
+                raise ValidationError('No se puede determinar la cuenta de la nota de debito')
         else:
             raise ValidationError(_(
                 'Debit note for operation %s not implemented!' % (
@@ -839,6 +845,7 @@ class AccountCheck(models.Model):
             'name': name,
             'account_id': account.id,
             'price_unit': self.amount,
+            'quantity': 1,
             # 'invoice_id': invoice.id,
         }
 
@@ -850,6 +857,7 @@ class AccountCheck(models.Model):
             #'ref': name,
             'invoice_date': action_date,
             'ref': _('Check nbr (id): %s (%s)') % (self.name, self.id),
+            'invoice_origin': _('Check nbr (id): %s (%s)') % (self.name, self.id),
             'journal_id': journal.id,
             # this is done on muticompany fix
             # 'company_id': journal.company_id.id,
