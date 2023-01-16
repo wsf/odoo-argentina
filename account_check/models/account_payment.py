@@ -25,47 +25,31 @@ class AccountPayment(models.Model):
         res = super(AccountPayment, self).action_post()
         for rec in self:
             if rec.payment_method_code == 'new_third_party_checks':
-                raise ValidationError('es por aca')
+                bank = rec.l10n_latam_check_bank_id
+                rec.create_check('third_check','holding',bank)
         return res
-        #for rec in self:
-        #    if rec.payment_method_id.code in ['received_third_check','delivered_third_check','issue_check']:
-        #        rec.do_checks_operations()
 
-    @api.model
-    def X_create(self,vals):
-        if 'payment_method_id' in vals:
-            payment_method = self.env['account.payment.method'].browse(vals['payment_method_id'])
-        else:
-            payment_method = None
-        res = super(AccountPayment, self).create(vals)
-        if payment_method and payment_method.code == 'received_third_check':
-            check_type = 'third_check'
-            for rec in res:
-                bank = self.env['res.bank'].browse(vals['check_bank_id'])
-                res.create_check(check_type,None,bank)
-        return res
 
     def create_check(self, check_type, operation, bank):
         self.ensure_one()
 
         check_vals = {
             'bank_id': bank.id,
-            'owner_name': self.check_owner_name,
-            'owner_vat': self.check_owner_vat,
+            'owner_name': self.partner_id.name,
+            'owner_vat': self.l10n_latam_check_issuer_vat,
             'number': self.check_number,
-            'name': self.check_name,
-            'checkbook_id': self.checkbook_id.id,
-            'issue_date': self.check_issue_date,
-            'type': self.check_type,
+            'name': self.check_number,
+            #'checkbook_id': self.checkbook_id.id,
+            'issue_date': self.date,
+            'type': check_type,
             'journal_id': self.journal_id.id,
             'amount': self.amount,
-            'payment_date': self.check_payment_date,
+            'payment_date': self.l10n_latam_check_payment_date,
             'currency_id': self.currency_id.id,
             'amount_company_currency': self.amount_company_currency,
         }
 
         check = self.env['account.check'].create(check_vals)
-        self.check_ids = [(4, check.id, False)]
         if operation:
             check._add_operation(
                 operation, self, self.partner_id, date=self.date)
