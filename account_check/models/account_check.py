@@ -720,9 +720,10 @@ class AccountCheck(models.Model):
         self.ensure_one()
         if self.state in ['rejected'] and self.type == 'third_check':
             # anulamos la operación en la que lo recibimos
+            reject_account = self.env.ref('l10n_ar.1_base_cheques_de_terceros_rechazados')
             return self.action_create_debit_note(
-                'reclaimed', 'customer', self.first_partner_id,
-                self.company_id._get_check_account('rejected'))
+                'reclaimed', 'customer', self.partner_id,
+                reject_account)
 
     def customer_return(self, action_date=None):
         self.ensure_one()
