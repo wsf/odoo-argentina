@@ -775,17 +775,13 @@ class AccountCheck(models.Model):
         self.ensure_one()
         if self.state in ['deposited', 'selled']:
             operation = self._get_operation(self.state)
-            if operation.origin._name == 'account.payment':
-                journal = operation.origin.destination_journal_id
-            # for compatibility with migration from v8
-            elif operation.origin._name == 'account.move':
-                journal = operation.origin.journal_id
-            else:
-                raise ValidationError(_(
-                    'The deposit operation is not linked to a payment.'
-                    'If you want to reject you need to do it manually.'))
+            journal = operation.origin.journal_id
+            if not journal:
+                raise ValidationError(
+                    'No se puede determinar la operacion de deposito.'
+                    )
             # TODO debemos crear un movimiento contable en lugar de un pago
-            reject_account = self.company_id._get_check_account('rejected')
+            reject_account = self.env.ref('l10n_ar.1_base_cheques_de_terceros_rechazados')
             reject_move = self.action_create_reject_move(journal_id = journal, 
                     account_id = reject_account)
             self.state = 'rejected'
