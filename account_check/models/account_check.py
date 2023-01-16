@@ -259,6 +259,7 @@ class AccountCheck(models.Model):
         related='company_id.currency_id',
         string='Moneda de la empresa',
     )
+    payment_id = fields.Many2one('account.payment',string='Pago')
 
 
 
@@ -271,8 +272,15 @@ class AccountCheck(models.Model):
             # tenemos que usar esa misma
             credit_account = journal.default_account_id
             # la contrapartida es la cuenta que reemplazamos en el pago
-            debit_account = self.company_id._get_check_account('deferred')
-            name = _('Check "%s" debit') % (self.name)
+            #debit_account = self.company_id._get_check_account('deferred')
+            move_id = self.payment_id.move_id
+            debit_account = None
+            for move_line in move_id.line_ids:
+                if not move_line.account_id.reconcile:
+                    debit_account = move_line.account_id
+            if not debit_account:
+                raise ValidationError('No se pudo determinar el tipo de cuenta\nContacte al administrador')
+            name = 'Debito Cheque %s' % (self.name)
         elif action == 'bank_reject':
             # al transferir a un banco se usa esta. al volver tiene que volver
             # por la opuesta
@@ -284,12 +292,17 @@ class AccountCheck(models.Model):
             # al transferir a un banco se usa esta. al volver tiene que volver
             # por la opuesta
             # self.destination_journal_id.default_credit_account_id
-            name = _('Check "%s" deposit') % (self.name)
+            name = 'Deposito Cheque %s' % (self.name)
             if action == 'bank_deposit':
                   debit_account = journal.default_account_id
                   # TODO cambiar la cuenta de cheques de terceros
-                  origin_journal = self.operation_ids[0].origin.journal_id
-                  credit_account = origin_journal.inbound_payment_method_line_ids[0].payment_account_id
+                  move_id = self.payment_id.move_id
+                  credit_account = None
+                  for move_line in move_id.line_ids:
+                      if move_line.account_id.account_type != 'asset_receivable':
+                          credit_account = move_line.account_id
+                  if not debit_account or not credit_account:
+                      raise ValidationError('No se pudo determinar el tipo de cuenta\nContacte al administrador')
             if action == 'bank_sell' and not self.company_id.negotiated_check_account_id:
                   raise ValidationError('No esta definida la cuenta de cheques negociados a nivel empresa')
             if action == 'bank_sell':
@@ -315,13 +328,17 @@ class AccountCheck(models.Model):
             currency_id = self.currency_id
             amount = self.amount
             amount_currency = 0
+        if self.currency_id and (self.currency_id.id != self.company_id.currency_id.id):
+            currency_id = self.currency_id.id
+        else:
+            currency_id = self.company_id.currency_id.id
         debit_line_vals = {
             'name': name,
             'account_id': debit_account.id,
             # 'partner_id': partner,
             'debit': amount,
             'amount_currency': amount_currency,
-            #'currency_id': currency_id.id,
+            'currency_id': currency_id,
             # 'ref': ref,
             }
         credit_line_vals = {
@@ -330,7 +347,7 @@ class AccountCheck(models.Model):
             # 'partner_id': partner,
             'credit': amount,
             'amount_currency': amount_currency,
-            #'currency_id': currency_id.id,
+            'currency_id': currency_id,
             # 'ref': ref,
             }
         return {
@@ -557,6 +574,12 @@ class AccountCheck(models.Model):
             else:
                 vals['date'] = str(date)
             move = self.env['account.move'].create(vals)
+            for line in move.line_ids:
+                if line.account_id.account_type == 'asset_cash':
+                    line.with_context({'check_move_validity': False}).write({'debit': self.amount})
+                else:
+                    line.with_context({'check_move_validity': False}).write({'credit': self.amount})
+
             move._post()
             self._add_operation('deposited', move, date=vals['date'])
             self.write({'state': 'deposited'})

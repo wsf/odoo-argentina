@@ -45,6 +45,7 @@ class AccountPayment(models.Model):
             'journal_id': self.journal_id.id,
             'amount': self.amount,
             'payment_date': self.l10n_latam_check_payment_date,
+            'payment_id': self.id,
             'currency_id': self.currency_id.id,
             'amount_company_currency': self.amount_company_currency,
         }
@@ -243,28 +244,6 @@ class AccountPayment(models.Model):
                     rec.payment_method_code,
                     rec.destination_journal_id.type)))
         return vals
-
-    def old_action_post(self):
-        for rec in self:
-            if rec.check_ids and not rec.currency_id.is_zero(
-                    sum(rec.check_ids.mapped('amount')) - rec.amount):
-                raise UserError(_(
-                    'La suma del pago no coincide con la suma de los cheques '
-                    'seleccionados. Por favor intente eliminar y volver a '
-                    'agregar un cheque.'))
-            if rec.payment_method_code == 'issue_check' and (
-                    not rec.check_number or not rec.check_name):
-                raise UserError(_(
-                    'Para mandar a proceso de firma debe definir número '
-                    'de cheque en cada línea de pago.\n'
-                    '* ID del pago: %s') % rec.id)
-
-
-        res = super(AccountPayment, self).action_post()
-        for rec in self:
-            if rec.payment_method_id.code in ['received_third_check','delivered_third_check','issue_check']:
-                rec.do_checks_operations()
-        return res
 
     def _get_liquidity_move_line_vals(self, amount):
         vals = super(AccountPayment, self)._get_liquidity_move_line_vals(

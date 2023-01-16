@@ -91,15 +91,6 @@
                             <field name="origin_name" string="Origin"/>
                             <field name="partner_id"/>
                         </tree>
-                        <form edit="0" create="0" delete="0">
-                            <group>
-                                <field name="date"/>
-                                <field name="operation"/>
-                                <field name="origin"/>
-                                <field name="partner_id"/>
-                                <field name="notes"/>
-                            </group>
-                        </form>
                     </field>
                 </group>
             </sheet>    
@@ -120,10 +111,10 @@
                 <form position="attributes">
                 <attribute name="create">true</attribute>
             </form>
-            <sheet position="before">
+            <!-- sheet position="before">
                 <p class="alert alert-info" role="alert" style="margin-bottom:0px;" attrs="{'invisible':[('id','!=',False)]}">Recuerde que los cheques se crean con los pagos.<br/><b>Solamente</b> debe crear cheques manualmente para realizar algún <b>ajuste</b> o para la <b>carga incial</b> de los mismos.<br/>Podrá cargar las operaciones correspondientes una vez que haya guardado el cheque.</p>
                 <p class="alert alert-info oe_edit_only" role="alert" style="margin-bottom:0px;" attrs="{'invisible':[('id','=', False)]}"><b>IMPORTANTE:</b> las operaciones de cheques se crean automáticamente con los pagos, transferencias o los botones disponibles sobre el cheque.<br/><b>SOLO</b> debe crear o modificar operaciones para <b>carga de cheques inciales</b> o ajustes sobre <b>circuitos no convencionales.</b></p>
-            </sheet>
+            </sheet -->
             <field name="operation_ids" position="attributes">
                 <attribute name="readonly">0</attribute>
                 <attribute name="attrs">{'readonly':[('id','=',False)]}</attribute>
