@@ -18,10 +18,18 @@ class AccountPayment(models.Model):
     # use more than one check per payment
     check_id = fields.Many2one(
         'account.check',
-        compute='_compute_check',
-        store=True,
         string='Cheque',
     )
+
+    def action_post(self):
+        res = super(AccountPayment, self).action_post()
+        for rec in self:
+            if rec.payment_method_code == 'new_third_party_checks':
+                raise ValidationError('es por aca')
+        return res
+        #for rec in self:
+        #    if rec.payment_method_id.code in ['received_third_check','delivered_third_check','issue_check']:
+        #        rec.do_checks_operations()
 
     @api.model
     def X_create(self,vals):
@@ -252,7 +260,7 @@ class AccountPayment(models.Model):
                     rec.destination_journal_id.type)))
         return vals
 
-    def action_post(self):
+    def old_action_post(self):
         for rec in self:
             if rec.check_ids and not rec.currency_id.is_zero(
                     sum(rec.check_ids.mapped('amount')) - rec.amount):
