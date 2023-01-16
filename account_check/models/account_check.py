@@ -10,7 +10,6 @@ _logger = logging.getLogger(__name__)
 
 
 class AccountCheckOperation(models.Model):
-
     _name = 'account.check.operation'
     _description = 'account.check.operation'
     _rec_name = 'operation'
@@ -123,7 +122,6 @@ class AccountCheckOperation(models.Model):
 
 
 class AccountCheck(models.Model):
-
     _name = 'account.check'
     _description = 'Account Check'
     _order = "id desc"
