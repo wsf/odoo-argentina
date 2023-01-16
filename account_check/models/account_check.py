@@ -470,12 +470,13 @@ class AccountCheck(models.Model):
     def _add_operation(
             self, operation, origin, partner=None, date=False):
         for rec in self:
-            rec._check_state_change(operation)
+            if operation not in ['customer_return']:
+                rec._check_state_change(operation)
             # agregamos validacion de fechas
             date = date or fields.Datetime.now()
             if type(date) == str:
                 date = datetime.datetime.strptime(date, '%Y-%m-%d').date()
-            if rec.operation_ids and rec.operation_ids[0].date > date:
+            if rec.operation_ids and str(rec.operation_ids[0].date) > str(date):
                 raise ValidationError(_(
                     'The date of a new check operation can not be minor than '
                     'last operation date.\n'
@@ -490,7 +491,7 @@ class AccountCheck(models.Model):
                 'operation': operation,
                 'date': date,
                 'check_id': rec.id,
-                'origin': '%s,%i' % (origin._name, origin.id),
+                'origin': origin and '%s,%i' % (origin._name, origin.id) or None,
                 'partner_id': partner and partner.id or False,
             }
             rec.operation_ids.create(vals)
@@ -661,23 +662,14 @@ class AccountCheck(models.Model):
         # desde los pagos, pueden venir mas de un cheque pero para que
         # funcione bien, todos los cheques deberian usar la misma cuenta,
         # hacemos esa verificación
-        account = self.env['account.account']
+        account = None
         for rec in self:
-            #debit_account = credit_account = rec.company_id._get_check_account('holding')
-            inbound_methods = rec.journal_id['inbound_payment_method_line_ids']
-            outbound_methods = rec.journal_id['outbound_payment_method_line_ids']
-            debit_account = inbound_methods[0].payment_account_id
-            credit_account = outbound_methods[0].payment_account_id
-            # si hay cuenta en diario y son iguales, y si los metodos de pago
-            # y cobro son solamente uno, usamos el del diario, si no, usamos el
-            # de la compañía
-            if not debit_account or not credit_account:
-                raise ValidationError('No estan especificados los metodos de pago')
-            if credit_account and credit_account == debit_account and len(
-                    inbound_methods) == 1 and len(outbound_methods) == 1:
-                account |= credit_account
-        if len(account) != 1:
-            raise ValidationError(_('Error not specified'))
+            if rec.payment_id:
+                for line in rec.payment_id.move_id.line_ids:
+                    if line.account_id.account_type == 'asset_receivable':
+                        account = line.account_id
+        if not account:
+            raise ValidationError('No se pudo identificar la cuenta de cheques de terceros')
         return account
 
     @api.model
@@ -732,12 +724,14 @@ class AccountCheck(models.Model):
                 'reclaimed', 'customer', self.first_partner_id,
                 self.company_id._get_check_account('rejected'))
 
-    def customer_return(self):
+    def customer_return(self, action_date=None):
         self.ensure_one()
         if self.state in ['holding'] and self.type == 'third_check':
-            return self.action_create_debit_note(
-                'returned', 'customer', self.first_partner_id,
+            res = self.action_create_debit_note(
+                'returned', 'customer', self.partner_id,
                 self.get_third_check_account())
+            self.write({'state': 'returned'})
+            return res
 
     @api.model
     def get_payment_values(self, journal):
