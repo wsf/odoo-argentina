@@ -663,6 +663,7 @@ class AccountCheck(models.Model):
         # funcione bien, todos los cheques deberian usar la misma cuenta,
         # hacemos esa verificación
         account = None
+        import pdb;pdb.set_trace()
         for rec in self:
             if rec.payment_id:
                 for line in rec.payment_id.move_id.line_ids:

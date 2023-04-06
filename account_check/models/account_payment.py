@@ -20,6 +20,11 @@ class AccountPayment(models.Model):
         'account.check',
         string='Cheque',
     )
+    check_type = fields.Selection(
+        [('issue_check', 'Cheque Emitido'), ('third_check', 'Cheque de Terceros')],
+        related='l10n_latam_check_id.check_id.type'
+    )
+
 
     def action_post(self):
         res = super(AccountPayment, self).action_post()
@@ -29,8 +34,9 @@ class AccountPayment(models.Model):
                 check_id = rec.create_check('third_check','holding',bank)
                 rec.check_id = check_id.id
             elif rec.payment_method_code == 'out_third_party_checks':
-                check_id = rec.l10n_latam_check_id.check_id
-                raise ValidationError('Estamos aca %s'%(check_id.number))
+                #check_id = rec.l10n_latam_check_id.check_id
+                rec.do_checks_operations()
+                #raise ValidationError('Estamos aca %s'%(check_id.number))
         return res
 
 
@@ -60,7 +66,7 @@ class AccountPayment(models.Model):
                 operation, self, self.partner_id, date=self.date)
         return check
 
-    def do_checks_operations(self, vals=None, cancel=False):
+    def do_checks_operations(self, vals={}, cancel=False):
         """
         Check attached .ods file on this module to understand checks workflows
         This method is called from:
@@ -160,7 +166,8 @@ class AccountPayment(models.Model):
                 vals['name'] = _('Deposit checks %s') % ', '.join(
                     rec.check_ids.mapped('name'))
         elif (
-                rec.payment_method_code == 'delivered_third_check' and
+                #rec.payment_method_code == 'delivered_third_check' and
+                rec.payment_method_code == 'out_third_party_checks' and
                 rec.payment_type == 'outbound'
                 # el chequeo del partner type no es necesario
                 # podriamos entregarlo a un cliente
@@ -172,18 +179,12 @@ class AccountPayment(models.Model):
                 return None
 
             _logger.info('Deliver Check')
-            rec.check_ids._add_operation(
+            check = rec.l10n_latam_check_id.check_id
+            operation = check._add_operation(
                 'delivered', rec, rec.partner_id, date=rec.date)
-            for check in rec.check_ids:
-                check.state = 'delivered'
-            try:
-                vals['account_id'] = rec.check_ids.get_third_check_account().id
-                vals['name'] = _('Deliver checks %s') % ', '.join(rec.check_ids.mapped('name'))
-            except:
-                vals = {}
-                vals['account_id'] = rec.check_ids.get_third_check_account().id
-                vals['name'] = _('Deliver checks %s') % ', '.join(rec.check_ids.mapped('name'))
-
+            check.state = 'delivered'
+            vals['account_id'] = rec.journal_id.default_account_id.id
+            vals['name'] = _('Deliver checks %s') % ', '.join(rec.check_id.mapped('name'))
         elif (
                 rec.payment_method_code == 'issue_check' and
                 rec.payment_type == 'outbound'
