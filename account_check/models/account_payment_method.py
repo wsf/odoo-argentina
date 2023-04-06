@@ -11,4 +11,5 @@ class AccountPaymentMethod(models.Model):
     def _get_payment_method_information(self):
         res = super()._get_payment_method_information()
         res['in_third_party_checks'] = {'mode': 'multi', 'domain': [('type', '=', 'bank')]}
+        res['out_third_party_checks'] = {'mode': 'multi', 'domain': [('type', '=', 'bank')]}
         return res
