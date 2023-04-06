@@ -787,12 +787,12 @@ class AccountCheck(models.Model):
                     account_id = reject_account)
             self.state = 'rejected'
         elif self.state == 'delivered':
-            raise ValidationError('accion no implementada')
+            #raise ValidationError('accion no implementada')
             operation = self._get_operation(self.state, True)
             self.write({'state': 'rejected'})
-            res = self.action_create_debit_note(
-                'rejected', 'supplier', operation.partner_id,
-                self.company_id._get_check_account('rejected'))
+            #res = self.action_create_debit_note(
+            #    'rejected', 'supplier', operation.partner_id,
+            #    self.company_id._get_check_account('rejected'))
         elif self.state == 'handed':
             operation = self._get_operation(self.state, True)
             res = self.action_create_debit_note(
@@ -827,10 +827,10 @@ class AccountCheck(models.Model):
         elif operation == 'returned':
             name = 'Devolución cheque "%s"' % (self.name)
             account = self.payment_id.journal_id.default_account_id
-        else:
-            raise ValidationError(_(
-                'Debit note for operation %s not implemented!' % (
-                    operation)))
+        #else:
+        #    raise ValidationError(_(
+        #        'Debit note for operation %s not implemented!' % (
+        #            operation)))
 
         inv_line_vals = {
             # 'product_id': self.product_id.id,
