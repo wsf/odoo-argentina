@@ -26,7 +26,11 @@ class AccountPayment(models.Model):
         for rec in self:
             if rec.payment_method_code == 'new_third_party_checks':
                 bank = rec.l10n_latam_check_bank_id
-                rec.create_check('third_check','holding',bank)
+                check_id = rec.create_check('third_check','holding',bank)
+                rec.check_id = check_id.id
+            elif rec.payment_method_code == 'out_third_party_checks':
+                check_id = rec.l10n_latam_check_id.check_id
+                raise ValidationError('Estamos aca %s'%(check_id.number))
         return res
 
 
