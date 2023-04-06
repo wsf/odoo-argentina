@@ -24,7 +24,7 @@
         'views/product_uom_view.xml',
         'views/res_currency_view.xml',
         'views/report_invoice.xml',
-        'views/res_partner_view.xml',
+        #'views/res_partner_view.xml',
         'security/ir.model.access.csv',
     ],
     'demo': [
