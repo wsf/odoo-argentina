@@ -576,11 +576,10 @@ class AccountCheck(models.Model):
                 vals['date'] = str(date)
             move = self.env['account.move'].create(vals)
             for line in move.line_ids:
-                if line.account_id.account_type == 'asset_cash':
+                if line.account_id.id == journal_id.default_account_id.id:
                     line.with_context({'check_move_validity': False}).write({'debit': self.amount})
                 else:
                     line.with_context({'check_move_validity': False}).write({'credit': self.amount})
-
             move._post()
             self._add_operation('deposited', move, date=vals['date'])
             self.write({'state': 'deposited'})
