@@ -662,7 +662,6 @@ class AccountCheck(models.Model):
         # funcione bien, todos los cheques deberian usar la misma cuenta,
         # hacemos esa verificación
         account = None
-        import pdb;pdb.set_trace()
         for rec in self:
             if rec.payment_id:
                 for line in rec.payment_id.move_id.line_ids:
@@ -728,9 +727,10 @@ class AccountCheck(models.Model):
     def customer_return(self, action_date=None):
         self.ensure_one()
         if self.state in ['holding'] and self.type == 'third_check':
+            check_account = self.payment_id.journal_id.default_account_id
             res = self.action_create_debit_note(
                 'returned', 'customer', self.partner_id,
-                self.get_third_check_account())
+                check_account)
             self.write({'state': 'returned'})
             return res
 
@@ -826,12 +826,7 @@ class AccountCheck(models.Model):
         # si pedimos la de holding es una devolucion
         elif operation == 'returned':
             name = 'Devolución cheque "%s"' % (self.name)
-            account = None
-            for move_line in self.payment_id.move_id.line_ids:
-                if move_line.account_id.account_type == 'asset_current':
-                    account = move_line.account_id
-            if not account:
-                raise ValidationError('No se puede determinar la cuenta de la nota de debito')
+            account = self.payment_id.journal_id.default_account_id
         else:
             raise ValidationError(_(
                 'Debit note for operation %s not implemented!' % (
