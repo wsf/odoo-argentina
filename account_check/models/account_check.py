@@ -795,9 +795,10 @@ class AccountCheck(models.Model):
             #    self.company_id._get_check_account('rejected'))
         elif self.state == 'handed':
             operation = self._get_operation(self.state, True)
+            reject_account = self.env.ref('l10n_ar.1_base_cheques_de_terceros_rechazados')
             res = self.action_create_debit_note(
                 'rejected', 'supplier', operation.partner_id,
-                self.company_id._get_check_account('deferred'))
+                reject_account)
             self.write({'state': 'rejected'})
 
     def action_create_debit_note(
