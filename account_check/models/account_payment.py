@@ -36,12 +36,22 @@ class AccountPayment(models.Model):
             elif rec.payment_method_code == 'out_third_party_checks':
                 #check_id = rec.l10n_latam_check_id.check_id
                 rec.do_checks_operations()
+            if rec.payment_method_code == 'check_printing':
+                bank = rec.l10n_latam_check_bank_id
+                check_id = rec.create_check('issue_check','handed',bank)
+                rec.check_id = check_id.id
                 #raise ValidationError('Estamos aca %s'%(check_id.number))
         return res
 
 
     def create_check(self, check_type, operation, bank):
         self.ensure_one()
+
+        if check_type == 'issue_check':
+            checkbook_id = self.journal_id.checkbook_ids.filtered(lambda l: l.state == 'active')
+            if len(checkbook_id) != 1:
+                raise ValidationError('No hay chequeras disponibles')
+            self.check_number = checkbook_id.next_number
 
         check_vals = {
             'bank_id': bank.id,
