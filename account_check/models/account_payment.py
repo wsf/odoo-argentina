@@ -46,11 +46,12 @@ class AccountPayment(models.Model):
 
     def create_check(self, check_type, operation, bank):
         self.ensure_one()
-
+        checkbook_id = None
         if check_type == 'issue_check':
             checkbook_id = self.journal_id.checkbook_ids.filtered(lambda l: l.state == 'active')
             if len(checkbook_id) != 1:
                 raise ValidationError('No hay chequeras disponibles')
+            checkbook_id.next_number = checkbook_id.next_number + 1
             self.check_number = checkbook_id.next_number
 
         check_vals = {
@@ -69,7 +70,8 @@ class AccountPayment(models.Model):
             'currency_id': self.currency_id.id,
             'amount_company_currency': self.amount_company_currency,
         }
-
+        if checkbook_id:
+            check_vals['checkbook_id'] = checkbook_id.id
         check = self.env['account.check'].create(check_vals)
         if operation:
             check._add_operation(
