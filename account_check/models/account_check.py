@@ -276,7 +276,7 @@ class AccountCheck(models.Model):
             move_id = self.payment_id.move_id
             debit_account = None
             for move_line in move_id.line_ids:
-                if not move_line.account_id.reconcile:
+                if move_line.account_id.account_type == 'liability_current':
                     debit_account = move_line.account_id
             if not debit_account:
                 raise ValidationError('No se pudo determinar el tipo de cuenta\nContacte al administrador')
@@ -350,6 +350,9 @@ class AccountCheck(models.Model):
             'currency_id': currency_id,
             # 'ref': ref,
             }
+        if amount_currency == 0:
+            del debit_line_vals['amount_currency']
+            del credit_line_vals['amount_currency']
         return {
                'ref': name,
                'journal_id': journal.id,
@@ -603,6 +606,7 @@ class AccountCheck(models.Model):
                 vals['date'] = action_date or fields.Date.today()
             else:
                 vals['date'] = str(action_date)
+            import pdb;pdb.set_trace()
             move = self.env['account.move'].create(vals)
             move._post()
             #self._add_operation('deposited', move, date=vals['date'])
