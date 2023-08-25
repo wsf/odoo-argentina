@@ -117,7 +117,35 @@
 	          </tr>
 	        </tfoot>
 	      </table>
-
+		<br />
+	    <table class="table">
+	        <thead>
+	            <tr class="border-black">
+	                <th>Fecha</th>
+	                <th colspan="5">Comprobante</th>
+	                <th>Monto</th>
+	            </tr>
+	        </thead>
+	        <tbody>
+		    <t t-set="aplicado_total" t-value="0"/>			
+	            <tr t-foreach="o.matched_move_line_ids" t-as="l">
+	              <td><span t-field="l.date"/></td>
+	              <td colspan="5"><span t-field="l.move_id.name"/></td>
+	              <td style="text-align: right;">
+	                  <span t-esc="l.with_context({'payment_group_id':o.id}).payment_group_matched_amount"  t-options="{&quot;widget&quot;: &quot;monetary&quot;, &quot;display_currency&quot;: o.currency_id}"/>
+	              </td> 
+				  <t t-set="aplicado_total" t-value="aplicado_total+l.with_context({'payment_group_id':o.id}).payment_group_matched_amount"/>
+	            </tr>
+	        </tbody>
+	        <tfoot>
+	          <tr class="border-black">
+	            <td colspan="6"><strong>Total</strong></td>
+	            <td style="text-align: right;">
+	                 <span t-esc="aplicado_total" t-options="{&quot;widget&quot;: &quot;monetary&quot;, &quot;display_currency&quot;: o.currency_id}"/> 
+	            </td>
+	          </tr>
+	        </tfoot> 
+		</table>
 
 	  </div>
 
