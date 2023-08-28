@@ -815,6 +815,12 @@ class AccountPaymentGroup(models.Model):
                 rec.message_post_with_template(
                     rec.receiptbook_id.mail_template_id.id,
                 )
+        self.env.cr.commit()
+        for rec in self:
+            for matched_move in rec.matched_move_line_ids:
+                if matched_move.move_id.amount_residual == 0 and matched_move.move_id.payment_state != 'paid':
+                    sql = "UPDATE account_move SET payment_state = 'paid' WHERE id = %s"%(matched_move.move_id.id)
+                    self.env.cr.execute(sql)
 
 
     @api.returns('mail.message', lambda value: value.id)
