@@ -66,6 +66,28 @@ class AccountPayment(models.Model):
         string='Company currency',
     )
 
+    #@api.model
+    #def default_get(self, fields):
+    #    res = super(AccountPayment, self).default_get(fields)
+    #    context = self.env.context
+    #    import pdb;pdb.set_trace()
+    #    if context.get('default_payment_type') == 'transfer':
+    #        res['is_internal_transfer'] = True
+    #    if context.get('default_journal_id'):
+    #        res['journal_id'] = context.get('default_journal_id')
+    #    return res
+
+    @api.model
+    def default_get(self, fields):
+        res = super(AccountPayment, self).default_get(fields)
+        if res.get('payment_type') == 'transfer':
+            res['payment_type'] = 'outbound'
+            res['partner_id'] = self.env.user.company_id.partner_id.id
+            res['journal_id'] = self.env['account.journal'].search([('type','in',['bank','cash'])])
+            res['destination_journal_id'] = self.env['account.journal'].search([('type','in',['bank','cash'])])
+            res['payment_type'] = 'outbound'
+        return res
+
     def _get_blocking_l10n_latam_warning_msg(self):
         msgs = []
         for rec in self.filtered('l10n_latam_check_id'):
@@ -171,13 +193,13 @@ class AccountPayment(models.Model):
         for rec in self:
             # if false, then it is a transfer
             rec.payment_type = (
-                rec.payment_type_copy and rec.payment_type_copy or 'transfer')
+                rec.payment_type_copy and rec.payment_type_copy or 'outbound')
 
     @api.depends('payment_type')
     def _compute_payment_type_copy(self):
         for rec in self:
-            if rec.payment_type == 'transfer':
-                continue
+            #if rec.payment_type == 'transfer':
+            #    continue
             rec.payment_type_copy = rec.payment_type
 
     def get_journals_domain(self):
@@ -207,16 +229,16 @@ class AccountPayment(models.Model):
                 x['move_line'].account_id.account_type in [
                     'asset_receivable', 'liability_payable']
                 for x in self._context.get('counterpart_aml_dicts', [])])
-            if rec.partner_type and rec.partner_id and receivable_payable and \
-               not rec.payment_group_id:
-                raise ValidationError(_(
-                    'Payments with partners must be created from '
-                    'payments groups'))
-            # transfers or payments from bank reconciliation without partners
-            elif not rec.partner_type and rec.payment_group_id:
-                raise ValidationError(_(
-                    "Payments without partners (usually transfers) cant't "
-                    "have a related payment group"))
+            #if rec.partner_type and rec.partner_id and receivable_payable and \
+            #   not rec.payment_group_id:
+            #    raise ValidationError(_(
+            #        'Payments with partners must be created from '
+            #        'payments groups'))
+            ## transfers or payments from bank reconciliation without partners
+            #elif not rec.partner_type and rec.payment_group_id:
+            #    raise ValidationError(_(
+            #        "Payments without partners (usually transfers) cant't "
+            #        "have a related payment group"))
 
     @api.model
     def get_amls(self):
@@ -286,6 +308,7 @@ class AccountPayment(models.Model):
         apply when the all the counterpart account are receivable/payable """
         # Si viene counterpart_aml entonces estamos viniendo de una
         # conciliacion desde el wizard
+        import pdb;pdb.set_trace()
         new_aml_dicts = self._context.get('new_aml_dicts', [])
         counterpart_aml_data = self._context.get('counterpart_aml_dicts', [])
         if counterpart_aml_data or new_aml_dicts:
@@ -330,6 +353,18 @@ class AccountPayment(models.Model):
                     move_line.with_context({'check_move_validity': False}).write({'debit': abs(payment.amount_company_currency)})
                 if move_line.credit > 0:
                     move_line.with_context({'check_move_validity': False}).write({'credit': abs(payment.amount_company_currency)})
+        #if payment.move_id:
+        #    for move_line in payment.move_id.line_ids:
+                #if payment.is_internal_transfer and payment.payment_type == 'outbound':
+                #    if move_line.account_id.account_type in ['liability_payable','asset_receivable']:
+                #        move_line.with_context({'check_move_validity': False}).write({'account_id': payment.company_id.account_journal_payment_credit_account_id.id})
+                #    if move_line.account_id.account_type in ['asset_cash']:
+                #        move_line.with_context({'check_move_validity': False}).write({'account_id': payment.company_id.transfer_account_id.id})
+               #if payment.is_internal_transfer and payment.payment_type == 'inbound':
+                #    if move_line.account_id.account_type in ['liability_payable','asset_receivable']:
+                #        move_line.with_context({'check_move_validity': False}).write({'account_id': payment.company_id.account_journal_payment_debit_account_id.id})
+                #    if move_line.account_id.account_type in ['asset_cash']:
+                #        move_line.with_context({'check_move_validity': False}).write({'account_id': payment.company_id.transfer_account_id.id})
         if create_payment_group:
             payment.payment_group_id.post()
         return payment

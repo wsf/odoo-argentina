@@ -178,8 +178,10 @@ class AccountPayment(models.Model):
         only works sending it on partner
         """
         res = super(AccountPayment, self)._compute_destination_account_id()
+        #for rec in self.filtered(
+        #        lambda x: not x.invoice_line_ids and x.payment_type != 'transfer'):
         for rec in self.filtered(
-                lambda x: not x.invoice_line_ids and x.payment_type != 'transfer'):
+                lambda x: not x.invoice_line_ids and not x.is_internal_transfer):
             partner = self.partner_id.with_context(
                 with_company=self.company_id.id)
             partner = self.partner_id
@@ -189,4 +191,8 @@ class AccountPayment(models.Model):
             else:
                 self.destination_account_id = (
                     partner.property_account_payable_id.id)
+        #import pdb;pdb.set_trace()
+        for rec in self.filtered(lambda x: x.is_internal_transfer):
+            if rec.payment_type == 'outbound':
+                self.destination_account_id = rec.journal_id.company_id.transfer_account_id.id
         return res

@@ -811,10 +811,10 @@ class AccountPaymentGroup(models.Model):
                 (counterpart_aml + (rec.to_pay_move_line_ids)).reconcile()
 
             rec.state = 'posted'
-            if rec.receiptbook_id.mail_template_id:
-                rec.message_post_with_template(
-                    rec.receiptbook_id.mail_template_id.id,
-                )
+            #if rec.receiptbook_id.mail_template_id:
+            #    rec.message_post_with_template(
+            #        rec.receiptbook_id.mail_template_id.id,
+            #    )
         self.env.cr.commit()
         for rec in self:
             for matched_move in rec.matched_move_line_ids:
