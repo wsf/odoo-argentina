@@ -9,13 +9,6 @@ import datetime
 class ResCurrency(models.Model):
     _inherit = "res.currency"
 
-    def _compute_inverse_rate(self):
-        for rec in self:
-            if rec.rate > 0:
-                rec.inverse_rate = 1 / rec.rate
-
-    inverse_rate = fields.Float('Tasa inversa',compute=_compute_inverse_rate)
-
     def get_currency_rate(self):
         self.ensure_one()
         res = self.get_pyafipws_currency_rate()
