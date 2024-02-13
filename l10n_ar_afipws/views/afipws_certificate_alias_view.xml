@@ -9,19 +9,19 @@
                 <header>
                     <button name="action_confirm"
                         type="object"
-                        states="draft"
+                        invisible="state != 'draft'"
                         string="Confirmar"
                         class="oe_highlight"
                         help="Confirm and generate Key"
                         />
                     <button name="action_cancel"
                         type="object"
-                        states="draft,confirmed"
+                        invisible="state not in ['draft','confirmed']"
                         string="Cancelar"
                         />
                     <button name="action_to_draft"
                         type="object"
-                        states="cancel"
+                        invisible="state not in 'cancel'"
                         string="Pasar a Borrador"
                         />
                     <field name="state" widget="statusbar"/>
@@ -33,9 +33,13 @@
                             <field name="type"/>
                             <field name="service_type" />
 			    <field name="service_provider_cuit" 
-				    attrs="{'invisible':[('service_type','!=','outsourced')],'required':[('service_type','=','outsourced')]}"/>
+				    invisible="service_type != 'oursourced'"
+				    required="service_type == 'oursourced'"
+				    />
 			    <field name="company_cuit" 
-				    attrs="{'invisible':[('service_type','!=','in_house')],'required':[('service_type','=','in_house')]}"/>
+				    invisible="service_type != 'in_house'"
+				    required="service_type == 'in_house'"
+				    />
                         </group>
                         <group>
                             <field name="common_name"/>

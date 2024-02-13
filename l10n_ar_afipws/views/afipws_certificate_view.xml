@@ -8,17 +8,17 @@
                 <header>
                     <button name="action_confirm"
                         type="object"
-                        states="draft"
+                        invisible="state != 'draft'"
                         string="Confirmar"
                         />
                     <button name="action_to_draft"
                         type="object"
-                        states="cancel"
+                        invisible="state != 'cancel'"
                         string="Pasar a Borrador"
                         />
                     <button name="action_cancel"
                         type="object"
-                        states="draft,confirmed"
+                        invisible="state not in ['draft','confirmed']"
                         string="Cancelar"
                         />
                     <field name="state" widget="statusbar"/>
