@@ -24,18 +24,30 @@
         <field name="arch" type="xml">
             <sheet position="before">
                 <header>
-                    <button name="action_get_connection" string="Obtener Connection" help="Get Connection For this webservice and create it if no valid" type="object" attrs="{'invisible':[('afip_ws', '=', False)]}"/>
-                    <button name="test_pyafipws_dummy" string="Test Coneccion" help="Dummy test to check connection to selected webservice" type="object" attrs="{'invisible':[('afip_ws', '=', False)]}"/>
-                    <button name="test_pyafipws_point_of_sales" string="Get Points Of Sale" help="Get Enable Point of Sales for this webservice" type="object" attrs="{'invisible':[('afip_ws', '=', False)]}"/>
-                    <button name="test_pyafipws_taxes" string="Tributos" help="Obtiene tabla de tributos de AFIP" type="object" attrs="{'invisible':[('afip_ws', '=', False)]}"/>
-                    <button name="get_pyafipws_cuit_document_classes" string="Get Document Types" help="Get valid document types for this webservice" type="object" attrs="{'invisible':[('afip_ws', '=', False)]}"/>
-                    <button name="get_pyafipws_zonas" string="Get Zones" help="Get zones for this webservice" type="object" attrs="{'invisible':[('afip_ws', '!=', 'wsbfe')]}"/>
-                    <button name="get_pyafipws_NCM" string="Get NCM" help="Obetener códigos del Nomenclador Común del Mercosur" type="object" attrs="{'invisible':[('afip_ws', '!=', 'wsbfe')]}"/>
-                    <button name="get_pyafipws_currencies" string="Get Currencies" help="Get valid currencies classes for this webservice" type="object" attrs="{'invisible':[('afip_ws', '=', False)]}"/>
+		    <button name="action_get_connection" string="Obtener Connection" help="Get Connection For this webservice and create it if no valid" type="object" 
+			    invisible = "afip_ws == False"/>
+		    <button name="test_pyafipws_dummy" string="Test Coneccion" help="Dummy test to check connection to selected webservice" type="object" 
+			    invisible = "afip_ws == False"/>
+		    <button name="test_pyafipws_point_of_sales" string="Get Points Of Sale" help="Get Enable Point of Sales for this webservice" type="object" 
+			    invisible = "afip_ws == False"/>
+		    <button name="test_pyafipws_taxes" string="Tributos" help="Obtiene tabla de tributos de AFIP" type="object" 
+			    invisible = "afip_ws == False"/>
+		    <button name="get_pyafipws_cuit_document_classes" string="Get Document Types" help="Get valid document types for this webservice" 
+			    type="object" 
+			    invisible = "afip_ws == False"/>
+		    <button name="get_pyafipws_zonas" string="Get Zones" help="Get zones for this webservice" type="object" 
+			    invisible="afip_ws != 'wsbfe'"/>
+		    <button name="get_pyafipws_NCM" string="Get NCM" help="Obetener códigos del Nomenclador Común del Mercosur" type="object" 
+			    invisible="afip_ws != 'wsbfe'"/>
+		    <button name="get_pyafipws_currencies" string="Get Currencies" 
+			    help="Get valid currencies classes for this webservice" type="object"
+			    invisible="afip_ws == False"/>
                 </header>
             </sheet>
             <field name="l10n_ar_afip_pos_system" position="after">
-                    <field name="afip_ws" attrs="{'invisible':[('l10n_ar_afip_pos_system', '!=', 'RLI_RLM')], 'required':[('l10n_ar_afip_pos_system', '=', 'RLI_RLM')]}"/>
+		    <field name="afip_ws" 
+			    invisible="l10n_ar_afip_pos_system != 'RLI_RLM'"
+			    required="l10n_ar_afip_pos_system == 'RLI_RLM'"/>
             </field>
             <notebook>
                     <page string='Secuencias' groups="base.group_no_one">
