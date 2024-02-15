@@ -1,18 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
-    <record id="l10n_ar_view_account_move_reversal" model="ir.ui.view">
-            <field name="name">l10n_ar.account.move.reversal.form</field>
-            <field name="model">account.move.reversal</field>
-            <field name="inherit_id" ref="account.view_account_move_reversal"></field>
-            <field name="arch" type="xml">
-                    <field name="refund_method" position="attributes">
-                            <attribute name="readonly">1</attribute>
-                    </field>
-            </field>
-    </record>
-
-
     <record id="view_move_form" model="ir.ui.view">
         <field name="model">account.move</field>
         <field name="name">account.move.afip.form</field>

@@ -9,5 +9,4 @@ from . import journal
 from . import product_uom
 from . import res_currency
 from . import res_company
-from . import account_move_reversal
 from . import ir_sequence
