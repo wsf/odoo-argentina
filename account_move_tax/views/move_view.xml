@@ -8,11 +8,12 @@
 	<field name="arch" type="xml">
 		<field name="state" position="before">
 			<button name="compute_taxes" type="object" string="Computar Impuestos" 
-				attrs="{'invisible': ['|',('state','!=','draft'),('move_type','=','entry')]}"
+				invisible="state != 'draft' or move_type == 'entry'"
 				/>
 		</field>
 		<field name="line_ids" position="after">
-			<field name="move_tax_ids" readonly="1" attrs="{'invisible': [('move_type','=','entry')]}">
+			<field name="move_tax_ids" readonly="1==1" 
+				invisible="move_type == 'entry'">
 				<tree>
 					<field name="move_id" />
 					<field name="tax_id" />
