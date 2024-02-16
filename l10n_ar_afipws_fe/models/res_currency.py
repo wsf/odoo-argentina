@@ -77,4 +77,4 @@ class ResCurrency(models.Model):
         msg = (_("Currency rate for %s: %s.\nObservations: %s") % (
             self.name, rate, ".\n".join([ws.Excepcion, ws.ErrMsg, ws.Obs])))
 
-        return (float(rate), msg, ws.FchCotiz)
+        return (float(rate), msg, str(ws))
