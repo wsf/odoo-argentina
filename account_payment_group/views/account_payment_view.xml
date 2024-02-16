@@ -51,7 +51,7 @@
             <field name="currency_id" invisible="1"/>
             <field name="company_currency_id" invisible="1"/>
             <field name="partner_type" invisible="1"/>
-            <button icon="fa-pencil" type="object" states="draft" name="show_details" string="Detalles"/>
+            <button icon="fa-pencil" type="object" invisible="state == 'draft'" name="show_details" string="Detalles"/>
         </tree>
     </field>
 </record>
@@ -65,7 +65,7 @@
             <!-- we make title invisible and we add a new one -->
             <div class="oe_title" position="attributes">
                 <!-- <attribute name="invisible">1</attribute> -->
-                <attribute name="attrs">{'invisible': ['|', ('payment_type', '!=', 'transfer'), ('state', '=', 'draft')]}</attribute>
+                <attribute name="invisible">payment_type != 'transfer' or state == 'draft'</attribute>
             </div>
             <div class="oe_title" position="after">
                 <!-- only show this field if we are not on a payment group -->
@@ -80,9 +80,9 @@
                 <field name="other_currency" invisible="1"/>
                 <field name="currency_id" invisible="0"/>
                 <field name="force_amount_company_currency" invisible="1"/>
-                <label for="amount_company_currency" string="(on company currency)" attrs="{'invisible': [('other_currency', '=', False)]}"/>
-                <div name="amount_company_currency" class="o_row" attrs="{'invisible': [('other_currency', '=', False)]}">
-		x <field name="exchange_rate" /> = <field name="amount_company_currency" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                <label for="amount_company_currency" string="(on company currency)" invisible="other_currency == False"/>
+                <div name="amount_company_currency" class="o_row" invisible="other_currency == False">
+		x <field name="exchange_rate" /> = <field name="amount_company_currency" readonly="state != 'draft'"/>
                 </div>
             </div>
 
@@ -119,7 +119,10 @@
             </button>
 
             <field name="payment_type" position="after">
-                <field name="payment_type_copy" string="Payment Type" widget="radio" attrs="{'readonly': [('state', '!=', 'draft')]}" groups="account_payment_group.group_choose_payment_type"/>
+		    <field name="payment_type_copy" 
+			    string="Payment Type" widget="radio" 
+			    readonly="state != 'draft'" 
+			    groups="account_payment_group.group_choose_payment_type"/>
             </field>
 
             <field name="payment_type" position="attributes">
@@ -139,9 +142,6 @@
                 <!-- <attribute name="invisible">context.get('payment_group')</attribute> -->
             </field>
 
-            <!-- <field name="state" position="attributes">
-                <attribute name="invisible">context.get('payment_group')</attribute>
-            </field> -->
         </field>
     </record>
 
@@ -251,6 +251,10 @@
         </field>
     </record>
 
-    <menuitem action="action_account_payments_transfer" id="menu_action_account_payments_transfer" parent="account_payment_fix.menu_finance_bank_and_cash" sequence="30" groups="account.group_account_user"/>
+    <menuitem 
+	    action="action_account_payments_transfer" 
+	    id="menu_action_account_payments_transfer" 
+	    parent="account_payment_fix.menu_finance_bank_and_cash" 
+	    sequence="30" groups="account.group_account_user"/>
 
 </odoo>
