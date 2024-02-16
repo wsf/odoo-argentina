@@ -8,6 +8,7 @@
         "account",
     ],
     "data": [
+        "views/account_view.xml"
     ],
     "demo": [
     ],
