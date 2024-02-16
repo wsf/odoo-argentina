@@ -8,8 +8,6 @@
         "account",
     ],
     "data": [
-        'security/account_debt_management_security.xml',
-        'wizard/res_config_settings_views.xml',
     ],
     "demo": [
     ],

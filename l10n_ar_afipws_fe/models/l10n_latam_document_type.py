@@ -3,7 +3,7 @@
 # directory
 ##############################################################################
 from odoo import models, api, fields, _
-from odoo.exceptions import UserError
+from odoo.exceptions import UserError,ValidationError
 import logging
 
 _logger = logging.getLogger(__name__)
