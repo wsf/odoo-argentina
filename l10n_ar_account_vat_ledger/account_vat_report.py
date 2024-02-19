@@ -4,7 +4,7 @@
 # directory
 ##############################################################################
 from odoo import models, fields, api, _
-from odoo.exceptions import Warning
+from odoo.exceptions import ValidationError
 import time
 
 
@@ -19,48 +19,33 @@ class account_vat_ledger(models.Model):
         'res.company',
         string='Empresa',
         required=True,
-        readonly=True,
-        states={'draft': [('readonly', False)]},
         default=lambda self: self.env[
             'res.company']._company_default_get('account.vat.ledger')
     )
     type = fields.Selection(
         [('sale', 'Sale'), ('purchase', 'Purchase')],
         "Type",
-        required=True
     )
     date_from = fields.Date(
         string='Fecha Desde',
-        required=True,
-        readonly=True,
-        states={'draft': [('readonly', False)]},
     )
     date_to = fields.Date(
         string='Fecha Hasta',
-        required=True,
-        readonly=True,
-        states={'draft': [('readonly', False)]},
     )
 
     journal_ids = fields.Many2many(
         'account.journal', 'account_vat_ledger_journal_rel',
         'vat_ledger_id', 'journal_id',
         string='Diarios',
-        required=True,
-        readonly=True,
-        states={'draft': [('readonly', False)]},
     )
     presented_ledger = fields.Binary(
         "Presented Ledger",
-        readonly=True,
-        states={'draft': [('readonly', False)]},
     )
     presented_ledger_name = fields.Char(
     )
     state = fields.Selection(
         [('draft', 'Draft'), ('presented', 'Presented'), ('cancel', 'Cancel')],
         'State',
-        required=True,
         default='draft'
     )
     note = fields.Html(
@@ -79,36 +64,6 @@ class account_vat_ledger(models.Model):
         string="Facturas",
         compute="_get_data"
     )
-    #document_type_ids = fields.Many2many(
-    #    'account.document.type',
-    #    string="Document Classes",
-    #    compute="_get_data"
-    #)
-    #vat_tax_ids = fields.Many2many(
-    #    'account.tax',
-    #    string="VAT Taxes",
-    #    compute="_get_data"
-    #)
-    #other_tax_ids = fields.Many2many(
-    #    'account.tax',
-    #    string="Other Taxes",
-    #    compute="_get_data"
-    #)
-    # vat_tax_code_ids = fields.Many2many(
-    #     'account.tax.code',
-    #     string="VAT Tax Codes",
-    #     compute="_get_data"
-    # )
-    # other_tax_code_ids = fields.Many2many(
-    #     'account.tax.code',
-    #     string="Other Tax Codes",
-    #     compute="_get_data"
-    # )
-    #afip_responsability_type_ids = fields.Many2many(
-    #    'l10nafip.responsability.type',
-    #    string="AFIP Responsabilities",
-    #    compute="_get_data"
-    #)
 
     # Sacamos el depends por un error con el cache en esqume multi cia al
     # cambiar periodo de una cia hija con usuario distinto a admin
@@ -150,15 +105,6 @@ class account_vat_ledger(models.Model):
         #self.document_type_ids = invoices.mapped('l10n_latam_document_type_id')
         self.invoice_ids = invoices
 
-        #self.vat_tax_ids = invoices.mapped(
-        #    'vat_tax_ids.tax_id')
-        #self.other_tax_ids = invoices.mapped(
-        #    'not_vat_tax_ids.tax_id')
-        # self.vat_tax_code_ids = invoices.mapped(
-        #     'vat_tax_ids.tax_code_id')
-        # self.other_tax_code_ids = invoices.mapped(
-        #     'not_vat_tax_ids.tax_code_id')
-
     def _get_name(self):
         for rec in self:
             if rec.type == 'sale':
@@ -167,8 +113,6 @@ class account_vat_ledger(models.Model):
                 ledger_type = _('Compras')
 
             lang = self.env['res.lang']
-            #date_format = lang.browse(lang._lang_get(
-            #    self._context.get('lang', 'en_US'))).date_format
 
             name = _("%s Libro de IVA %s - %s") % (
                 ledger_type,
@@ -187,8 +131,6 @@ class account_vat_ledger(models.Model):
         company_id = self.company_id.id
         domain = [('company_id', '=', company_id),
                   ('date_start', '<', now), ('date_stop', '>', now)]
-        # fiscalyears = self.env['account.fiscalyear'].search(domain, limit=1)
-        # self.fiscalyear_id = fiscalyears
         if self.type == 'sale':
             domain = [('type', '=', 'sale')]
         elif self.type == 'purchase':
@@ -259,8 +201,5 @@ class AccountVatLedgerXlsx(models.AbstractModel):
                         sheet.write(row + index, 9, tax_line.tax_amount,money_format)
                 sheet.write(row + index, 10, other_taxes_amount,money_format)
                 sheet.write(row + index, 11, obj.amount_total,money_format)
-                #sheet.write(row + index, 9, obj.vat_amount)
-                #sheet.write(row + index, 10, obj.amount_tax - obj.vat_amount)
-                #sheet.write(row + index, 11, obj.currency_id.name)
                 index += 1
 
