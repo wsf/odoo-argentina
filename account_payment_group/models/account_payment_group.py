@@ -28,28 +28,18 @@ class AccountPaymentGroup(models.Model):
     document_number = fields.Char(
         string='Nro Documento',
         copy=False,
-        readonly=True,
-        states={'draft': [('readonly', False)]},
         index=True,
     )
     document_sequence_id = fields.Many2one(
         related='receiptbook_id.sequence_id',
     )
     localization = fields.Char('Localizacion',default='argentina')
-    #localization = fields.Selection(
-#        related='company_id.localization',
- #   )
     receiptbook_id = fields.Many2one(
         'account.payment.receiptbook',
         'Talonario de Recibos',
-        readonly=True,
-        states={'draft': [('readonly', False)]},
         ondelete='restrict',
         auto_join=True,
     )
-    #document_type_id = fields.Many2one(
-    #    related='receiptbook_id.document_type_id',
-    #)
     next_number = fields.Integer(
         related='receiptbook_id.sequence_id.number_next_actual',
         #compute='_compute_next_number',
@@ -83,9 +73,6 @@ class AccountPaymentGroup(models.Model):
     partner_id = fields.Many2one(
         'res.partner',
         string='Cliente/Proveedor',
-        required=True,
-        readonly=True,
-        states={'draft': [('readonly', False)]},
         change_default=True,
         index=True,
     )
@@ -283,6 +270,11 @@ class AccountPaymentGroup(models.Model):
     _sql_constraints = [
         ('document_number_uniq', 'unique(document_number, receiptbook_id)',
             'Document number must be unique per receiptbook!')]
+
+    #@api.onchange('receipt_book_id')
+    #def onchange_receipt_book_id:
+    #    if self.receipt_book_id:
+
 
     def _compute_next_number(self):
         """
@@ -576,13 +568,6 @@ class AccountPaymentGroup(models.Model):
         for rec in self:
             rec.payments_amount = sum(rec.payment_ids.mapped(
                 'signed_amount_company_currency'))
-            # payments_amount = sum([
-            #     x.payment_type == 'inbound' and
-            #     x.amount_company_currency or -x.amount_company_currency for
-            #     x in rec.payment_ids])
-            # rec.payments_amount = (
-            #     rec.partner_type == 'supplier' and
-            #     -payments_amount or payments_amount)
 
     def _compute_selected_debt(self):
         for rec in self:
@@ -601,8 +586,6 @@ class AccountPaymentGroup(models.Model):
             rec.selected_debt = selected_debt * sign
             rec.selected_debt_untaxed = selected_debt_untaxed * sign
 
-    #@api.depends(
-    #    'selected_debt', 'unreconciled_amount')
     def _compute_to_pay_amount(self):
         for rec in self:
             rec.to_pay_amount = rec.selected_debt + rec.unreconciled_amount
@@ -692,6 +675,8 @@ class AccountPaymentGroup(models.Model):
                 if partner_id.supplier_rank:
                     rec['partner_type'] = 'supplier'
             rec['to_pay_move_line_ids'] = [(6, False, to_pay_move_line_ids)]
+        if self._context.get('default_partner_type'):
+            rec['partner_type'] = self._context.get('default_partner_type')
         return rec
 
     def button_journal_entries(self):
@@ -779,9 +764,9 @@ class AccountPaymentGroup(models.Model):
             # TODO if we want to allow writeoff then we can disable this
             # constrain and send writeoff_journal_id and writeoff_acc_id
             if not rec.payment_ids:
-                raise ValidationError(_(
-                    'You can not confirm a payment group without payment '
-                    'lines!'))
+                raise ValidationError(
+                    'No puede confirmar un recibo sin lineas'
+                    )
             # si el pago se esta posteando desde statements y hay doble
             # validacion no verificamos que haya deuda seleccionada
             if (rec.payment_subtype == 'double_validation' and

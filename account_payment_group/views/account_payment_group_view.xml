@@ -66,7 +66,7 @@
             <field name="pop_up" invisible="1"/>
             <field name="has_outstanding" invisible="1"/>
             <header>
-		    <button name="action_payment_sent" type="object"
+		<button name="action_payment_sent" type="object"
 			    string="Enviar por Email" invisible = "sent == True or state != 'posted'" 
 			    class="oe_highlight" groups="base.group_user"/>
                 <field name="sent" invisible="1"/>
@@ -80,13 +80,8 @@
 		<button name="payment_print" string="Imprimir" type="object" 
 			invisible = "sent == False or state != 'posted'" 
 			groups="base.group_user"/>
-		<button name="post" class="oe_highlight" string="Validar" type="object" 
-			invisible = "(payment_subtype == 'simple' or state != 'draft') and (payment_subtype == 'double_validation' or state != 'confirmed')"/>
-                <button name="action_draft" invisible="state == 'cancel'" string="Volver a borrdor" type="object"/>
-                <!-- <button name="post" class="oe_highlight" states="draft" string="Validate" type="object"/> -->
-		<button name="confirm" class="oe_highlight" string="Confirmar" type="object" 
-			invisible = "payment_subtype != 'double_validation' or state != 'draft'" 
-			groups="account_payment_group.account_confirm_payment"/>
+                <button name="action_draft" invisible="state != 'cancel'" string="Volver a borrador" type="object"/>
+                <button name="post" class="oe_highlight" invisible="state != 'draft'" string="Validar" type="object"/>
                 <!-- odoo, en los payments, lo muestra solo si ya validado, nosotros queremos que en borrador, confirmado o cuando sea, se pueda cancelar -->
                 <button name="cancel" invisible="state == 'cancel'" string="Cancelar" type="object"/>
                 <!-- <button name="cancel" states="posted,sent,reconciled" string="Cancel" type="object"/> -->
