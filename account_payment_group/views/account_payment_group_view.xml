@@ -74,12 +74,6 @@
 			string="Enviar por Email" 
 			invisible = "sent == False or state != 'posted'" 
 			groups="base.group_user"/>
-		<button name="payment_print" string="Imprimir" type="object" 
-			invisible = "sent == True or state != 'posted'" 
-			class="oe_highlight" groups="base.group_user"/>
-		<button name="payment_print" string="Imprimir" type="object" 
-			invisible = "sent == False or state != 'posted'" 
-			groups="base.group_user"/>
                 <button name="action_draft" invisible="state != 'cancel'" string="Volver a borrador" type="object"/>
                 <button name="post" class="oe_highlight" invisible="state != 'draft'" string="Validar" type="object"/>
                 <!-- odoo, en los payments, lo muestra solo si ya validado, nosotros queremos que en borrador, confirmado o cuando sea, se pueda cancelar -->

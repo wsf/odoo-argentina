@@ -487,11 +487,6 @@ class AccountPaymentGroup(models.Model):
             'context': ctx,
         }
 
-    def payment_print(self):
-        # self.sent = True
-        report = self.env['ir.actions.report']._get_report_from_name('account_payment_group.report_payment_group')
-        return report.report_action(docids=self)
-
 
     @api.depends('to_pay_move_line_ids')
     def _compute_debt_move_line_ids(self):

@@ -23,7 +23,7 @@
                     <attribute name="invisible">1</attribute>
             </button -->
 
-            <button name="action_post" position="after">
+            <button name="action_post" position="replace">
 		    <button name="action_post" type="object" 
 			    invisible = "state != 'draft' and validation_type != 'production'"
 			    string="Validar en AFIP" class="oe_highlight" groups="account.group_account_invoice"/>
@@ -42,7 +42,7 @@
                     <group>
                         <field name='afip_auth_verify_type' invisible="1"/>
                         <field name='afip_batch_number' invisible="1"/>
-                        <field name='validation_type' invisible="1"/>
+                        <field name='validation_type' invisible="0"/>
                         <label for="afip_auth_code" string="AFIP authorization"/>
                         <div class="oe_inline">
                             <field name="afip_auth_mode" class="oe_inline"/>

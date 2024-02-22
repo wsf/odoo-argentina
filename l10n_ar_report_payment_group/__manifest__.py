@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 {
-    'author': "Moldeo Interactive",
+    'author': "A2 Systems,Moldeo Interactive",
     'category': 'Localization/Argentina',
     'depends': [
         'l10n_ar_afipws_fe',
