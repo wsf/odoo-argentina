@@ -114,13 +114,6 @@ class AfipwsCertificateAlias(models.Model):
                 self.type, self.company_id.name)
             self.common_name = common_name[:50]
 
-    #@api.depends('company_cuit', 'service_provider_cuit', 'service_type')
-    #def _compute_cuit(self):
-    #    for rec in self:
-    #        if rec.service_type == 'outsourced':
-    #            rec.cuit = rec.service_provider_cuit
-    #        else:
-    #            rec.cuit = rec.company_cuit
 
     @api.onchange('company_id')
     def change_company_id(self):
