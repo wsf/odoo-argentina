@@ -38,7 +38,7 @@
                 <page
                     name="customer_debt"
                     string="Deuda del Cliente"
-                    attrs="{'invisible': ['|', ('customer_rank', '=', 0),  '&amp;', ('is_company','=',False), ('parent_id','!=',False)]}"
+		    invisible="customer_rank == 0 or parent_id == False"
                     groups="account.group_account_invoice"
                     >
                     <field name="receivable_debt_ids" context="{'show_balance': 1, 'hide_reconciled': 1}"/>
@@ -46,7 +46,7 @@
                 <page
                     name="supplier_debt"
                     string="Deuda con el Proveedor"
-                    attrs="{'invisible': ['|', ('supplier_rank', '=', 0), '&amp;', ('is_company','=',False), ('parent_id','!=',False)]}"
+                    invisible = "supplier_rank == 0 or is_company == False or parent_id == False"
                     groups="account.group_account_invoice"
                     >
                     <field name="payable_debt_ids" context="{'show_balance': 1, 'hide_reconciled': 1}"/>
@@ -60,7 +60,6 @@
                     icon="fa-list"
                     context="{'show_balance': 1, 'search_default_partner_id': active_id}"
                     name="%(account_debt_management.action_account_debt_line)d"
-                    attrs="{'invisible': ['|', '&amp;', ('customer_rank', '=', 0), ('supplier_rank', '=', 0), '&amp;', ('is_company','=',False), ('parent_id','!=',False)]}"
                     >
                     <div class="o_form_field o_stat_info">
                         <span class="o_stat_value"><field name="debt_balance" widget="monetary" options="{'currency_field': 'currency_id'}"/></span>

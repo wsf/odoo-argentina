@@ -77,16 +77,16 @@
                         <group>
                             <field name="partner_id"/>
                             <field name="account_id"/>
-                            <field name="payment_group_id" attrs="{'invisible': [('payment_group_id', '=', False)]}"/>
-                            <field name="invoice_id" attrs="{'invisible': [('invoice_id', '=', False)]}"/>
-                            <field name="statement_id" attrs="{'invisible': [('statement_id', '=', False)]}"/>
+                            <field name="payment_group_id" />
+                            <field name="invoice_id" />
+                            <field name="statement_id" />
                         </group>
                         <group>
                             <field name="amount"/>
                             <field name="amount_residual"/>
                             <field name="amount_currency" groups="base.group_multi_currency"/>
                             <field name="amount_residual_currency" groups="base.group_multi_currency"/>
-                            <field name="financial_amount_residual" attrs="{'invisible': [('currency_id', '=', False)]}" groups="account_financial_amount.account_use_financial_amounts"/>
+                            <field name="financial_amount_residual" groups="account_financial_amount.account_use_financial_amounts"/>
                             <field name="date"/>
                             <field name="date_maturity"/>
                             <field name="company_id" groups="base.group_multi_company"/>
