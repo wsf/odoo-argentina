@@ -2,7 +2,6 @@ from odoo import fields, models, api, _
 
 
 class AccountInvoiceTax(models.TransientModel):
-
     _name = 'account.invoice.tax'
     _description = 'Account Invoice Tax'
 
