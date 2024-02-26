@@ -10,7 +10,7 @@
 		<field name="active" position="after">
 			<field name="padron_prefix" />
 			<field name="is_padron" />
-			<field name="all_products" attrs="{'invisible': [('type_tax_use','!=','sale')]}"/>
+			<field name="all_products" invisible="type_tax_use != 'sale'"/>
 		</field>
             </field>
         </record>
@@ -29,7 +29,6 @@
                 	        <group colspan="4">
                         	    <field colspan="2" name="perception_ids" nolabel="1">
 					    <tree string="Perceptions/Retenciones a Aplicar" editable="bottom">
-        	                            <!-- field name="perception_id" on_change="perception_id_change(perception_id)" domain="[('type_tax_use','=','sale')]"/ -->
                 	                    <field name="tax_id" />
 					    <field name="percent"/>
 					    <field name="date_from" />
