@@ -46,9 +46,11 @@ class AccountMove(models.Model):
     @api.depends('line_ids.account_id.account_type', 'line_ids.reconciled')
     def _compute_open_move_lines(self):
         for rec in self:
+            #rec.open_move_line_ids = rec.line_ids.filtered(
+            #    lambda r: not r.reconciled and r.account_id.account_type in (
+            #        'liability_payable', 'asset_receivable'))
             rec.open_move_line_ids = rec.line_ids.filtered(
-                lambda r: not r.reconciled and r.account_id.account_type in (
-                    'liability_payable', 'asset_receivable'))
+                lambda r: r.amount_residual != 0)
 
 
     def action_post(self):
