@@ -48,37 +48,8 @@ class AccountMove(models.Model):
         for rec in self:
             rec.open_move_line_ids = rec.line_ids.filtered(
                 lambda r: not r.reconciled and r.account_id.account_type in (
-                    'payable', 'receivable'))
+                    'liability_payable', 'asset_receivable'))
 
-
-    def action_account_invoice_payment_group(self):
-        self.ensure_one()
-        if self.state != 'open':
-            raise ValidationError(_(
-                'You can only register payment if invoice is open'))
-        return {
-            'name': _('Register Payment'),
-            'view_type': 'form',
-            'view_mode': 'form',
-            'res_model': 'account.payment.group',
-            'view_id': False,
-            'target': 'current',
-            'type': 'ir.actions.act_window',
-            'context': {
-                # si bien el partner se puede adivinar desde los apuntes
-                # con el default de payment group, preferimos mandar por aca
-                # ya que puede ser un contacto y no el commercial partner (y
-                # en los apuntes solo hay commercial partner)
-                'default_partner_id': self.partner_id.id,
-                'to_pay_move_line_ids': self.open_move_line_ids.ids,
-                'pop_up': True,
-                # We set this because if became from other view and in the
-                # context has 'create=False' you can't crate payment lines
-                #  (for ej: subscription)
-                'create': True,
-                'default_company_id': self.company_id.id,
-            },
-        }
 
     def action_post(self):
         res = super(AccountMove, self).action_post()
@@ -181,6 +152,10 @@ class AccountMove(models.Model):
         self.ensure_one()
         if self.state != 'posted' or self.payment_state not in ['not_paid','in_payment']:
             raise ValidationError(_('You can only register payment if invoice is posted and unpaid'))
+        if self.move_type in ['out_invoice','out_refund']:
+            partner_type = 'customer'
+        else:
+            partner_type = 'supplier'
         return {
             'name': _('Register Payment'),
             'view_type': 'form',
@@ -202,6 +177,7 @@ class AccountMove(models.Model):
                 #  (for ej: subscription)
                 'create': True,
                 'default_company_id': self.company_id.id,
+                'default_partner_type': partner_type,
             },
         }
 

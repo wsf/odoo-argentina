@@ -14,8 +14,8 @@ MAP_PARTNER_TYPE_ACCOUNT_TYPE = {
     'supplier': 'payable',
 }
 MAP_ACCOUNT_TYPE_PARTNER_TYPE = {
-    'receivable': 'customer',
-    'payable': 'supplier',
+    'asset_receivable': 'customer',
+    'liability_payable': 'supplier',
 }
 
 
@@ -165,13 +165,10 @@ class AccountPaymentGroup(models.Model):
         index=True,
     )
     move_lines_domain = [
-        #('move_id.partner_id.id', '=', partner_id.id),
-        # ('account_id.account_type', '=', account_internal_type),
         ('move_id.state', '=', 'posted'),
         ('account_id.reconcile', '=', True),
         ('reconciled', '=', False),
         ('full_reconcile_id', '=', False),
-        # ('company_id', '=', company_id),
     ]
     debt_move_line_ids = fields.Many2many(
         'account.move.line',
@@ -247,7 +244,8 @@ class AccountPaymentGroup(models.Model):
         auto_join=True,
     )
     account_internal_type = fields.Char(
-        compute='_compute_account_internal_type'
+            'account_internal_type',
+            default='asset_receivable'
     )
     move_line_ids = fields.Many2many(
         'account.move.line',
@@ -270,11 +268,6 @@ class AccountPaymentGroup(models.Model):
     _sql_constraints = [
         ('document_number_uniq', 'unique(document_number, receiptbook_id)',
             'Document number must be unique per receiptbook!')]
-
-    #@api.onchange('receipt_book_id')
-    #def onchange_receipt_book_id:
-    #    if self.receipt_book_id:
-
 
     def _compute_next_number(self):
         """
@@ -545,12 +538,13 @@ class AccountPaymentGroup(models.Model):
         for rec in self:
             rec.move_line_ids = rec.payment_ids.mapped('invoice_line_ids')
 
-    @api.depends('partner_type')
     def _compute_account_internal_type(self):
         for rec in self:
             if rec.partner_type:
                 rec.account_internal_type = MAP_PARTNER_TYPE_ACCOUNT_TYPE[
                     rec.partner_type]
+            else:
+                rec.account_internal_type = 'asset_receivable'
 
     def _compute_payment_difference(self):
         for rec in self:
@@ -619,16 +613,13 @@ class AccountPaymentGroup(models.Model):
         self.ensure_one()
         return [
             ('partner_id.commercial_partner_id', '=',
-                self.commercial_partner_id.id),
+                self.partner_id.id),
             ('account_id.reconcile', '=', True),
             ('move_id.move_type', 'in', ['out_invoice','out_refund','in_invoice','in_refund']),
             ('reconciled', '=', False),
             ('full_reconcile_id', '=', False),
             ('company_id', '=', self.company_id.id),
             ('move_id.state','=','posted'),
-            # '|',
-            # ('amount_residual', '!=', False),
-            # ('amount_residual_currency', '!=', False),
         ]
 
     def add_all(self):
@@ -647,7 +638,7 @@ class AccountPaymentGroup(models.Model):
         to_pay_move_lines = self.env['account.move.line'].browse(
             to_pay_move_line_ids).filtered(lambda x: (
                 x.account_id.reconcile and
-                x.account_id.account_type in ('receivable', 'payable')))
+                x.account_id.account_type in ('asset_receivable', 'liability_payable')))
         if to_pay_move_lines:
             partner = to_pay_move_lines.mapped('partner_id')
             if len(partner) != 1:
@@ -662,16 +653,11 @@ class AccountPaymentGroup(models.Model):
             rec['partner_id'] = self._context.get(
                 'default_partner_id', partner[0].id)
             partner_id = self._context.get('default_partner_id',partner[0].id)
-            if partner_id:
-                if type(partner_id) == int:
-                    partner_id = self.env['res.partner'].browse(partner_id)
-                if partner_id.customer_rank:
-                    rec['partner_type'] = 'customer'
-                if partner_id.supplier_rank:
-                    rec['partner_type'] = 'supplier'
             rec['to_pay_move_line_ids'] = [(6, False, to_pay_move_line_ids)]
-        if self._context.get('default_partner_type'):
-            rec['partner_type'] = self._context.get('default_partner_type')
+        if self._context.get('partner_type') == 'customer':
+            rec['account_internal_type'] = 'asset_receivable'
+        else:
+            rec['account_internal_type'] = 'liability_payable'
         return rec
 
     def button_journal_entries(self):
