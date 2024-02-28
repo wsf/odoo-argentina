@@ -143,33 +143,6 @@ class AccountPayment(models.Model):
         """
         return True
 
-    #@api.onchange('journal_id')
-    #def _onchange_journal(self):
-    #    """
-    #    Sobre escribimos y desactivamos la parte del dominio de la funcion
-    #    original ya que se pierde si se vuelve a entrar
-    #    TODO: ver que odoo con este onchange llama a
-    #    _compute_journal_domain_and_types quien devolveria un journal generico
-    #    cuando el importe sea cero, imagino que para hacer ajustes por
-    #    diferencias de cambio
-    #    """
-    #    if self.journal_id:
-    #        self.currency_id = (
-    #            self.journal_id.currency_id or self.company_id.currency_id)
-    #        # Set default payment method
-    #        # (we consider the first to be the default one)
-    #        payment_methods = (
-    #            self.payment_type == 'inbound' and
-    #            self.journal_id.inbound_payment_method_line_ids or
-    #            self.journal_id.outbound_payment_method_line_ids)
-    #        # si es una transferencia y no hay payment method de origen,
-    #        # forzamos manual
-    #        if not payment_methods and self.payment_type == 'transfer':
-    #            payment_methods = self.env.ref(
-    #                'account.account_payment_method_manual_out')
-    #        self.payment_method_line_id = (
-    #            payment_methods and payment_methods[0] or False)
-
     @api.depends('invoice_line_ids', 'payment_type', 'partner_type', 'partner_id')
     def _compute_destination_account_id(self):
         """

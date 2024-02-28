@@ -24,10 +24,10 @@
         'wizards/account_payment_group_invoice_wizard_view.xml',
         'wizards/transfer_create_view.xml',
         'views/account_payment_view.xml',
+        'views/account_journal_view.xml',
         'views/account_move_line_view.xml',
         'views/account_payment_group_view.xml',
         'views/account_payment_receiptbook_view.xml',
-        #'data/mail_template_data.xml',
     ],
     "demo": [
     ],

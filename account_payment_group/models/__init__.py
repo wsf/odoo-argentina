@@ -10,3 +10,4 @@ from . import account_journal_dashboard
 from . import account_bank_statement_line
 #from . import payment_transaction
 from . import account_payment_receiptbook
+from . import account_journal

@@ -57,8 +57,6 @@ class AccountPayment(models.Model):
     exchange_rate = fields.Float(
         string='Tipo de Cambio',
         compute='_compute_exchange_rate',
-        # readonly=False,
-        #inverse='_inverse_exchange_rate',
         digits=(16, 4),
     )
     company_currency_id = fields.Many2one(
@@ -66,16 +64,6 @@ class AccountPayment(models.Model):
         string='Company currency',
     )
 
-    #@api.model
-    #def default_get(self, fields):
-    #    res = super(AccountPayment, self).default_get(fields)
-    #    context = self.env.context
-    #    import pdb;pdb.set_trace()
-    #    if context.get('default_payment_type') == 'transfer':
-    #        res['is_internal_transfer'] = True
-    #    if context.get('default_journal_id'):
-    #        res['journal_id'] = context.get('default_journal_id')
-    #    return res
 
     @api.model
     def default_get(self, fields):
@@ -229,16 +217,6 @@ class AccountPayment(models.Model):
                 x['move_line'].account_id.account_type in [
                     'asset_receivable', 'liability_payable']
                 for x in self._context.get('counterpart_aml_dicts', [])])
-            #if rec.partner_type and rec.partner_id and receivable_payable and \
-            #   not rec.payment_group_id:
-            #    raise ValidationError(_(
-            #        'Payments with partners must be created from '
-            #        'payments groups'))
-            ## transfers or payments from bank reconciliation without partners
-            #elif not rec.partner_type and rec.payment_group_id:
-            #    raise ValidationError(_(
-            #        "Payments without partners (usually transfers) cant't "
-            #        "have a related payment group"))
 
     @api.model
     def get_amls(self):
@@ -309,6 +287,12 @@ class AccountPayment(models.Model):
         # Si viene counterpart_aml entonces estamos viniendo de una
         # conciliacion desde el wizard
         new_aml_dicts = self._context.get('new_aml_dicts', [])
+        if 'journal_id' in vals:
+            journal = self.env['account.journal'].browse(vals.get('journal_id'))
+            if not journal.payment_sequence_id:
+                raise ValidationError('Debe configurar la secuencia de pagos para %s'%(journal.name))
+            next_name = self.env['ir.sequence'].next_by_code(journal.payment_sequence_id.code)
+            vals['name'] = next_name
         counterpart_aml_data = self._context.get('counterpart_aml_dicts', [])
         if counterpart_aml_data or new_aml_dicts:
             vals.update(self.infer_partner_info(vals))
@@ -338,7 +322,6 @@ class AccountPayment(models.Model):
             vals['payment_group_id'] = payment_group.id
         if not vals.get('currency_id'):
             vals['currency_id'] = self.env.user.company_id.currency_id.id
-        #raise ValidationError('%s'%(vals))
         if 'payment_type_copy' in vals:
             vals['payment_type'] = vals['payment_type_copy']
             del vals['payment_type_copy']
@@ -352,18 +335,6 @@ class AccountPayment(models.Model):
                     move_line.with_context({'check_move_validity': False}).write({'debit': abs(payment.amount_company_currency)})
                 if move_line.credit > 0:
                     move_line.with_context({'check_move_validity': False}).write({'credit': abs(payment.amount_company_currency)})
-        #if payment.move_id:
-        #    for move_line in payment.move_id.line_ids:
-                #if payment.is_internal_transfer and payment.payment_type == 'outbound':
-                #    if move_line.account_id.account_type in ['liability_payable','asset_receivable']:
-                #        move_line.with_context({'check_move_validity': False}).write({'account_id': payment.company_id.account_journal_payment_credit_account_id.id})
-                #    if move_line.account_id.account_type in ['asset_cash']:
-                #        move_line.with_context({'check_move_validity': False}).write({'account_id': payment.company_id.transfer_account_id.id})
-               #if payment.is_internal_transfer and payment.payment_type == 'inbound':
-                #    if move_line.account_id.account_type in ['liability_payable','asset_receivable']:
-                #        move_line.with_context({'check_move_validity': False}).write({'account_id': payment.company_id.account_journal_payment_debit_account_id.id})
-                #    if move_line.account_id.account_type in ['asset_cash']:
-                #        move_line.with_context({'check_move_validity': False}).write({'account_id': payment.company_id.transfer_account_id.id})
         if create_payment_group:
             payment.payment_group_id.post()
         return payment
