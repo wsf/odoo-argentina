@@ -9,7 +9,7 @@
                 <field name="action_type" invisible="1"/>
                 <group >
                     <field name="date" string="Fecha"/>
-		    <field name="journal_id" attrs="{'invisible': [('action_type','!=','bank_deposit')]}" 
+		    <field name="journal_id" invisible = "action_type != 'bank_deposit'" 
 			    domain="[('type','=','bank')]"
 			    string="Diario" />
                 </group>

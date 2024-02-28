@@ -48,14 +48,22 @@
                 <field name="issue_check_subtype" invisible="1"/>
                 <field name="company_currency_id" invisible="1"/>
             <header>
-                <button context="{'default_action_type': 'bank_deposit'}" name="%(action_account_check_action_wizard)d" type="action" string="Depositar" states="holding" help="It will create a journal entry from Deferred Check Account to bank account and change check state"/>
-                <button context="{'default_action_type': 'reject'}" name="%(action_account_check_action_wizard)d" type="action" string="Retorno de Proveedor/Rechazo" states="handed" help="It will create a draft debit note from supplier and change check state"/>
-                <button context="{'default_action_type': 'claim'}" name="%(action_account_check_action_wizard)d" type="action" string="Reclamar a Cliente" attrs="{'invisible': ['|', ('state', '!=', 'rejected'), ('type', '!=', 'third_check')]}" help="It will create a draft debit note to customer and change check state"/>
-                <button context="{'default_action_type': 'customer_return'}" name="%(action_account_check_action_wizard)d" type="action" string="Devolver a Cliente" attrs="{'invisible': ['|', ('state', '!=', 'holding'), ('type', '!=', 'third_check')]}" help="It will create a draft debit note to customer and change check state"/>
-                <button context="{'default_action_type': 'bank_debit'}" name="%(action_account_check_action_wizard)d" type="action" string="Debitar" states="handed" help="It will create a journal entry from Deferred Check Account to bank account and change check state"/>
-                <button context="{'default_action_type': 'reject'}" name="%(action_account_check_action_wizard)d" type="action" string="Rechazo del Proveedor" states="delivered" help="It will create a debit note from supplier in draft state and change check state"/>
-                <button context="{'default_action_type': 'reject'}" name="%(action_account_check_action_wizard)d" type="action" string="Rechazo Bancario" states="deposited" help="It will create an account entry from bank account to company rejection account and change check state"/>
-                <button context="{'default_action_type': 'reject'}" name="%(action_account_check_action_wizard)d" type="action" string="Rechazo de la Venta" states="selled" help="It will create an account entry from cash account to company rejection account and change check state"/>
+		    <button context="{'default_action_type': 'bank_deposit'}" name="%(action_account_check_action_wizard)d" type="action" string="Depositar" 
+			    invisible="state != 'holding'" help="It will create a journal entry from Deferred Check Account to bank account and change check state"/>
+		    <button context="{'default_action_type': 'reject'}" name="%(action_account_check_action_wizard)d" type="action" string="Retorno de Proveedor/Rechazo" 
+			    invisible="state != 'handed'" help="It will create a draft debit note from supplier and change check state"/>
+		    <button context="{'default_action_type': 'claim'}" name="%(action_account_check_action_wizard)d" type="action" string="Reclamar a Cliente" 
+			    invisible = "state != 'rejected' or type != 'third_check'" help="It will create a draft debit note to customer and change check state"/>
+		    <button context="{'default_action_type': 'customer_return'}" name="%(action_account_check_action_wizard)d" type="action" string="Devolver a Cliente" 
+			    invisible = "state != 'holding' or type != 'third_check'" help="It will create a draft debit note to customer and change check state"/>
+		    <button context="{'default_action_type': 'bank_debit'}" name="%(action_account_check_action_wizard)d" type="action" string="Debitar" 
+			    invisible="state != 'handed'" help="It will create a journal entry from Deferred Check Account to bank account and change check state"/>
+		    <button context="{'default_action_type': 'reject'}" name="%(action_account_check_action_wizard)d" type="action" string="Rechazo del Proveedor" 
+			    invisible="state != 'delivered'" help="It will create a debit note from supplier in draft state and change check state"/>
+		    <button context="{'default_action_type': 'reject'}" name="%(action_account_check_action_wizard)d" type="action" string="Rechazo Bancario" 
+			    invisible="state != 'deposited'" help="It will create an account entry from bank account to company rejection account and change check state"/>
+		    <button context="{'default_action_type': 'reject'}" name="%(action_account_check_action_wizard)d" type="action" string="Rechazo de la Venta" 
+			    invisible="state != 'selled'" help="It will create an account entry from cash account to company rejection account and change check state"/>
             </header>
             <sheet string="Checks">
                 <h1>
@@ -64,7 +72,7 @@
                 <group>
                     <group>
                         <field name="journal_id"/>
-                        <field name="checkbook_id" attrs="{'invisible':[('type','!=','issue_check')],'required':[('type','=','issue_check')]}" domain="[('journal_id', '=', journal_id)]"/>
+                        <field name="checkbook_id" invisible = "type != 'issue_check'" required="type == 'issue_check'" domain="[('journal_id', '=', journal_id)]"/>
                         <field name="bank_id"/>
                         <field name="number"/>
                         <label for="amount"/>
@@ -76,8 +84,8 @@
                     </group>
                     <group>
                         <field name="state"/>
-                        <field name="owner_name" attrs="{'invisible':[('type','!=','third_check')],'required':[('type','=','third_check')]}"/>
-                        <field name="owner_vat" attrs="{'invisible':[('type','!=','third_check')],'required':[('type','=','third_check')]}"/>
+                        <field name="owner_name" invisible = "type != 'third_check'" required="type == 'third_check'"/>
+                        <field name="owner_vat" invisible = "type != 'third_check'" required = "type == 'third_check'"/>
                         <field name="issue_date"/>
                         <field name="payment_date"/>
                         <field name="company_id" groups="base.group_multi_company" widget="selection"/>
@@ -111,13 +119,8 @@
                 <form position="attributes">
                 <attribute name="create">true</attribute>
             </form>
-            <!-- sheet position="before">
-                <p class="alert alert-info" role="alert" style="margin-bottom:0px;" attrs="{'invisible':[('id','!=',False)]}">Recuerde que los cheques se crean con los pagos.<br/><b>Solamente</b> debe crear cheques manualmente para realizar algún <b>ajuste</b> o para la <b>carga incial</b> de los mismos.<br/>Podrá cargar las operaciones correspondientes una vez que haya guardado el cheque.</p>
-                <p class="alert alert-info oe_edit_only" role="alert" style="margin-bottom:0px;" attrs="{'invisible':[('id','=', False)]}"><b>IMPORTANTE:</b> las operaciones de cheques se crean automáticamente con los pagos, transferencias o los botones disponibles sobre el cheque.<br/><b>SOLO</b> debe crear o modificar operaciones para <b>carga de cheques inciales</b> o ajustes sobre <b>circuitos no convencionales.</b></p>
-            </sheet -->
             <field name="operation_ids" position="attributes">
-                <attribute name="readonly">0</attribute>
-                <attribute name="attrs">{'readonly':[('id','=',False)]}</attribute>
+                <attribute name="readonly">id == False</attribute>
             </field>
         </field>
     </record>
@@ -136,8 +139,10 @@
                 <field name="owner_name"/>
                 <field name="owner_vat"/>
                 <field name="payment_date"/>
-                <filter name="to_cash" string="Ready to Cash" domain="[['state', '=', 'holding'], ['payment_date', '&lt;=', context_today().strftime('%Y-%m-%d')]]"/>
-                <filter name="to_expire" string="Soon to Expire" domain="[['state', '=', 'holding'], ['payment_date', '&lt;=', (context_today()-datetime.timedelta(days=15)).strftime('%Y-%m-%d')]]"/>
+		<filter name="to_cash" string="Ready to Cash" 
+			domain="[['state', '=', 'holding'], ['payment_date', '&lt;=', context_today().strftime('%Y-%m-%d')]]"/>
+		<filter name="to_expire" string="Soon to Expire" 
+			domain="[['state', '=', 'holding'], ['payment_date', '&lt;=', (context_today()-datetime.timedelta(days=15)).strftime('%Y-%m-%d')]]"/>
                 <group expand="0" string="Group By...">
                     <filter name="issue_date" string="Issue Date" context="{'group_by':'issue_date'}"/>
                     <filter name="payment_date" string="Payment Date" context="{'group_by':'payment_date'}"/>
