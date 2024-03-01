@@ -4,20 +4,10 @@ from odoo import models, fields, api
 TYPE_TAX_USE = [
     ('sale', 'Sales'),
     ('purchase', 'Purchases'),
-    ('customer', 'Customer Payment'),
-    ('supplier', 'Supplier Payment'),
+    ('customer', 'Pagos a Clientes'),
+    ('supplier', 'Pagos a Proveedores'),
     ('none', 'None'),
 ]
-
-
-
-class AccountTaxTemplate(models.Model):
-    _inherit = "account.tax.template"
-
-    type_tax_use = fields.Selection(TYPE_TAX_USE, string='Tax Type', required=True, default="sale",
-        help="Determines where the tax is selectable. Note : 'None' means a tax can't be used by itself, however it can still be used in a group. 'adjustment' is used to perform tax adjustment.")
-
-
 
 class AccountTax(models.Model):
     """
@@ -25,21 +15,18 @@ class AccountTax(models.Model):
     """
     _inherit = "account.tax"
 
-    type_tax_use = fields.Selection(TYPE_TAX_USE, string='Tax Type', required=True, default="sale",
-        help="Determines where the tax is selectable. Note : 'None' means a tax can't be used by itself, however it can still be used in a group. 'adjustment' is used to perform tax adjustment.")
+    type_tax_use = fields.Selection(
+            TYPE_TAX_USE, 
+            string='Tax Type', 
+            required=True, 
+            default="sale",
+            help="Determines where the tax is selectable. Note : 'None' means a tax can't be used by itself, however it can still be used in a group. 'adjustment' is used to perform tax adjustment.")
     amount = fields.Float(
         default=0.0,
     )
     withholding_sequence_id = fields.Many2one(
         'ir.sequence',
         'Secuencia de impuestos',
-        domain=[('code', '=', 'account.tax.withholding')],
-        context=(
-            "{'default_code': 'account.tax.withholding',"
-            " 'default_name': name}"),
-        help='If no sequence provided then it will be required for you to'
-             ' enter withholding number when registering one.',
-        # 'default_prefix': 'x-', 'default_padding': 8}",
         copy=False
     )
 
@@ -54,7 +41,7 @@ class AccountTax(models.Model):
                     # 'prefix': False,
                     'padding': 8,
                     'number_increment': 1,
-                    'code': 'account.tax.withholding',
+                    'code': 'tax.name',
                     'company_id': tax.company_id.id,
                 }).id
         return tax
