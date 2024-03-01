@@ -611,11 +611,15 @@ class AccountPaymentGroup(models.Model):
 
     def _get_to_pay_move_lines_domain(self):
         self.ensure_one()
+        if self.partner_type == 'supplier':
+            move_types = ['in_invoice','in_refund']
+        else:
+            move_types = ['out_invoice','out_refund']
         return [
             ('partner_id.commercial_partner_id', '=',
                 self.partner_id.id),
             ('account_id.reconcile', '=', True),
-            ('move_id.move_type', 'in', ['out_invoice','out_refund','in_invoice','in_refund']),
+            ('move_id.move_type', 'in', move_types),
             ('reconciled', '=', False),
             ('full_reconcile_id', '=', False),
             ('company_id', '=', self.company_id.id),
