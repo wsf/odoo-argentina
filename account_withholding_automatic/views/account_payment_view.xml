@@ -12,16 +12,16 @@
                     <field name="withholding_accumulated_payments" invisible="1"/>
                 </form>
                     <group name="withholding_data">
-                        <field name="withholdable_invoiced_amount" attrs="{'invisible': [('automatic', '=', False)]}"/>
-                        <field name="withholdable_advanced_amount" attrs="{'invisible': [('automatic', '=', False)]}"/>
-                        <field name="accumulated_amount" attrs="{'invisible': [('withholding_accumulated_payments', '=', False)]}"/>
-                        <field name="total_amount" attrs="{'invisible': [('automatic', '=', False)]}"/>
-                        <field name="withholding_non_taxable_minimum" attrs="{'invisible': [('automatic', '=', False)]}"/>
-                        <field name="withholding_non_taxable_amount" attrs="{'invisible': [('automatic', '=', False)]}"/>
-                        <field name="withholdable_base_amount" attrs="{'invisible': [('automatic', '=', False)]}"/>
-                        <field name="period_withholding_amount" attrs="{'invisible': [('withholding_accumulated_payments', '=', False)]}"/>
-                        <field name="previous_withholding_amount" attrs="{'invisible': [('withholding_accumulated_payments', '=', False)]}"/>
-                        <field name="computed_withholding_amount" attrs="{'invisible': [('automatic', '=', False)]}"/>
+                        <field name="withholdable_invoiced_amount" invisible = "automatic == False"/>
+                        <field name="withholdable_advanced_amount" invisible= "automatic == False"/>
+                        <field name="accumulated_amount" invisible = "withholding_accumulated_payments == False"/>
+                        <field name="total_amount" invisible = "automatic == False"/>
+                        <field name="withholding_non_taxable_minimum" invisible = "automatic == False"/>
+                        <field name="withholding_non_taxable_amount" invisible = "automatic == False"/>
+                        <field name="withholdable_base_amount" invisible = "automatic == False"/>
+                        <field name="period_withholding_amount" invisible = "withholding_accumulated_payments == False"/>
+                        <field name="previous_withholding_amount" invisible = "withholding_accumulated_payments == False"/>
+                        <field name="computed_withholding_amount" invisible = "automatic == False"/>
                     </group>
             </field>
         </record>
