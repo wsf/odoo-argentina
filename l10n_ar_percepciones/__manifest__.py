@@ -5,7 +5,7 @@
     'version': '16.0.1.0.0',
     'category': 'Accounting',
     'summary': "Percepciones en Ventas - Argentina",
-    'depends': ['base','account','l10n_ar','account_move_tax','account_tax_python','product'],
+    'depends': ['base','account','l10n_ar','account_tax_python','product'],
     "data": [
 	"account_view.xml",
         "security/ir.model.access.csv"
