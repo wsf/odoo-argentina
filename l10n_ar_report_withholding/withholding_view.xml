@@ -6,9 +6,9 @@
         <field name="inherit_id" ref="account_payment_group.view_account_payment_from_group_tree"/>
 	<field name="arch" type="xml">
 		<field name="partner_type" position="after">
-			<field name="print_withholding" invisible="1" />
+			<field name="print_withholding" invisible="True" />
 			<button name="btn_print_withholding" type="object" string="Imprimir Retencion" 
-				attrs="{'invisible': [('print_withholding','=',False)]}"/>
+				invisible = "print_withholding == False"/>
 		</field>
         </field>
     </record>

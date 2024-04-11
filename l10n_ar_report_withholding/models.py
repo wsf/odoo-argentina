@@ -11,7 +11,7 @@ class AccountPayment(models.Model):
 
 	def btn_print_withholding(self):
             self.ensure_one()
-            return self.env.ref('l10n_ar_report_withholding.account_payment_withholdings').report_action(self)
+            return self.env.ref('l10n_ar_report_withholding.action_payment_withholdings').report_action(self)
 
 	def _compute_print_withholding(self):
             for rec in self:

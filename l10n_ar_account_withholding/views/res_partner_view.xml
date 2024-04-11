@@ -40,14 +40,6 @@
                             </div>
                  	    <field name="drei"/>
                         </group>
-                        <group name="others_col_2">
-                                <field name="arba_alicuot_ids">
-                                        <tree string="Retenciones" editable="bottom">
-                                                <field name="tax_id" />
-                                                <field name="percent" />
-                                        </tree>
-                                </field>
-                        </group>
                     </group>
                 </page>
             </page>
