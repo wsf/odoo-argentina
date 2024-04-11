@@ -90,3 +90,13 @@ class ProductTemplate(models.Model):
             res.taxes_id = [(6,0,prev_taxes)]
         return res
 
+
+    def actualizar_percepciones(self):
+        for rec in self:
+            taxes = self.env['account.tax'].search([('all_products','=',True)])
+            for tax in taxes:
+                prev_taxes = rec.taxes_id.ids
+                if tax.id not in prev_taxes:
+                    prev_taxes.append(tax.id)
+                    rec.taxes_id = [(6,0,prev_taxes)]
+

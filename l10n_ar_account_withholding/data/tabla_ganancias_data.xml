@@ -1,47 +1,5 @@
 <odoo>
 
-<!--         <record model="account.tax.code.template" id="ri_tax_code_ganancia_categ">
-            <field name="name">IMPUESTO A LAS GANANCIAS</field>
-            <field name="code">010040</field>
-            <field name="sign">1</field>
-            <field name="parent_id" ref="l10n_ar_chart.ri_impuestos_nacionales"/>
-        </record>
- -->
-<!--         <record model="account.tax.code.template" id="ri_tax_code_ganancia">
-            <field name="code">01004000:G</field>
-            <field name="name">Impuesto a las ganancias</field>
-            <field name="sign">1</field>
-            <field name="parent_id" ref="ri_tax_code_ganancia_categ"/>
-        </record>
-
-        <record model="account.tax" id="ri_tax_code_ganancia_code">
-            <field name="description">Impuesto a las ganancias</field>
-            <field name="name">01004000:G</field>
-            <field name="sequence">101</field>
-            <field name="amount">0</field>
-            <field name="type">percent</field>
-            <field name="applicable_type">true</field>
-            <field name="account_collected_id" ref="l10n_ar_chart.ri_retencion_ganancias_a_depositar"/>
-            <field name="account_paid_id" ref="l10n_ar_chart.ri_retencion_ganancias_a_depositar"/>
-            <field name="retencion_minima_inscriptos">20</field>
-            <field name="retencion_minima_no_inscriptos">100</field>
-            <field name="type_tax_use">purchase</field>
-        </record> -->
-
-<!--             <record id="ri_tax_ganancias" model="account.tax.template">
-                <field name="chart_template_id" ref="l10n_ar_chart.ri_l10nAR_chart_template"/>
-                <field name="name">01004000:G</field>
-                <field name="description">Impuesto a las ganancias</field>
-            <field name="sequence">101</field>
-                <field eval="0.0" name="amount"/>
-                <field name="type">percent</field>
-                <field name="tax_code_id" ref="ri_tax_code_ganancia"/>
-            <field name="ref_tax_code_id" ref="ri_tax_code_ganancia"/>
-                <field name="account_collected_id" ref="l10n_ar_chart.ri_retencion_ganancias_a_depositar"/>
-                <field name="account_paid_id" ref="l10n_ar_chart.ri_retencion_ganancias_a_depositar"/>
-                <field name="type_tax_use">purchase</field>
-            </record> -->
-
     <record model="afip.tabla_ganancias.alicuotasymontos" id="regimen_1">
         <field name="anexo_referencia">Anexo II, inc.a) pto.1)</field>
         <field name="codigo_de_regimen">19</field>
@@ -273,66 +231,74 @@
 
     <record model="afip.tabla_ganancias.escala" id="escala_1">
         <field name="importe_desde">0</field>
-        <field name="importe_hasta">5000</field>
+        <field name="importe_hasta">1600000</field>
         <field name="importe_fijo">0</field>
-        <field name="porcentaje">5</field>
-        <field name="importe_excedente">0</field>
+        <field name="porcentaje">0</field>
+        <field name="importe_excedente">1600000</field>
     </record>
 
     <record model="afip.tabla_ganancias.escala" id="escala_2">
-        <field name="importe_desde">5000</field>
-        <field name="importe_hasta">10000</field>
-        <field name="importe_fijo">250</field>
+        <field name="importe_desde">1600000</field>
+        <field name="importe_hasta">1744000</field>
+        <field name="importe_fijo">0</field>
         <field name="porcentaje">9</field>
-        <field name="importe_excedente">5000</field>
+        <field name="importe_excedente">1600000</field>
     </record>
 
     <record model="afip.tabla_ganancias.escala" id="escala_3">
-        <field name="importe_desde">10000</field>
-        <field name="importe_hasta">15000</field>
-        <field name="importe_fijo">700</field>
+        <field name="importe_desde">1744000</field>
+        <field name="importe_hasta">1883520</field>
+        <field name="importe_fijo">12960</field>
         <field name="porcentaje">12</field>
-        <field name="importe_excedente">10000</field>
+        <field name="importe_excedente">1744000</field>
     </record>
 
     <record model="afip.tabla_ganancias.escala" id="escala_4">
-        <field name="importe_desde">15000</field>
-        <field name="importe_hasta">20000</field>
-        <field name="importe_fijo">1300</field>
+	<field name="importe_desde">1883520</field>
+        <field name="importe_hasta">2015366.40</field>
+        <field name="importe_fijo">29702.40</field>
         <field name="porcentaje">15</field>
-        <field name="importe_excedente">15000</field>
+        <field name="importe_excedente">1883520</field>
     </record>
 
     <record model="afip.tabla_ganancias.escala" id="escala_5">
-        <field name="importe_desde">20000</field>
-        <field name="importe_hasta">30000</field>
-        <field name="importe_fijo">2050</field>
+        <field name="importe_desde">2015366.40</field>
+        <field name="importe_hasta">2136288.39</field>
+        <field name="importe_fijo">49479.36</field>
         <field name="porcentaje">19</field>
-        <field name="importe_excedente">20000</field>
+        <field name="importe_excedente">2015366.40</field>
     </record>
 
     <record model="afip.tabla_ganancias.escala" id="escala_6">
-        <field name="importe_desde">30000</field>
-        <field name="importe_hasta">40000</field>
-        <field name="importe_fijo">3950</field>
+        <field name="importe_desde">2136288.39</field>
+        <field name="importe_hasta">2243102.80</field>
+        <field name="importe_fijo">72454.54</field>
         <field name="porcentaje">23</field>
-        <field name="importe_excedente">30000</field>
+        <field name="importe_excedente">2136288.39</field>
     </record>
 
     <record model="afip.tabla_ganancias.escala" id="escala_7">
-        <field name="importe_desde">40000</field>
-        <field name="importe_hasta">60000</field>
-        <field name="importe_fijo">6250</field>
+        <field name="importe_desde">2243102.80</field>
+        <field name="importe_hasta">2332826.91</field>
+        <field name="importe_fijo">97021.85</field>
         <field name="porcentaje">27</field>
-        <field name="importe_excedente">40000</field>
+        <field name="importe_excedente">2243102.80</field>
     </record>
 
     <record model="afip.tabla_ganancias.escala" id="escala_8">
-        <field name="importe_desde">60000</field>
-        <field name="importe_hasta">999999999</field>
-        <field name="importe_fijo">11650</field>
+        <field name="importe_desde">2332826.91</field>
+        <field name="importe_hasta">2402811.73</field>
+        <field name="importe_fijo">121247.36</field>
         <field name="porcentaje">31</field>
-        <field name="importe_excedente">60000</field>
+        <field name="importe_excedente">2332826.91</field>
+    </record>
+
+    <record model="afip.tabla_ganancias.escala" id="escala_9">
+        <field name="importe_desde">2402811.73</field>
+        <field name="importe_hasta">9999999999</field>
+        <field name="importe_fijo">142942.65</field>
+        <field name="porcentaje">35</field>
+        <field name="importe_excedente">2402811.73</field>
     </record>
 
 </odoo>

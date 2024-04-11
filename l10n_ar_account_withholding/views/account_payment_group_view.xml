@@ -8,13 +8,17 @@
         <field name="inherit_id" ref="account_payment_group.view_account_payment_group_form"/>
         <field name="arch" type="xml">
             <form>
-                <field name="company_regimenes_ganancias_ids" invisible="1"/>
+                <field name="company_regimenes_ganancias_ids" invisible="True"/>
             </form>
             <field name="communication" position="after">
-                <label for="retencion_ganancias" attrs="{'invisible': [('company_regimenes_ganancias_ids', '=', [])]}"/>
-                <div attrs="{'invisible': [('company_regimenes_ganancias_ids', '=', [])]}">
-                    <field name="retencion_ganancias" class="oe_inline" attrs="{'required': [('company_regimenes_ganancias_ids', '!=', []), ('state', 'in', ['draft', 'confirmed'])]}"/>
-                    <field name="regimen_ganancias_id" class="oe_inline" attrs="{'invisible': [('retencion_ganancias', '!=', 'nro_regimen')], 'required': [('retencion_ganancias', '=', 'nro_regimen'), ('company_regimenes_ganancias_ids', '!=', []), ('state', 'in', ['draft', 'confirmed'])]}" domain="[('id', 'in', company_regimenes_ganancias_ids)]" options='{"no_open": True, "no_create": True}'/>
+                <label for="retencion_ganancias" invisible = "company_regimenes_ganancias_ids == []"/>
+                <div invisible = "company_regimenes_ganancias_ids == []">
+			<field name="retencion_ganancias" class="oe_inline" 
+				required = "company_regimenes_ganancias_ids != [] and state in ['draft', 'confirmed']"/>
+			<field name="regimen_ganancias_id" class="oe_inline" 
+				invisible = "retencion_ganancias != 'nro_regimen'"
+				required = "retencion_ganancias == 'nro_regimen' and company_regimenes_ganancias_ids != [] and state in ['draft', 'confirmed']"
+				domain="[('id', 'in', company_regimenes_ganancias_ids)]" options='{"no_open": True, "no_create": True}'/>
                 </div>
             </field>
         </field>
