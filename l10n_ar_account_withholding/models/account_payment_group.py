@@ -4,7 +4,7 @@
 # directory
 ##############################################################################
 from odoo import models, api, fields
-
+from odoo.exceptions import ValidationError
 
 class AccountPaymentGroup(models.Model):
 
@@ -23,35 +23,42 @@ class AccountPaymentGroup(models.Model):
         ('nro_regimen', 'Nro Regimen'),
     ],
         'Retención Ganancias',
-        readonly=True,
-        states={'draft': [('readonly', False)],
-                'confirmed': [('readonly', False)]}
     )
     regimen_ganancias_id = fields.Many2one(
         'afip.tabla_ganancias.alicuotasymontos',
         'Regimen Ganancias',
-        readonly=True,
         ondelete='restrict',
-        states={'draft': [('readonly', False)],
-                'confirmed': [('readonly', False)]}
     )
     company_regimenes_ganancias_ids = fields.Many2many(
         'afip.tabla_ganancias.alicuotasymontos',
-        compute='_company_regimenes_ganancias',
     )
     temp_payment_ids = fields.Char('temp_payment_ids')
 
+    @api.model
+    def default_get(self, fields):
+        res = super(AccountPaymentGroup, self).default_get(fields)
+        if res.get('partner_type') == 'supplier':
+            res.update({
+                'company_regimenes_ganancias_ids': [(6,0,self.env.user.company_id.regimenes_ganancias_ids.ids)],
+                'retencion_ganancias': 'nro_regimen',
+                })
+        else:
+            res.update({
+                'company_regimenes_ganancias_ids': [(6,0,[])]
+                })
+        return res
+
     #@api.depends('company_id.regimenes_ganancias_ids')
-    def _company_regimenes_ganancias(self):
-        """
-        Lo hacemos con campo computado y no related para que solo se setee
-        y se exija si es pago de o a proveedor
-        """
-        for rec in self.filtered(lambda x: x.partner_type == 'supplier'):
-            rec.company_regimenes_ganancias_ids = (
-                rec.company_id.regimenes_ganancias_ids)
-        for rec in self.filtered(lambda x: x.partner_type == 'customer'):
-            rec.company_regimenes_ganancias_ids = [(6,0,[])]
+    #def _company_regimenes_ganancias(self):
+    #    """
+    #    Lo hacemos con campo computado y no related para que solo se setee
+    #    y se exija si es pago de o a proveedor
+    #    """
+    #    for rec in self.filtered(lambda x: x.partner_type == 'supplier'):
+    #        rec.company_regimenes_ganancias_ids = (
+    #            rec.company_id.regimenes_ganancias_ids)
+    #    for rec in self.filtered(lambda x: x.partner_type == 'customer'):
+    #        rec.company_regimenes_ganancias_ids = [(6,0,[])]
 
     @api.onchange('commercial_partner_id')
     def change_retencion_ganancias(self):
@@ -68,12 +75,6 @@ class AccountPaymentGroup(models.Model):
             else:
                 def_regimen = False
             self.regimen_ganancias_id = def_regimen
-
-    @api.onchange('company_regimenes_ganancias_ids')
-    def change_company_regimenes_ganancias(self):
-        # partner_type == 'supplier' ya lo filtra el company_regimenes_ga...
-        if self.company_regimenes_ganancias_ids:
-            self.retencion_ganancias = 'nro_regimen'
 
     # sacamos esto por ahora ya que no es muy prolijo y nos se esta usando, si
     # lo llegamos a activar entonces tener en cuenta que en sipreco no queremos
