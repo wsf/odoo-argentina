@@ -23,8 +23,8 @@
             <field name="inherit_id" ref="account.view_partner_property_form"/>
             <field name="arch" type="xml">
                 <notebook>
-	                <page string="Percepciones">
-				<button name="partner_update_percepciones" type="object" string="Actualizar Percepciones" />
+	                <page string="Alicuotas">
+			    <button name="partner_update_percepciones" type="object" string="Actualizar Percepciones" />
         	            <group colspan="4" col="4">
                 	        <group colspan="4">
                         	    <field colspan="2" name="perception_ids" nolabel="1">
