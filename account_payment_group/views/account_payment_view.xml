@@ -48,9 +48,9 @@
             <field name="signed_amount"/>
             <field name="signed_amount_company_currency" sum="Total"/>
             <field name="state"/>
-            <field name="currency_id" invisible="1"/>
-            <field name="company_currency_id" invisible="1"/>
-            <field name="partner_type" invisible="1"/>
+            <field name="currency_id" optional="hide"/>
+            <field name="company_currency_id" optional="hide"/>
+            <field name="partner_type" optional="hide"/>
             <button icon="fa-pencil" type="object" invisible="state == 'draft'" name="show_details" string="Detalles"/>
         </tree>
     </field>
