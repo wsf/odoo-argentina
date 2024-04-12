@@ -50,7 +50,6 @@ class AccountTax(models.Model):
         vals = super(AccountTax, self).get_withholding_vals(
             payment_group, force_withholding_amount_type)
         base_amount = vals['withholdable_base_amount']
-
         if self.withholding_type == 'partner_tax':
             amount = base_amount * (alicuota)
             vals['comment'] = "%s x %s" % (
@@ -227,9 +226,9 @@ class AccountTax(models.Model):
         commercial_partner = partner.commercial_partner_id
         company = self.company_id
         alicuot = 0
-        for alicuot_id in commercial_partner.arba_alicuot_ids:
+        for alicuot_id in commercial_partner.perception_ids:
             if alicuot_id.tax_id.id == self.id:
-                alicuot = alicuot_id.percent
+                alicuot = alicuot_id.percent / 100
         return alicuot
 
     def _compute_amount(
