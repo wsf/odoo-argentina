@@ -58,8 +58,6 @@ class AccountPaymentGroup(models.Model):
         index=True,
         change_default=True,
         default=lambda self: self.env.user.company_id,
-        readonly=True,
-        states={'draft': [('readonly', False)]},
     )
     payment_methods = fields.Char(
         string='Metodos de Pago',
@@ -84,22 +82,16 @@ class AccountPaymentGroup(models.Model):
         string='Moneda',
         required=True,
         default=lambda self: self.env.user.company_id.currency_id,
-        readonly=True,
-        states={'draft': [('readonly', False)]},
     )
     payment_date = fields.Date(
         string='Fecha de Pago',
         default=fields.Date.context_today,
         required=True,
         copy=False,
-        readonly=True,
-        states={'draft': [('readonly', False)]},
         index=True,
     )
     communication = fields.Char(
         string='Memo',
-        readonly=True,
-        states={'draft': [('readonly', False)]},
     )
     notes = fields.Text(
         string='Notas'
@@ -138,8 +130,6 @@ class AccountPaymentGroup(models.Model):
     )
     unreconciled_amount = fields.Monetary(
         string='Ajuste / Adelanto',
-        readonly=True,
-        states={'draft': [('readonly', False)]},
     )
     # reconciled_amount = fields.Monetary(compute='_compute_amounts')
     to_pay_amount = fields.Monetary(
@@ -147,8 +137,6 @@ class AccountPaymentGroup(models.Model):
         inverse='_inverse_to_pay_amount',
         string='Monto a Pagar',
         # string='Total To Pay Amount',
-        readonly=True,
-        states={'draft': [('readonly', False)]},
     )
     payments_amount = fields.Monetary(
         compute='_compute_payments_amount',
@@ -187,7 +175,6 @@ class AccountPaymentGroup(models.Model):
         "this list (by maturity date). You can remove any line you"
         " dont want to be matched.",
         domain=move_lines_domain,
-        states={'draft': [('readonly', False)]},
     )
     has_outstanding = fields.Boolean(
         #compute='_compute_has_outstanding',
