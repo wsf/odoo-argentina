@@ -117,13 +117,17 @@ class AccountPaymentGroup(models.Model):
         currency_field='currency_id',
     )
     selected_finacial_debt = fields.Monetary(
-        string='Deuda Seleccionada',
+        string='Deuda Seleccionada Financiera',
         compute='_compute_selected_debt',
     )
+    copy_selected_debt = fields.Monetary(
+            'copy_selected_debt'
+            )
     selected_debt = fields.Monetary(
         # string='To Pay lines Amount',
         string='Deuda Seleccionada',
         compute='_compute_selected_debt',
+        inverse='_inverse_selected_debt',
     )
     # this field is to be used by others
     selected_debt_untaxed = fields.Monetary(
@@ -140,7 +144,7 @@ class AccountPaymentGroup(models.Model):
     # reconciled_amount = fields.Monetary(compute='_compute_amounts')
     to_pay_amount = fields.Monetary(
         compute='_compute_to_pay_amount',
-        #inverse='_inverse_to_pay_amount',
+        inverse='_inverse_to_pay_amount',
         string='Monto a Pagar',
         # string='Total To Pay Amount',
         readonly=True,
@@ -183,7 +187,6 @@ class AccountPaymentGroup(models.Model):
         "this list (by maturity date). You can remove any line you"
         " dont want to be matched.",
         domain=move_lines_domain,
-        readonly=True,
         states={'draft': [('readonly', False)]},
     )
     has_outstanding = fields.Boolean(
@@ -574,6 +577,12 @@ class AccountPaymentGroup(models.Model):
             rec.selected_finacial_debt = selected_finacial_debt * sign
             rec.selected_debt = selected_debt * sign
             rec.selected_debt_untaxed = selected_debt_untaxed * sign
+
+    def _inverse_selected_debt(self):
+        for rec in self:
+            rec.copy_selected_debt = self.selected_debt
+            rec.to_pay_amount = self.selected_debt
+        pass
 
     def _compute_to_pay_amount(self):
         for rec in self:

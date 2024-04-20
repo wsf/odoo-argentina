@@ -144,7 +144,6 @@ class AccountTax(models.Model):
                     for matched_move in payment_group.debt_move_line_ids:
                         matched_amount = matched_move.move_id._get_tax_factor() * (-1) * matched_move.with_context({'payment_group_id': payment_group.id}).amount_residual
                         withholdable_base_amount += matched_amount
-                #raise ValidationError('estamos aca %s'%(withholdable_base_amount))
                 period_withholding_amount = 0
                 non_taxable_amount = 0
                 non_taxable_amount = payment_group.partner_id.default_regimen_ganancias_id.montos_no_sujetos_a_retencion
@@ -164,8 +163,6 @@ class AccountTax(models.Model):
                     period_withholding_amount = 0
                 vals['withholdable_base_amount'] = withholdable_base_amount
                 vals['period_withholding_amount'] = period_withholding_amount
-
-
 
                 if regimen.porcentaje_inscripto == -1:
                     # hacemos <= porque si es 0 necesitamos que encuentre

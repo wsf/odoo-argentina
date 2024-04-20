@@ -119,9 +119,9 @@
                     </group>
                 <!-- </group> -->
                     <group>
-			    <field name="selected_debt" options="{'currency_field': 'currency_id'}" 
+			<field name="selected_debt" options="{'currency_field': 'currency_id'}" 
 				   invisible="state not in ['draft','confirmed']"/>
-			    <field name="selected_finacial_debt" options="{'currency_field': 'currency_id'}" 
+			<field name="selected_finacial_debt" options="{'currency_field': 'currency_id'}" 
 				   invisible="state not in ['draft','confirmed']" />
                         <field name="matched_amount" options="{'currency_field': 'currency_id'}" invisible="state != 'posted'" string="Monto a conciliar"/>
                         <field name="unmatched_amount" options="{'currency_field': 'currency_id'}" invisible="state != 'posted'" string="Monto sin conciliar"/>
