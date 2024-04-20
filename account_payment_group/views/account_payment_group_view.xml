@@ -168,7 +168,7 @@
 				context="{'refund': True}" type="action" />
 			<field name="debt_move_line_ids" 
 				context="{'tree_view_ref': 'account_payment_group.view_move_line_tree'}" 
-				domain="[('partner_id.commercial_partner_id', '=', commercial_partner_id),('account_id.account_type', '=', account_internal_type),('account_id.reconcile', '=', True),('reconciled', '=', False), ('full_reconcile_id', '=', False)]"/>
+				domain="[('move_id.state','=','posted'),('partner_id.commercial_partner_id', '=', commercial_partner_id),('account_id.account_type', '=', account_internal_type),('account_id.reconcile', '=', True),('reconciled', '=', False), ('full_reconcile_id', '=', False)]"/>
                     </page>
                     <page string="Pagado" invisible="state != 'posted'">
                         <field name="matched_move_line_ids" context="{'payment_group_id': id, 'tree_view_ref': 'account_payment_group.view_move_line_with_matched_tree'}"/>
